@@ -1,0 +1,29 @@
+{
+  "_purpose": "[합성 테스트-v0.5.0] PSST-Problem FAIL 실제 감지 여부 확인용. 문제 서술에 측정값(숫자+단위)을 의도적으로 뺐고, Solution/Support/Traction은 정상으로 채워 Problem만 FAIL하도록 isolate.",
+  "business_profile": {
+    "biz_type": "법인",
+    "industry_code": "62010 (소프트웨어 개발 및 공급업)",
+    "founded_date": "2023-03-15",
+    "region": "서울특별시",
+    "annual_revenue_krw": 320000000,
+    "employees": 4,
+    "ceo_birth_date": "1987-05-20",
+    "certifications": ["벤처기업확인(2024)"],
+    "disqualification_flags": [],
+    "business_description": "저희 고객들은 정말 힘들어하고 있고 이 문제는 너무 심각합니다. 기존 방식은 매우 불편하고 답답한 상황입니다.",
+    "team_experience": "대표이사는 제조 자동화 분야 8년 경력 후 2023년 창업했습니다.",
+    "budget_detail": [
+      { "item": "인건비", "amount_krw": 60000000, "note": "개발인력 2명 6개월분" },
+      { "item": "재료비", "amount_krw": 15000000, "note": "센서 모듈 및 테스트 장비" }
+    ],
+    "expected_outcomes": "사업 종료 시점 기준 베타 고객사 10개사 확보, 매출 1.5억원 창출을 목표로 합니다.",
+    "documents_status": {
+      "사업계획서 (지정양식)": true,
+      "사업자등록증 사본": true,
+      "중소기업(소상공인) 확인서": true,
+      "4대보험 가입자 명부": true,
+      "국세/지방세 완납증명서": true
+    }
+  },
+  "target_period": { "start_date": "2026-07-06", "end_date": "2026-09-30" }
+}

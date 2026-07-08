@@ -1,0 +1,140 @@
+# =====================================================================
+# golden_set.yaml — 꽃집 실데이터 골든셋 (통합본)
+#
+# entry 001은 원래 실데이터_diff_로그_001.md 안에 yaml 블록으로만 있었으나,
+# 항목이 늘어나면서 검색/재사용성을 위해 이 파일로 통합함(2026-07-07).
+# 이후 diff 로그 문서들은 "분석/발견"을 기록하고, 원본 데이터는 이 파일에
+# 축적한다.
+#
+# 원칙:
+#   - 원문은 절대 고치지 않고 그대로 보존 (raw_text / raw_variants)
+#   - 불확실한 값은 임의로 채우지 않고 value: null + note: "확인 필요"로 표시
+#   - 하나의 실제 통화/문자에 여러 주문이 섞여 있으면 별도 entry로 분리하되
+#     원본 raw_text는 공유 참조(source_call_id)로 연결
+# =====================================================================
+
+schema_note: >
+  각 entry는 12봇_kind분류표.yaml의 shared_context 필드(order_draft 등)로 나중에
+  매핑 예정. 지금은 원본 보존 + 최소 구조화 단계. order_classification 필드는
+  2026-07-07 최종점검에서 추가 — order_classification_bot의 6종 enum(주문전화/
+  주문가능성있음/단순문의/일반통화/스팸무관/확인필요)과 기존 order_status(order/
+  non_order 2분류)가 안 맞던 것을 발견해 정합성 맞춤(아래 각 entry 참고).
+
+golden_set:
+
+  # -------------------------------------------------------------------
+  - id: "001"
+    channel: "sms"
+    order_status: "order"
+    order_classification: "주문전화"   # 실제로는 문자지만 판정봇 enum엔 "주문전화/주문가능성있음"만 있고 문자 전용 값이 따로 없음 — 확인 필요(신규 발견)
+    date_added: "2026-07-07"
+    raw_variants:
+      - label: "스크린샷 원문(실제 수신 문자)"
+        text: "창녕군청 재무과 백승흔10만원 난 승진축하 부곡면장 박혜미"
+        note: "메시지 전송 취소(회수) 표시가 붙어 있음 — 최종본인지 불확실"
+      - label: "사용자 타이핑 버전"
+        text: "창녕군청 재무과 박혜미 10마넌 난으로 보내줘 승진축하합니다 부곡면장 백승흔"
+    known_risk_pattern:
+      name: "발신자 미상 시 수신인/발신인 위치기반 혼동"
+      status: "정상적으로 발생하는 리스크 — review_manager_bot이 반드시 확인필요로 올려야 함"
+      trigger_condition: "발신 번호가 기존 거래처 연락처 목록에 없을 때(낯선 번호)"
+    structured_extract:
+      recipient_org: "창녕군청 재무과"
+      recipient_name: null   # 확인 필요 — 스크린샷/타이핑 버전에서 백승흔/박혜미가 뒤바뀜, 임의로 하나 확정하지 않음
+      sender_title: "부곡면장"
+      sender_name: null      # 확인 필요 — 위와 동일한 이유
+      product: "난"
+      amount_krw: 100000
+      ribbon_message_raw: "승진축하"
+      ribbon_message_final: "승진을 축하드립니다."
+    diff_log_ref: "실데이터_diff_로그_001.md"
+
+  # -------------------------------------------------------------------
+  - id: "002"
+    channel: "call"
+    order_status: "non_order"
+    order_classification: "일반통화"
+    date_added: "2026-07-07"
+    raw_text_excerpt: "여보세요 잘 지내자..."
+    note: "사용자가 준 발췌문(전체 통화 아님) — 단순 안부 전화, 주문 내용 없음"
+    purpose: "negative example — 주문이 아닌 통화도 반드시 non_order로 분류돼야 함(전체를 '확인 필요'로 올리면 안 됨. 이런 통화까지 검수 대기열에 올라가면 실사용에서 노이즈가 너무 커짐)"
+
+  # -------------------------------------------------------------------
+  - id: "003"
+    channel: "call"
+    order_status: "non_order"
+    order_classification: "일반통화"   # "단순문의"가 아니라 "일반통화"로 판단 — 꽃집 서비스에 대한 질문이 아니라 화자 개인사(꽃 심어줄 사람 구함)라서
+    date_added: "2026-07-07"
+    raw_text_excerpt: "꽃 심으로 가야 되는데..."
+    note: "사용자가 준 발췌문 — '꽃'이라는 단어가 나오지만 화환 주문이 아니라 꽃을 심어줄 사람을 구하는 일상 대화"
+    purpose: "false-positive 방지 근거 사례 — '꽃/화환/난' 같은 키워드 단순 매칭으로 주문 여부를 판단하면 안 된다는 것을 보여줌. order_draft_bot 이전에(혹은 correction_bot 단계에서) '이게 애초에 주문인가'를 먼저 판단하는 게이트가 필요함을 시사"
+
+  # -------------------------------------------------------------------
+  - id: "004"
+    channel: "call"
+    order_status: "non_order"
+    order_classification: "일반통화"
+    date_added: "2026-07-07"
+    raw_text_excerpt: "행사가 언제 하는데..."
+    note: "사용자가 준 발췌문 — 일정 조율 대화, 주문 아님"
+    purpose: "negative example — 002와 동일 목적(non_order 분류 필요성)"
+
+  # -------------------------------------------------------------------
+  # 005, 006: 통화 한 건에 두 주문이 섞여 있어 분리 기록. source_call_id로 연결.
+  # -------------------------------------------------------------------
+  - id: "005"
+    source_call_id: "call_007_2026-07-07"
+    channel: "call"
+    order_status: "order"
+    order_classification: "주문전화"
+    date_added: "2026-07-07"
+    raw_text_full_call: >
+      어 그 부곡 면장 보호구 매장 승진했다대 면접 축하한다고 좀 보내고 싶은데
+      그것 좀 보내 줄래 문구 뭐 승진 축하합니다 이거 말고 뭐 있나 없잖아 뭐 그거 하고
+      보내는 사람이야 뭐 대륙 건설 이제 상 이렇게 내줘라 알겠다 그래 면장 됐다 그래
+      부곡면 장도 있다더라 알겠다 두 면장 축하합니다 / 어 그래 그래 어 그 북면장
+      승진했다더라 어 그 좀 그거 해줘라 몰라 뭐 저 어디 부장됐다던가 좀 해줘라 어
+      얼마짜리냐고 오만 원짜리 해가지고 뭐 부공면 협의회에서 하나 줄래 군청으로
+      들어갔다더라 어 알겠다 응
+    note: "위 raw_text_full_call은 원문 전체(사투리/구어체 그대로, STT 결과). '/'는 화자가 두 번째 건으로 넘어가는 지점을 사용자가 표시한 구분자 — 원문 자체엔 없던 기호이므로 분리 근거로만 사용하고 내용 해석에 포함하지 않음."
+    segment_used: "'/' 앞부분 (부곡면장 건)"
+    structured_extract:
+      recipient_title: "부곡면장"
+      recipient_org: "부곡면"
+      recipient_name: null       # 확인 필요 — 원문에 개인 이름 언급 없음
+      event: "승진"              # 확인 필요 수준은 아님(반복 언급됨) — 다만 "면접 축하한다고" 부분은 문맥과 안 맞아 확인 필요
+      unclear_phrase_1: "보호구 매장"
+      unclear_phrase_1_note: "확인 필요 — 의미 불명. STT 오인식 가능성이 있으나(예: 다른 직책명의 오인식) 추측으로 단정하지 않음. 원문 그대로 보존"
+      unclear_phrase_2: "면접 축하한다고"
+      unclear_phrase_2_note: "확인 필요 — '승진'과 '면접'이 문맥상 안 맞음. 오인식 또는 다른 의미일 수 있음"
+      product: null              # 확인 필요 — 명시적 상품명 언급 없음 (화환으로 추정되나 추정일 뿐, 확정하지 않음)
+      ribbon_message_raw: "승진 축하합니다"
+      ribbon_message_final: "승진을 축하드립니다."   # 대안 문구를 요청했으나 화자 스스로 "없잖아"라고 확인 — 기본 문구로 확정 가능
+      sender_org: "대륙건설"
+      sender_name: null          # 확인 필요 — "이제 상 이렇게 내줘라" 부분 의미 불명, 개인 이름 특정 안 됨
+      amount_krw: null           # 확인 필요 — 이 세그먼트에는 금액 언급 없음
+    diff_log_ref: "실데이터_diff_로그_002.md"
+
+  - id: "006"
+    source_call_id: "call_007_2026-07-07"
+    channel: "call"
+    order_status: "order"
+    order_classification: "주문전화"   # recipient_region이 불확실(006 자체 문제)해도 "이게 주문인지 여부"는 확실 — 별개 축이라 order_classification은 명확히 부여 가능
+    date_added: "2026-07-07"
+    raw_text_full_call_ref: "005번 항목의 raw_text_full_call과 동일 — 전체 원문은 거기 보존"
+    segment_used: "'/' 뒷부분 (북면장 건)"
+    structured_extract:
+      recipient_title: "북면장"
+      recipient_region: null    # 확인 필요 — 창녕군에 현재 '북면'이 공식 행정구역으로 없음(참고자료_행정구역_지명사전.yaml 참고). 창녕군 부곡면 관습적 옛 지명인지, 인접한 창원시 북면(실제 존재)을 가리키는지 불확실 — 임의로 확정하지 않음
+      recipient_name: null      # 확인 필요 — 개인 이름 언급 없음
+      event: "승진 또는 부장 취임 (화자 스스로도 불확실)"
+      unclear_phrase: "몰라 뭐 저 어디 부장됐다던가"
+      unclear_phrase_note: "화자가 스스로 '몰라'라고 말할 정도로 본인도 정확한 사유를 모르는 상태 — 이 불확실성 자체를 그대로 기록. AI가 이걸 확정된 사실처럼 다뤄서는 안 됨"
+      product: null              # 확인 필요 — 명시적 언급 없음
+      ribbon_message_raw: null   # 확인 필요 — "그거 해줘라"로만 언급, 005와 같은 문구인지 명시 안 됨(추정 가능하나 확정하지 않음)
+      amount_krw: 50000          # "오만 원짜리" — 이 값은 명확함
+      sender_org: "부공면 협의회"
+      sender_org_note: "확인 필요 — '부공면'이 '부곡면'의 오기/오인식일 가능성이 있으나 단정하지 않고 원문 그대로 기록"
+      additional_detail: "군청으로 들어갔다더라"
+      additional_detail_note: "확인 필요 — 수령자의 새 소속(예: 000군청으로 이동)을 말하는 것인지, 다른 맥락인지 불명확"
+    diff_log_ref: "실데이터_diff_로그_002.md"

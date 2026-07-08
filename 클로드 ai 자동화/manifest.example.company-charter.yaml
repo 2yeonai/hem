@@ -1,0 +1,70 @@
+name: company-charter-skill
+version: 0.1.0
+domain: company_charter
+
+io_contract:
+  input_schema:
+    type: object
+    required: ["current_state"]
+    properties:
+      current_state:
+        type: object
+        description: "지금까지 결정된 것들 — 우선순위 스킬 목록, 사업 목표(셀프→SaaS 등)"
+      pending_domains:
+        type: array
+        items: { type: string }
+        description: "예: [gov_support, flower_shop, pest_control]"
+  output_schema:
+    type: object
+    properties:
+      company_identity:
+        type: object
+        description: "회사명, 미션, 한 문장 정의"
+      ai_employee_definition:
+        type: object
+        description: "AI직원이 뭘 할 수 있고 뭘 못하는지 — 권한 등급 포함"
+      authority_boundaries:
+        type: array
+        description: "자동실행 가능 / 승인필요 / 절대 자동화 금지, 3단계 경계선"
+      growth_path:
+        type: string
+        description: "셀프 사용 → SaaS 전환 시점과 조건"
+      revision_trigger:
+        type: array
+        items: { type: string }
+        description: "이 헌장을 다시 써야 하는 조건 (예: 새 도메인 추가, 규제 대상 확대)"
+
+model_routing:
+  stages:
+    - step: "현재 상태/스킬 목록 정리"
+      tier: low_cost
+    - step: "헌장 초안 작성"
+      tier: mid
+    - step: "권한 경계선 판정 (규제 도메인 포함 시)"
+      tier: high
+
+quality_gate:
+  confidence_threshold: 0.7
+  self_check_rules:
+    - "authority_boundaries에 '절대 자동화 금지' 항목이 최소 1개 이상 있어야 함"
+    - "pending_domains에 있는 모든 도메인이 ai_employee_definition에서 언급되어야 함"
+  on_fail:
+    retry_count: 1
+    escalation_target: human_review
+
+invocation:
+  entrypoint: "scripts/run.py"
+  callable_by:
+    - "manual_cli"
+    - "ai_employee_platform"
+
+state:
+  external_store_ref: "company_charter.md 파일 자체가 상태 — 버전관리로 이력 추적"
+
+failure_log_format:
+  fields:
+    - "timestamp"
+    - "step"
+    - "input_summary"
+    - "error"
+    - "confidence_at_failure"

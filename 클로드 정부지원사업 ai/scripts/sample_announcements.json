@@ -1,0 +1,99 @@
+[
+  {
+    "program_name": "2026년 창업성장기술개발사업(디딤돌창업과제)",
+    "agency": "중소벤처기업부 / 중소벤처기업진흥공단",
+    "source_note": "[가정값-확인필요] 실제 공고문 원문 미수집. 과거 유사 공고 구조를 참고해 합리적으로 구성한 목업 데이터.",
+    "announcement_date": "2026-06-15",
+    "deadline": "2026-08-20",
+    "eligibility": {
+      "biz_type": ["법인", "개인"],
+      "industry_codes": "any",
+      "min_years_since_founding": 0,
+      "max_years_since_founding": 7,
+      "region": "any",
+      "max_employees": null,
+      "min_employees": null,
+      "max_annual_revenue_krw": 2000000000,
+      "ceo_age_max": null
+    },
+    "exclusion_conditions": [
+      "국세 또는 지방세를 체납 중인 기업",
+      "동일 사업으로 정부 R&D 지원사업에 중복 선정된 기업",
+      "휴업 또는 폐업 상태인 기업"
+    ],
+    "required_documents": [
+      "사업계획서 (지정양식)",
+      "사업자등록증 사본",
+      "중소기업(소상공인) 확인서",
+      "4대보험 가입자 명부",
+      "국세/지방세 완납증명서"
+    ],
+    "submission_format": { "page_limit": 15, "file_format": "hwp 또는 pdf" },
+    "budget_criteria": { "max_grant_krw": 100000000, "matching_fund_ratio": 0.0 },
+    "scoring_rubric": [
+      { "item": "기술성 및 사업화 가능성", "weight": 40 },
+      { "item": "시장성 및 성장전략", "weight": 30 },
+      { "item": "팀 역량 및 실행력", "weight": 20 },
+      { "item": "고용창출 및 사회적 가치", "weight": 10 }
+    ]
+  },
+  {
+    "program_name": "2025년 청년창업사관학교 8기 모집공고",
+    "agency": "중소벤처기업진흥공단",
+    "source_note": "[가정값-확인필요] 마감일이 지난 공고를 자동제외 로직 테스트용으로 포함.",
+    "announcement_date": "2025-01-10",
+    "deadline": "2025-02-28",
+    "eligibility": {
+      "biz_type": ["개인", "법인"],
+      "industry_codes": "any",
+      "min_years_since_founding": 0,
+      "max_years_since_founding": 3,
+      "region": "any",
+      "max_employees": null,
+      "min_employees": null,
+      "max_annual_revenue_krw": null,
+      "ceo_age_max": 39
+    },
+    "exclusion_conditions": [
+      "타 창업사관학교 기수 수료자",
+      "국세 체납 기업"
+    ],
+    "required_documents": [
+      "사업계획서",
+      "창업자 이력서",
+      "사업자등록증 사본"
+    ],
+    "submission_format": { "page_limit": 10, "file_format": "pdf" },
+    "budget_criteria": { "max_grant_krw": 100000000, "matching_fund_ratio": 0.3 },
+    "scoring_rubric": [
+      { "item": "사업 아이디어 참신성", "weight": 30 },
+      { "item": "대표자 역량", "weight": 30 },
+      { "item": "시장진입 전략", "weight": 40 }
+    ]
+  },
+  {
+    "program_name": "2026년 지역특화산업 육성 바우처사업",
+    "agency": "서울지방중소벤처기업청",
+    "source_note": "[가정값-확인필요] 원문에서 제출서류 목록을 확인하지 못한 상황을 재현 — required_documents 비어있음 → 매칭 실패 처리 테스트용.",
+    "announcement_date": "2026-06-01",
+    "deadline": "2026-08-31",
+    "eligibility": {
+      "biz_type": ["법인", "개인"],
+      "industry_codes": "any",
+      "min_years_since_founding": 0,
+      "max_years_since_founding": 10,
+      "region": ["서울특별시"],
+      "max_employees": 10,
+      "min_employees": null,
+      "max_annual_revenue_krw": 1000000000,
+      "ceo_age_max": null
+    },
+    "exclusion_conditions": [
+      "국세 체납 기업"
+    ],
+    "required_documents": [],
+    "submission_format": { "page_limit": null, "file_format": null },
+    "budget_criteria": { "max_grant_krw": 30000000, "matching_fund_ratio": 0.2 },
+    "scoring_rubric": []
+  }
+]

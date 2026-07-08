@@ -1,0 +1,80 @@
+# =====================================================================
+# fable5_카드_사전정리_2026-07-07.yaml
+#
+# [2026-07-07 (2단계+3단계) 갱신] 원래 11개였던 카드를 재검토한 결과:
+#   - card-06(문서종류구분불가), card-08(entry_points실행기미연결),
+#     card-09(리마인더날짜로직없음) 3개는 "이미 있는 run_if/entry_points
+#     방식을 그대로 재사용해 필드만 추가"하는 방식으로 실제로 해결됨
+#     (manifest.yaml + scripts/run.py 반영 완료, 12건 배치 테스트로 검증함).
+#     → 아래 목록에서 제외(해결 완료).
+#   - card-03(승인이력), card-04(템플릿버전), card-07(승인상태4종불확실)
+#     3개는 전부 "완료보고서·소독증명서 문서 자체의 초안→승인대기→승인/
+#     반려 워크플로우" 하나의 근본 문제로 수렴한다는 게 확인돼(3단계
+#     테스트 + MVP 문서의 승인 워크플로우/템플릿 섹션 재확인) 카드 하나로
+#     병합함(card-A).
+#   - card-01/02/05/10/11은 그대로 유지.
+#   결과: 11개 → 6개.
+#
+# 주의: 이 카드는 아직 Fable 5에게 보내지 않았습니다. should_escalate_to_fable는
+# 사용자 승인 전까지 항상 false로 둡니다 — 정책(AI모델정책_전체버전.md)에
+# 따라 Fable 5는 사용자가 먼저 "이거 Fable 써야 할 것 같은데 진행할까요?"에
+# 승인해야만 사용합니다. 구조를 실제로 바꾸는 결정도 이 카드만으로는 내리지
+# 않았습니다.
+# =====================================================================
+
+resolved_and_removed:
+  - id: card-06-문서종류구분불가
+    resolution: "report_requested/certificate_requested 2개 필드로 분리, document_draft를 report/certificate 하위구조로 재구성. 12건 배치 테스트로 12건 전부 원본과 정확히 일치 확인."
+  - id: card-08-entry_points실행기미연결
+    resolution: "scripts/run.py의 build_graph()가 entry_points를 반영하도록 수정. schedule 트리거로 리마인더봇 이후(방문알림봇~만족도수집봇)까지 실제로 이어지는 것을 12건 배치 테스트로 확인."
+  - id: card-09-리마인더날짜로직없음
+    resolution: "리마인더봇 mock에 실제 last_visit_date+visit_cycle 기반 날짜비교 로직 구현(due_date/days_until_due/is_overdue). 12건 중 11건이 실제로 due_list에 정확히 잡히는 것을 확인."
+  - id: card-A-문서승인워크플로우
+    resolution: >
+      [2026-07-07, Fable 5 결정 반영 완료] decision-log_skill-factory-architecture.md
+      7절 참고. manifest.schema.v2.yaml에 approval_block 범용 패턴 +
+      on_fail.human_reject.return_to 매핑 확장 추가. 방역 manifest.yaml에
+      document_draft.report/certificate 각각 승인 블록 + 새 human stage
+      "문서승인" 추가(문서생성봇 뒤, 문자장부봇 앞). run.py에 반려 2갈래
+      복귀(표현오류→문서생성봇, 데이터오류→현장완료입력봇) + "승인완료 아닌
+      문서는 발송 금지" 안전장치 구현. 12건 배치 + 추가 시나리오 3개(반려1회
+      후 재승인 A/B, 지속반려시 발송차단 C) 전부 테스트로 확인함(PASS).
+
+cards:
+  - id: card-01-고객현장분리
+    type: unknown
+    summary: "customer_record가 고객+현장 정보를 하나의 object로 뭉쳐 저장 — 고객 1명이 현장 여러 곳을 갖거나 한 현장에 방문 이력이 여러 번 쌓이는 경우를 표현 못할 수 있음"
+    evidence: "새 문서 '스키마 관련 유보 사항' 표: 고객/현장/방문 3엔터티 분리 여부 unspecified. manifest.yaml customer_record는 단일 object(written_by: 고객DB저장봇)"
+    confidence: 0.6
+
+  - id: card-02-법정주기저장방식
+    type: unknown
+    summary: "visit_cycle이 문자열 하나뿐 — 시설유형별로 법정 소독주기가 다르게 적용된다면 시설유형-주기 매핑 구조가 필요할 수 있음"
+    evidence: "새 문서에도 시설별 법정주기 원문 확인 안 됨(보수적 체크리스트로만 존재). manifest.yaml visit_cycle: string 타입 하나. run.py의 CYCLE_DAYS 매핑(격월/분기/반기/연1회)도 임시값일 뿐 법령 근거 없음"
+    confidence: 0.3
+
+  - id: card-05-AI전달필드최소화
+    type: unknown
+    summary: "일부 stage(검수매니저 등)가 원본 필드를 폭넓게 읽음 — 개인정보 최소수집/목적제한 원칙을 지키려면 접근범위 재설계가 필요할 수 있음"
+    evidence: "새 문서 '개인정보와 접근통제' 표: 최소수집/목적제한/접근권한분리 원칙. manifest.yaml 검수매니저 io.reads가 13개 필드(report_requested/certificate_requested 분리로 1개 증가)"
+    confidence: 0.4
+
+  - id: card-10-권한체계3역할vs현재1개
+    type: unknown
+    summary: "새 문서는 현장입력자/대표자/관리자 3역할(사용자는 기사/운영/대표/관리자 4역할 언급)을 제안하지만, 지금은 대표자검수(human) stage 1개뿐"
+    evidence: "설계메모_권한과오프라인정책.md 1절. manifest.yaml stages 중 kind:human은 대표자검수 1개뿐"
+    confidence: 0.5
+
+  - id: card-11-오프라인정책부재
+    type: fact
+    summary: "manifest.yaml/run.py 어디에도 오프라인 임시저장·동기화·충돌처리 개념이 없음"
+    evidence: "설계메모_권한과오프라인정책.md 2절 — 새 문서의 오프라인정책 표 7항목 중 manifest.yaml에 대응하는 필드/stage 0개"
+    confidence: 0.8
+
+open_questions:
+  - "위 6개 카드 중 어떤 것부터 먼저 Fable 5에 상정할지(전부 한번에 vs 우선순위 나눠서)는 사용자 판단 필요"
+  - "card-A(문서승인워크플로우)는 confidence가 가장 높고(0.9) 실제 테스트로 재현됐음 — 나머지는 아직 추정 수준"
+  - "골든셋 실제 사례가 들어오면 card-02(법정주기), card-10(권한체계), card-11(오프라인정책)의 실제 필요성이 더 명확해질 수 있음"
+
+should_escalate_to_fable: false
+escalate_reason: "아직 사용자 승인 전 — 정책상(AI모델정책_전체버전.md) 사용자가 먼저 '이거 Fable 써야 할 것 같은데 진행할까요?'에 승인해야 호출 가능. 이 카드는 승인 시 바로 쓸 수 있도록 미리 정리만 해둔 것."

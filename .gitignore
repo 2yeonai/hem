@@ -1,0 +1,68 @@
+# Obsidian 개인 설정 파일 (팀과 공유하지 않을 파일들)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/hotkeys.json
+.obsidian/app.json
+.obsidian/appearance.json
+.obsidian/bookmarks.json
+
+# Obsidian 캐시 및 임시 파일
+.obsidian/cache/
+.obsidian/workspace.json.bak
+
+# 플러그인 개인 데이터 (플러그인 소스는 포함, 개인 설정만 제외)
+.obsidian/plugins/*/data.json
+
+# Obsidian 휴지통
+.trash/
+
+# macOS 시스템 파일
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows 시스템 파일
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+
+# Linux 시스템 파일
+*~
+.directory
+
+# 백업 파일
+*.bak
+*.tmp
+*.temp
+
+# 로그 파일
+*.log
+
+# 환경 변수 파일 (민감 정보 보호)
+.env
+.env.local
+.env.*.local
+
+# Node.js (플러그인 개발 시)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git LFS (대용량 파일 관리 시)
+# 필요하면 활성화: *.pdf, *.mp4, *.zip 등
+
+# Claude Code 로컬 전용 설정 (기기별 권한 등, 공유 안 함)
+.claude/settings.local.json
+
+# Claude Code 세션/플러그인 캐시 부산물 (vault 콘텐츠 아님, 실수로 생성됨 - .audit-key 등 민감 데이터 포함 가능)
+클로드 꽃집 ai/66ae7e14-bf57-4b90-8273-697998213497/
+클로드 꽃집 ai/833bf976-d4ba-4cef-b499-90407a612c9e/
+클로드 꽃집 ai/rpm/
+클로드 꽃집 ai/skills-plugin/
+클로드 정부지원사업 ai/66ae7e14-bf57-4b90-8273-697998213497/
+클로드 정부지원사업 ai/833bf976-d4ba-4cef-b499-90407a612c9e/
+클로드 정부지원사업 ai/rpm/
+클로드 정부지원사업 ai/skills-plugin/

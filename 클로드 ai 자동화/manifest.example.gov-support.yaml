@@ -1,0 +1,67 @@
+name: gov-support-app-skill
+version: 0.1.0
+domain: gov_support
+
+io_contract:
+  input_schema:
+    type: object
+    required: ["business_profile"]
+    properties:
+      business_profile:
+        type: object
+        description: "사업자등록번호, 업종, 지역, 매출규모 등"
+      target_period:
+        type: string
+        description: "조회 기간, 예: 2026-Q3"
+  output_schema:
+    type: object
+    properties:
+      matched_programs:
+        type: array
+        items:
+          type: object
+          properties:
+            program_name: { type: string }
+            eligibility_confidence: { type: number }
+            required_documents: { type: array, items: { type: string } }
+            deadline: { type: string }
+      draft_application:
+        type: string
+        description: "신청서 초안 — 반드시 사람 검토 후 제출"
+
+model_routing:
+  stages:
+    - step: "공고 수집 및 파싱"
+      tier: low_cost
+    - step: "자격요건 매칭"
+      tier: mid
+    - step: "신청서 초안 작성"
+      tier: mid
+    - step: "애매한 자격요건 최종 판정 (드물게 발생)"
+      tier: escalation
+
+quality_gate:
+  confidence_threshold: 0.85
+  self_check_rules:
+    - "매칭된 프로그램의 마감일이 오늘보다 과거이면 자동 제외"
+    - "필수서류 목록이 비어있으면 실패로 간주"
+  on_fail:
+    retry_count: 2
+    escalation_target: human_review
+
+invocation:
+  entrypoint: "scripts/run.py"
+  callable_by:
+    - "ai_employee_platform"
+    - "manual_cli"
+
+state:
+  external_store_ref: "TBD - 사업자 프로필/이력 저장 위치 (예: 별도 DB 또는 파일)"
+
+failure_log_format:
+  fields:
+    - "timestamp"
+    - "step"
+    - "input_summary"
+    - "error"
+    - "confidence_at_failure"

@@ -1,0 +1,41 @@
+{
+  "matched_programs": [],
+  "excluded_programs": [
+    {
+      "program_name": "2026 경력단절여성 창업케어 프로그램",
+      "exclusion_reason": "마감일 경과 (2026-04-02)"
+    }
+  ],
+  "draft_application": null,
+  "judge_review": {
+    "rejection_risks": [
+      "매칭된 사업이 없어 초안 자체가 존재하지 않음 -> 심사 대상 아님"
+    ],
+    "exaggeration_flags": [],
+    "unsupported_claims": [],
+    "overall_pass_recommendation": false
+  },
+  "quality_gate_result": {
+    "overall_confidence": 0.0,
+    "confidence_threshold": 0.85,
+    "confidence_passed": false,
+    "judge_pass_recommendation": false,
+    "lock_state": "DRAFT",
+    "routed_to": "human_review",
+    "reasons": [
+      "매칭된 지원사업 없음 -> quality_gate/심사위원 검수 대상 자체가 없음"
+    ]
+  },
+  "lock_state": "DRAFT",
+  "needs_confirmation": [
+    "[2026 경력단절여성 창업케어 프로그램] [실제 공고문 PDF에서 파싱-확인필요] '2026년 경력단절여성 창업케어 프로그램 공고문.pdf' (공고일 2026-03-06, 한국여성벤처협회장) 기반. PDF 표/구조 파싱이라 세부 수치·조건 누락 가능성 있음.",
+    "[2026 경력단절여성 창업케어 프로그램] 현재 스키마로 표현 못하는 자격요건 있음: 예비창업자(사업자등록 없음)는 min/max_years_since_founding으로 표현이 애매함 — '업력 0~1년'으로 근사했으나 실제로는 '아예 창업 안 한 자'도 포함되는 별도 상태; 해외법인은 대표 대한민국 국적인 경우만 지원 가능, 사업기간 내 국내법인 설립 필수 — 국적 필드 없음; 부동산임대업만 영위하는 개인사업자(1년 미만)는 예비창업자로 간주, 1년 이상+타업종 겸업이면 기창업자로 지원불가 — 업종 조합 조건이라 industry_codes 단일 매칭으로 표현 불가"
+  ],
+  "run_meta": {
+    "ref_date": "2026-07-06",
+    "target_period": {
+      "start_date": "2026-07-06",
+      "end_date": "2026-12-31"
+    }
+  }
+}

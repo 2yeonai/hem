@@ -1,0 +1,547 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+pest-control-ai-ops / scripts/run.py  (manifest v2, schema: ai공장짓기/manifest.schema.v2.yaml)
+
+방역&클린 AI 운영관리 스킬의 실행 뼈대(skeleton). 아직 실제 AI 모델을 호출하지
+않고, manifest.yaml의 stages/triggers/run_if/entry_points를 그대로 읽어
+"구조가 처음부터 끝까지 한 번 통과되는지"만 확인하는 목적의 스텁 실행기다.
+
+중요: 여기 들어있는 각 stage 함수는 전부 목업(mock)이다. 실제 STT/LLM 호출
+없이 간단한 규칙(키워드 매칭 등)으로 흉내만 낸다 — golden_set이 쌓이면
+각 stage 함수를 실제 모델 호출로 교체해야 한다.
+
+사용법:
+  python3 run.py [입력 JSON 경로] [--manifest <manifest.yaml 경로>] [--trigger event|schedule]
+  (입력 생략 시 --trigger event는 test/temp_mock_input_임시.json,
+   --trigger schedule은 test/temp_schedule_mock_input_임시.json 사용 —
+   둘 다 실제 골든셋 아님, 구조 확인용 가짜 데이터)
+
+트리거:
+  event(문의 접수)와 schedule(정기 방문주기 도래) 둘 다 실행 가능.
+  [2026-07-07 (2단계) 갱신 — 3단계 테스트에서 발견한 갭 해결(card-08)]
+  이전엔 schedule 경로가 리마인더봇 하나만 실행하고 멈췄음(build_graph가
+  depends_on만 보고 entry_points 필드를 무시했기 때문). 이제 build_graph가
+  entry_points를 반영해 리마인더봇 → 방문알림봇 → ... → 만족도수집봇까지
+  이어진다. 방문주기가 도래한 고객이 여러 명이면, manifest.schema.v2.yaml#5
+  (묶음 순차 처리 정책 — "1건이 끝까지 마친 뒤에야 다음 건 시작", 병렬
+  아님)을 그대로 재사용해 고객 한 명씩 순차 처리한다(새 문법 발명 안 함).
+
+3개 미정 stage(현장분리봇/견적금액산정봇/현장사진봇)는 run_if가
+"미정_골든셋수집후결정"으로 돼 있으면 기본적으로 꺼진 것으로 취급한다
+(evaluate_run_if 참고) — 골든셋으로 실제 필요성이 확인되면 이 부분만 바꾸면 됨.
+"""
+import sys
+import os
+import json
+import argparse
+from pathlib import Path
+from datetime import date, timedelta
+
+try:
+    import yaml
+except ImportError:
+    print("[ERROR] pyyaml이 필요합니다: pip install pyyaml --break-system-packages")
+    sys.exit(1)
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = SCRIPT_DIR.parent
+DEFAULT_MANIFEST = ROOT_DIR / "manifest.yaml"
+DEFAULT_MOCK_INPUT = ROOT_DIR / "test" / "temp_mock_input_임시.json"
+DEFAULT_SCHEDULE_MOCK_INPUT = ROOT_DIR / "test" / "temp_schedule_mock_input_임시.json"
+
+# [2026-07-07 (2단계) 신규] 방문주기 문자열 -> 일수 매핑. 실제 법정 소독주기가
+# 시설유형별로 다르게 적용되는지는 미확인(card-02, 구조변경 카드 참고) — 지금은
+# 문자열 하나짜리 단순 매핑으로만 근사한다.
+CYCLE_DAYS = {
+    "월1회": 30,
+    "격월": 60,
+    "분기": 90,
+    "반기": 180,
+    "연1회": 365,
+}
+DEFAULT_CYCLE_DAYS = 90
+
+
+def load_yaml(path):
+    with open(path, encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def load_json(path):
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _today():
+    """[2026-07-07 신규] 오늘 날짜. 테스트 재현성을 위해 PEST_SKILL_TODAY 환경변수로
+    override 가능(gov-support-matching-skill의 GOV_SKILL_TODAY 패턴과 동일)."""
+    override = os.environ.get("PEST_SKILL_TODAY")
+    if override:
+        return date.fromisoformat(override)
+    return date.today()
+
+
+def build_graph(stages, triggers=None):
+    """stage 간 실행 순서 그래프. depends_on 기반 엣지에 더해, [2026-07-07 (2단계)
+    신규] entry_points로 선언된 대안 진입 경로도 엣지로 추가한다 — 예:
+    방문알림봇.entry_points에 schedule:visit_cycle이 있고, schedule 트리거의
+    entry_stage가 리마인더봇이면, '리마인더봇 -> 방문알림봇' 엣지를 추가해
+    schedule 경로가 리마인더봇에서 멈추지 않고 이어지게 한다(card-08 해결).
+    이 엣지는 depends_on 그래프를 대체하지 않고 '추가'만 한다(manifest.schema.v2.yaml
+    entry_points 문서화 원칙 — depends_on은 주 경로만 유지)."""
+    by_id = {s["id"]: s for s in stages}
+    successors = {s["id"]: [] for s in stages}
+    for s in stages:
+        for dep in s.get("depends_on", []) or []:
+            successors.setdefault(dep, []).append(s["id"])
+
+    if triggers:
+        trigger_entry_by_key = {}
+        for t in triggers:
+            ttype = t.get("type")
+            ident = t.get("source") if ttype == "event" else t.get("interval") if ttype == "schedule" else None
+            if ttype and ident:
+                trigger_entry_by_key[f"{ttype}:{ident}"] = t.get("entry_stage")
+        for s in stages:
+            for ep in (s.get("entry_points") or []):
+                origin = trigger_entry_by_key.get(ep)
+                if not origin or origin == s["id"]:
+                    continue
+                successors.setdefault(origin, [])
+                if s["id"] not in successors[origin]:
+                    successors[origin].append(s["id"])
+
+    return by_id, successors
+
+
+def reachable_from(entry_id, successors):
+    """entry_id에서 successors 방향을 따라 도달 가능한 stage id 목록(BFS 순서)"""
+    seen = set()
+    queue = [entry_id]
+    order = []
+    while queue:
+        cur = queue.pop(0)
+        if cur in seen:
+            continue
+        seen.add(cur)
+        order.append(cur)
+        for nxt in successors.get(cur, []):
+            if nxt not in seen:
+                queue.append(nxt)
+    return order
+
+
+def topo_order(stage_ids, by_id, successors):
+    """stage_ids 부분집합만 대상으로 위상정렬.
+    [2026-07-07 (2단계) 변경] 예전엔 이 함수가 각 stage의 depends_on을 다시 읽어
+    엣지를 재구성했는데, 그러면 entry_points로 build_graph()가 추가해둔 대안
+    엣지(예: 리마인더봇->방문알림봇)가 무시돼 schedule 경로에서 순서가 꼬였다
+    (방문알림봇의 depends_on=[고객DB저장봇]이 스케줄 서브셋엔 없어 indegree
+    0으로 오판됨). 이제는 build_graph()가 만든 successors(엣지의 단일 출처)를
+    그대로 재사용해 위상정렬한다 — 그래프를 두 곳에서 따로 만들지 않음."""
+    stage_id_set = set(stage_ids)
+    indeg = {sid: 0 for sid in stage_ids}
+    edges = {sid: [] for sid in stage_ids}
+    for sid in stage_ids:
+        for nxt in successors.get(sid, []):
+            if nxt in stage_id_set:
+                edges[sid].append(nxt)
+                indeg[nxt] += 1
+    queue = [sid for sid in stage_ids if indeg[sid] == 0]
+    order = []
+    while queue:
+        cur = queue.pop(0)
+        order.append(cur)
+        for nxt in edges[cur]:
+            indeg[nxt] -= 1
+            if indeg[nxt] == 0:
+                queue.append(nxt)
+    if len(order) != len(stage_ids):
+        missing = stage_id_set - set(order)
+        raise RuntimeError(f"위상정렬 실패 — 순환 의존성 의심: {missing}")
+    return order
+
+
+def evaluate_run_if(condition, ctx):
+    """v2 스키마: run_if는 형식 파서가 없는 단순 조건 식별자/문자열이다(manifest.schema.v2.yaml 참고).
+    여기서는 알려진 조건만 실제로 평가하고, 나머지는 안전하게 False(건너뜀)로 처리한다."""
+    if condition is None:
+        return True, "run_if 없음 — 항상 실행"
+    if condition == "미정_골든셋수집후결정":
+        return False, "미정 상태 — 골든셋 확보 전까지 기본 꺼짐(사용자 지시, 2026-07-07)"
+    if condition == "완료보고서_또는_소독증명서를_요청함":
+        # [2026-07-07 (2단계) 신규 — 3단계 테스트 갭1 해결] document_requested
+        # 단일 boolean을 report_requested/certificate_requested로 분리한 데
+        # 맞춰 run_if 조건도 갱신.
+        cr = ctx.get("customer_record") or {}
+        wants_report = bool(cr.get("report_requested") if "report_requested" in cr else ctx.get("report_requested"))
+        wants_cert = bool(cr.get("certificate_requested") if "certificate_requested" in cr else ctx.get("certificate_requested"))
+        return (wants_report or wants_cert), f"customer_record.report_requested={wants_report}, certificate_requested={wants_cert}"
+    if condition == "고객이_문서를_요청함":
+        # [구버전 호환] document_requested 단일 boolean 시대의 조건 식별자.
+        # manifest는 이제 위 새 식별자를 쓰지만, 예전 입력/테스트 호환을 위해 남겨둠.
+        cr = ctx.get("customer_record") or {}
+        wants_doc = bool(cr.get("document_requested") or ctx.get("document_requested"))
+        return wants_doc, f"[구버전 조건] customer_record.document_requested={wants_doc}"
+    return False, f"알 수 없는 run_if 조건 '{condition}' — 안전하게 기본값 False(건너뜀) 처리"
+
+
+# ---------------------------------------------------------------------
+# stage별 목업(mock) 실행 함수 — 전부 실제 모델 호출 없는 스텁
+# ---------------------------------------------------------------------
+
+def run_수집봇(ctx, stage):
+    inp = ctx["_input"]
+    ctx["raw_text"] = inp.get("text", "")
+    ctx["raw_audio"] = inp.get("audio_url", "")
+    ctx["source_type"] = inp.get("source_type", "manual")
+    ctx["created_at"] = inp.get("created_at", "2026-07-07T00:00:00")
+    return f"raw_text={ctx['raw_text']!r} source_type={ctx['source_type']}"
+
+
+def run_전사봇(ctx, stage):
+    ctx["stt_text"] = ctx.get("raw_text", "")
+    ctx["cleaned_text"] = ctx.get("raw_text", "").strip()
+    return "stt_text = raw_text (mock, 실제 STT 호출 없음)"
+
+
+def run_문의판정봇(ctx, stage):
+    text = ctx.get("stt_text", "") or ctx.get("raw_text", "")
+    keywords_pest = ["방역", "소독", "바퀴", "해충", "쥐", "곰팡이"]
+    ctx["inquiry_classification"] = "방역요청" if any(k in text for k in keywords_pest) else "일반문의"
+    return f"inquiry_classification={ctx['inquiry_classification']} (키워드 매칭 mock — 실제 sonnet 판정 아님)"
+
+
+def run_현장분리봇(ctx, stage):
+    ctx["site_segments"] = []
+    ctx["split_status"] = "완료"
+    return "mock: 분리 없음(단일 현장으로 취급)"
+
+
+def run_보정봇(ctx, stage):
+    ctx["normalized_text"] = ctx.get("stt_text") or ctx.get("raw_text", "")
+    ctx["correction_log"] = []
+    return "normalized_text = stt_text 그대로 (mock, 실제 문맥보정 없음)"
+
+
+def run_문의정리봇(ctx, stage):
+    text = ctx.get("normalized_text", "")
+    inp = ctx["_input"]
+    ctx["customer_name"] = inp.get("customer_name", "확인필요")
+    ctx["space_type"] = inp.get("space_type", "확인필요")
+    ctx["visit_requested_date"] = inp.get("visit_requested_date", "확인필요")
+    ctx["request_note"] = text
+    # [2026-07-07 갱신 — 3단계 테스트 갭1 해결] document_requested 단일 boolean 대신
+    # report_requested/certificate_requested 2개로 분리해 각각 키워드 매칭
+    report_wanted = ("보고서" in text) or bool(inp.get("report_requested"))
+    cert_wanted = ("증명서" in text) or bool(inp.get("certificate_requested"))
+    if not report_wanted and not cert_wanted and inp.get("document_requested"):
+        # 구버전 입력(어떤 문서인지 구분 안 된 document_requested만 있는 경우) 호환 —
+        # 종류를 알 수 없으므로 완료보고서 쪽으로 잠정 처리(정확한 값 아님, mock 한계)
+        report_wanted = True
+    ctx["report_requested"] = report_wanted
+    ctx["certificate_requested"] = cert_wanted
+    ctx["followup_needed"] = bool(inp.get("followup_needed", False))
+    ctx["field_confidence"] = {"overall": 0.7}
+    ctx["field_sources"] = {}
+    ctx["missing_fields"] = []
+    return f"report_requested={report_wanted} certificate_requested={cert_wanted} (mock 규칙기반 추출)"
+
+
+def run_견적금액산정봇(ctx, stage):
+    ctx["estimated_price"] = None
+    return "mock: 미실행 상태 (run_if로 꺼져 있어 원래 호출 안 되지만 안전하게 None 유지)"
+
+
+def run_검수매니저(ctx, stage):
+    ctx["review_checklist"] = ["고객명 확인", "방문희망일 확인"]
+    ctx["review_priority"] = "초록"
+    ctx["editable_fields"] = ["customer_name", "visit_requested_date"]
+    return "review_priority=초록 (mock, confidence 0.7로 임시 통과 처리)"
+
+
+def run_대표자검수(ctx, stage):
+    # 실제로는 kind: human, async 대기 — 테스트 스켈레톤에서는 자동 승인으로 대체
+    ctx["confirmed_fields"] = {
+        "customer_name": ctx.get("customer_name"),
+        "space_type": ctx.get("space_type"),
+        "visit_requested_date": ctx.get("visit_requested_date"),
+        "request_note": ctx.get("request_note"),
+        "report_requested": ctx.get("report_requested"),
+        "certificate_requested": ctx.get("certificate_requested"),
+        "followup_needed": ctx.get("followup_needed"),
+    }
+    ctx["manual_edits"] = {}
+    ctx["approval_action"] = "방문확정"
+    ctx["rejection_reason"] = None
+    return ("[테스트모드 자동승인] 실제로는 대표자가 화면에서 검수해야 함(kind: human). "
+            "이 게이트는 '고객 문의/방문확정' 승인이며, 완료보고서·소독증명서 문서 자체의 "
+            "승인(초안/승인대기/승인/반려)과는 별개 — 그건 아직 구현 안 된 구조변경 카드 참고")
+
+
+def run_고객DB저장봇(ctx, stage):
+    ctx["customer_record"] = dict(ctx.get("confirmed_fields") or {})
+    ctx["visit_cycle"] = ctx["_input"].get("visit_cycle")
+    ctx["last_visit_date"] = ctx["_input"].get("last_visit_date")
+    ctx["workflow_event"] = {"event": "저장완료"}
+    ctx["version"] = 1
+    cr = ctx["customer_record"]
+    return (f"customer_record 저장 완료 "
+            f"(report_requested={cr.get('report_requested')}, certificate_requested={cr.get('certificate_requested')})")
+
+
+def run_방문알림봇(ctx, stage):
+    cr = ctx.get("customer_record") or {}
+    ctx["visit_notice"] = f"{cr.get('customer_name')} / {cr.get('visit_requested_date')} 방문 예정"
+    return ctx["visit_notice"]
+
+
+def run_현장완료입력봇(ctx, stage):
+    ctx["site_completion_note"] = "[테스트모드 mock] 현장 방역 완료 처리됨"
+    inp = ctx["_input"]
+    ctx["used_chemicals"] = inp.get("used_chemicals", "[mock] 약품명 미입력")
+    return f"{ctx['site_completion_note']} / used_chemicals={ctx['used_chemicals']!r}"
+
+
+def run_현장사진봇(ctx, stage):
+    ctx["site_photo"] = []  # [2026-07-07 필드 확장] 문자열(uri) 하나 -> 배열
+    return "mock: 미실행 상태(site_photo는 이제 배열 타입, 현재는 빈 배열)"
+
+
+def run_문서생성봇(ctx, stage):
+    cr = ctx.get("customer_record") or {}
+    wants_report = bool(cr.get("report_requested"))
+    wants_cert = bool(cr.get("certificate_requested"))
+    created_date = (ctx["_input"].get("created_at") or "")[:10] or cr.get("visit_requested_date")
+
+    report = None
+    if wants_report:
+        report = {
+            "작업일": created_date,
+            "작업구역": cr.get("space_type"),
+            "처리내용": ctx.get("site_completion_note"),
+            "사용약품": ctx.get("used_chemicals"),
+        }
+
+    certificate = None
+    if wants_cert:
+        certificate = {
+            "상호": "[mock] 상호명 미입력",
+            "실시면적": "[mock] 면적 미입력",
+            "소재지": cr.get("space_type"),
+            "관리자확인": "[mock] 미확인",
+            "소독기간": cr.get("visit_requested_date"),
+            "소독내용종류": "[mock] 종류 미입력",
+            "약품사용내용": ctx.get("used_chemicals"),
+            "발급일": created_date,
+            "소독실시자": "[mock] 담당자 미입력",
+        }
+
+    ctx["document_draft"] = {
+        "report": report,
+        "certificate": certificate,
+        "locked": False,
+        "storage_location": None,
+        "retention_period": "2년(잠정, 법령 미확인)" if certificate else None,
+        "note": "[mock 초안 — 실제 법정 서식/필수기재항목 미확정, SKILL.md 알려진 한계 참고]",
+    }
+    return (f"document_draft 생성됨 — report={'있음' if report else '없음'}, "
+            f"certificate={'있음' if certificate else '없음'} (mock 템플릿, 법정서식 아님)")
+
+
+def run_문자장부봇(ctx, stage):
+    ctx["message_job"] = {"to": "고객"}
+    ctx["message_result"] = {"status": "발송완료(mock)"}
+    ctx["history_log"] = {"logged": True}
+    has_doc = ctx.get("document_draft") is not None
+    return f"완료 안내 문자 발송(mock) — 문서 첨부 여부: {has_doc}"
+
+
+def run_만족도수집봇(ctx, stage):
+    ctx["satisfaction_response"] = None
+    return "mock: 아직 수집 안 함(사후관리 타이밍 미정 — SKILL.md 참고)"
+
+
+def run_리마인더봇(ctx, stage):
+    """[2026-07-07 (2단계) 갱신 — 3단계 테스트 갭3 해결(card-09)] 이전엔 빈 배열 고정
+    스텁(reminder_due_list=[])이었음. 이제 입력의 customers 목록을 실제 날짜비교해
+    방문주기가 도래(또는 임박, 7일 이내)한 고객만 뽑아 reminder_due_list를 채운다."""
+    customers = ctx["_input"].get("customers", [])
+    today = _today()
+    due_list = []
+    for c in customers:
+        last_visit_str = c.get("last_visit_date")
+        if not last_visit_str:
+            continue
+        try:
+            last_visit = date.fromisoformat(last_visit_str)
+        except ValueError:
+            continue
+        cycle = c.get("visit_cycle")
+        cycle_days = CYCLE_DAYS.get(cycle, DEFAULT_CYCLE_DAYS)
+        due_date = last_visit + timedelta(days=cycle_days)
+        days_until_due = (due_date - today).days
+        if days_until_due <= 7:  # 이미 지연(overdue) 또는 7일 이내 임박
+            due_list.append({
+                "customer_name": c.get("customer_name"),
+                "space_type": c.get("space_type"),
+                "visit_cycle": cycle,
+                "last_visit_date": last_visit_str,
+                "due_date": due_date.isoformat(),
+                "days_until_due": days_until_due,
+                "is_overdue": days_until_due < 0,
+                # 아래는 방문알림봇~문서생성봇이 customer_record처럼 읽는 필드.
+                # 실제로는 고객DB 조회가 필요하나 mock에서는 입력값을 그대로 이어 씀.
+                "visit_requested_date": due_date.isoformat(),
+                "report_requested": bool(c.get("report_requested", False)),
+                "certificate_requested": bool(c.get("certificate_requested", False)),
+            })
+    ctx["reminder_due_list"] = due_list
+    overdue_n = sum(1 for d in due_list if d["is_overdue"])
+    return (f"reminder_due_list={len(due_list)}건(그중 지연 {overdue_n}건) "
+            f"— 오늘={today.isoformat()} 기준 실제 날짜비교(cycle 매핑={CYCLE_DAYS}, 기본값={DEFAULT_CYCLE_DAYS}일)")
+
+
+STAGE_FUNCS = {
+    "수집봇": run_수집봇,
+    "전사봇": run_전사봇,
+    "문의판정봇": run_문의판정봇,
+    "현장분리봇": run_현장분리봇,
+    "보정봇": run_보정봇,
+    "문의정리봇": run_문의정리봇,
+    "견적금액산정봇": run_견적금액산정봇,
+    "검수매니저": run_검수매니저,
+    "대표자검수": run_대표자검수,
+    "고객DB저장봇": run_고객DB저장봇,
+    "방문알림봇": run_방문알림봇,
+    "현장완료입력봇": run_현장완료입력봇,
+    "현장사진봇": run_현장사진봇,
+    "문서생성봇": run_문서생성봇,
+    "문자장부봇": run_문자장부봇,
+    "만족도수집봇": run_만족도수집봇,
+    "리마인더봇": run_리마인더봇,
+}
+
+
+def _run_one_stage(sid, by_id, ctx, trace):
+    """stage 하나 실행(run_if 평가 + 실제 실행 + stop_condition 체크). "STOP"을
+    반환하면 호출자가 루프를 끊어야 함."""
+    stage = by_id[sid]
+    run_if = stage.get("run_if")
+    should_run, reason = evaluate_run_if(run_if, ctx)
+    if not should_run:
+        print(f"[SKIP] {sid} — {reason}")
+        trace.append({"stage": sid, "ran": False, "reason": reason})
+        return None
+
+    func = STAGE_FUNCS.get(sid)
+    if func is None:
+        print(f"[SKIP] {sid} — 알 수 없는 stage(스텁 함수 없음), 안전하게 건너뜀")
+        trace.append({"stage": sid, "ran": False, "reason": "스텁 함수 없음"})
+        return None
+
+    result = func(ctx, stage)
+    print(f"[RUN]  {sid} — {result}")
+    trace.append({"stage": sid, "ran": True, "detail": result})
+
+    stop_condition = stage.get("stop_condition")
+    if stop_condition and ctx.get("inquiry_classification") in ("일반문의", "스팸무관", "확인필요"):
+        print(f"[STOP] {sid}의 stop_condition에 따라 파이프라인 조기 종료 "
+              f"(inquiry_classification={ctx.get('inquiry_classification')})")
+        trace.append({"stage": "__stop__", "ran": False, "reason": "stop_condition"})
+        return "STOP"
+    return None
+
+
+def run_pipeline(manifest, input_data, trigger_type="event"):
+    stages = manifest["stages"]
+    triggers = manifest.get("triggers", [])
+    by_id, successors = build_graph(stages, triggers)
+
+    trigger = next((t for t in triggers if t["type"] == trigger_type), None)
+    if trigger is None:
+        raise RuntimeError(f"manifest에 type={trigger_type} 트리거가 없음")
+    entry_stage = trigger["entry_stage"]
+
+    reachable_ids = reachable_from(entry_stage, successors)
+    order = topo_order(reachable_ids, by_id, successors)
+
+    ctx = {"_input": input_data}
+    trace = []
+
+    print(f"=== 방역 파이프라인 실행 (trigger={trigger_type}, entry_stage={entry_stage}) ===")
+    print(f"실행 순서: {' -> '.join(order)}\n")
+
+    if trigger_type != "schedule":
+        for sid in order:
+            if _run_one_stage(sid, by_id, ctx, trace) == "STOP":
+                break
+    else:
+        # [2026-07-07 (2단계) 신규 — card-08 해결] schedule 경로: 리마인더봇까지는
+        # 공용으로 한 번 실행하고, 그 이후(방문알림봇~만족도수집봇)는 방문주기가
+        # 도래한 고객 수만큼 반복한다. 병렬이 아니라 순차(1명씩 끝까지) —
+        # manifest.schema.v2.yaml#5 bundle_fields 순차 처리 정책을 그대로 재사용
+        # (새 문법 발명 안 함, 이미 결정된 정책을 리마인더 케이스에도 적용).
+        reminder_idx = order.index(entry_stage)
+        for sid in order[:reminder_idx + 1]:
+            _run_one_stage(sid, by_id, ctx, trace)
+
+        remaining = order[reminder_idx + 1:]
+        due_list = ctx.get("reminder_due_list") or []
+        print(f"\n[스케줄 경로] 방문주기 도래/임박 고객 {len(due_list)}건 — "
+              f"1건씩 순차 처리(bundle_fields 정책 재사용)\n")
+
+        if not remaining:
+            print("[알림] entry_points로 연결된 후속 stage가 없음 — 리마인더봇에서 종료")
+        elif not due_list:
+            print("[알림] 방문주기가 도래/임박한 고객이 없어 후속 stage는 실행하지 않음")
+        else:
+            for i, due in enumerate(due_list, 1):
+                print(f"--- [{i}/{len(due_list)}] {due.get('customer_name')} "
+                      f"(days_until_due={due.get('days_until_due')}, overdue={due.get('is_overdue')}) 처리 시작 ---")
+                ctx["customer_record"] = dict(due)
+                for sid in remaining:
+                    if _run_one_stage(sid, by_id, ctx, trace) == "STOP":
+                        break
+                print()
+
+    print("=== 최종 shared_context 상태 ===")
+    printable = {k: v for k, v in ctx.items() if not k.startswith("_")}
+    print(json.dumps(printable, ensure_ascii=False, indent=2))
+
+    return ctx, trace
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_path", nargs="?", default=None)
+    parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
+    parser.add_argument("--trigger", default="event", choices=["event", "schedule"])
+    args = parser.parse_args()
+
+    default_input = DEFAULT_MOCK_INPUT if args.trigger == "event" else DEFAULT_SCHEDULE_MOCK_INPUT
+    input_path = args.input_path or str(default_input)
+
+    manifest = load_yaml(args.manifest)
+    input_data = load_json(input_path)
+
+    if os.path.abspath(input_path) in (os.path.abspath(str(DEFAULT_MOCK_INPUT)), os.path.abspath(str(DEFAULT_SCHEDULE_MOCK_INPUT))):
+        print("[알림] 실제 골든셋이 아니라 구조 확인용 임시 가짜 데이터로 실행합니다.\n")
+
+    ctx, trace = run_pipeline(manifest, input_data, trigger_type=args.trigger)
+
+    ran_stages = [t["stage"] for t in trace if t.get("ran")]
+    print(f"\n=== 요약 ===\n실행된 stage 수: {len(ran_stages)}\n실행된 stage: {ran_stages}")
+
+    if "만족도수집봇" in ran_stages:
+        print("\nPASS: 파이프라인이 처음부터 끝까지(만족도수집봇까지) 통과했습니다.")
+    elif args.trigger == "schedule":
+        print("\n참고: schedule 트리거는 방문주기가 도래한 고객이 없으면 만족도수집봇까지 "
+              "안 갈 수 있음(정상) — 위 로그의 due_list 건수를 확인할 것.")
+    else:
+        print("\n주의: 파이프라인이 만족도수집봇까지 도달하지 못했습니다(조기 종료 또는 오류 가능).")
+
+
+if __name__ == "__main__":
+    main()

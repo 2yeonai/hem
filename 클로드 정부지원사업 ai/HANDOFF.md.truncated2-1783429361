@@ -1,0 +1,81 @@
+# HANDOFF — gov-support-matching-skill
+
+다음에 이 프로젝트를 이어받는 사람(사람 또는 다른 세션의 나 자신)을 위한 인수인계 문서.
+
+## 개요
+정부지원사업 매칭 스킬. business_profile(사업자 정보) + target_period(조회기간)를 입력받아
+공고 매칭, 신청서 초안 작성, 심사위원 모드 자기검수까지 수행한다. 스펙은 `manifest.yaml`,
+동작 설명은 `SKILL.md`, 실제 구현은 `scripts/run.py`.
+
+## 현재 상태 (v0.5.0 기준)
+- **버전**: manifest.yaml `version: 0.5.0`
+- **이번 버전(v0.5.0)에서 한 일**: `gov-support-skill/정부지원사업_판정로직_확장스펙.md`(위험표현 사전/PSST/8인 가상 심사위원/감점 전파 모델 4개 표)를 스펙 그대로 구현. `judge_mode_self_review()`에 질적 판정 레이어 4개를 순서대로 추가(위험표현 → PSST → 8인심사위원 → 감점전파, 각 단계 뒤가 앞 단계 결과를 입력으로 씀). **절대 원칙 준수**: 기존 `overall_confidence` 숫자 공식은 전혀 건드리지 않음. 4개는 전부 `judge_pass_recommendation`(이진 게이트)의 판정 근거를 "형식요건만" → "형식+내용품질"로 넓히는 데만 사용.
+  1. **위험표현 사전** — `RISK_PHRASE_DICTIONARY`(9종 고정세트: 완벽히 해결/100% 자동화/AI가 판단한다/자동 발송/외주 개발만 하면 된다/단순 구독/장비 구매/플랫폼으로 대박 확장/기존 문제를 다 없앤다) + `scan_risk_phrases()`. 발견 시 `exaggeration_flags`에 "원문 표현 + 대체문구 제안" 형태로 **추가**(기존 `EXAGGERATION_WORDS` 체크는 대체하지 않고 유지). 자동 치환 없음 — 제안만.
+  2. **PSST 자동검수** — `assess_psst()`. Problem/Solution/Support/Traction 4구간을 draft 섹션 존재여부 + 숫자·단위 정규식(`_MEASURE_UNIT_RE`) + budget_detail/documents_status 존재여부로 pass/fail 판정, `psst_review` 필드 신설. 판정만 하고 문장을 대신 써주지 않음 — "무엇이 없는지"만 지적.
+  3. **8인 가상 심사위원** — `run_judge_panel()`. 공고적합성/자격규정/문제정의/AI필요성/실행계획/예산증빙/성과확장/발표Q&A 8인이 이미 계산된 기존 신호(자격미확정/미준비서류/결격위험/예산리스크/위험표현/PSST결과)를 근거로 0~5점+즉시경고 판정, `judge_panel_review` 필드 신설. 8인 로직 자체는 공고 불변, `mapped_rubric_items`만 공고의 `scoring_rubric`에 키워드 기반으로 가변 매핑.
+  4. **감점 전파 모델** — `build_deduction_map()`. 대표 이슈 5종(예산근거누락/자격증빙미확보/작업시간실측없음/AI필요성불명확/산출물미정의)의 발생 여부를 판정하고, 발생 시 스펙 원문 고정 계수로 다른 평가항목 전파 리스크를 설명하는 `deduction_map` 필드 신설. `overall_confidence`는 건드리지 않음 — 설명 문장 전용.
+  5. **`overall_pass_recommendation` 갱신**: 기존 조건(미준비서류==0, 확인필요섹션==0, 결격위험없음, 페이지제한존재)에 `psst_review 전항목 pass` AND `judge_panel_review.warning_count==0`를 **AND로 추가**(대체 아님).
+- **작업 중 발견한 버그(즉시 수정)**: PSST 숫자+단위 정규식(`_MEASURE_UNIT_RE`) 최초 버전이 "300만 개"/"1.5억원"처럼 만/억 단위가 낀 한국어 수량 표현을 인식하지 못해, `sample_input_ideal.json`의 Problem 구간을 오탐(FAIL)시키고 `lock_state`가 `READY_FOR_APPROVAL` → `DRAFT`로 잘못 바뀌는 회귀를 유발함. 정규식에 `(만|억)?` 옵션 그룹을 추가해 수정, 회귀테스트로 재확인함. (v0.4.0의 rubric 2글자 부분매칭 오탐과 같은 패턴의 실수 — "숫자/키워드 휴리스틱은 반드시 실제 텍스트로 재검증" 원칙 다시 확인됨.)
+- **회귀 테스트 결과 (6개 케이스, 전부 기존과 동일한 lock_state/confidence로 통과)**:
+  - `sample_input.json` → DRAFT, confidence 0.85 (기존과 동일). psst 4구간 전부 fail(서술형 필드 자체가 없음), judge_panel 경고 5건, deduction 이슈 4건 — 모두 예상대로.
+  - `sample_input_edge.json` → DRAFT, confidence 0.68 (기존과 동일). psst/judge_panel 결과는 sample_input.json과 동일 패턴.
+  - `sample_input_ideal.json` → READY_FOR_APPROVAL, confidence 1.0 (기존과 동일, 위 정규식 버그 수정 후 재확인). psst 4구간 전부 pass, judge_panel 경고 0건, deduction 이슈 0건.
+  - `test/my_business_profile_input.json` → DRAFT, confidence 0.35 (기존과 동일). psst: problem/solution/traction pass, support fail(문서명 불일치로 준비된 서류가 0건 집계 — 기존부터 있던 known limitation). judge_panel 경고 1건(자격규정), deduction 이슈 1건(자격 증빙 미확보).
+  - `test/real_program_input.json` → 매칭 0건(마감 지남)이라 기존과 동일하게 DRAFT, psst/judge_panel/deduction 전부 not_applicable 처리(크래시 없음 확인).
+  - `test/real_program_input_simulated.json` → DRAFT, confidence 0.35 (기존과 동일). psst: support fail(문서명 불일치), judge_panel 경고 2건(자격규정+예산증빙 — 기존 v0.4.0 예산초과/집행제외 리스크가 새 예산증빙 심사위원에도 그대로 반영됨), deduction 이슈 2건(예산 근거 누락, 자격 증빙 미확보).
+- **합성 결함 테스트 (사용자 추가 지시로 신규 작성, `test/synthetic_*.json` 4종)**: 회귀테스트 6개가 전부 "정상 케이스"라 신규 로직이 실제로 문제를 잡아내는지 검증이 안 되는 문제를 보완. 4개 전부 의도한 대로 정확히 감지됨을 확인:
+  - `synthetic_risk_phrases.json`: "100% 자동화로 완벽히 해결"+"AI가 판단한다"+"자동 발송" 포함 → `exaggeration_flags`에 4건 모두 원문+대체문구로 정확히 노출됨.
+  - `synthetic_psst_problem_fail.json`: Problem에 감성서사만 있고 수치 없음 → `psst_review.problem.result=fail`, 나머지 3구간(solution/support/traction)은 정상으로 채워 pass 확인 — 격리 성공.
+  - `synthetic_judge_panel_equipment.json`: budget_detail이 "장비 구매"(견적 없음) 단일 항목 → 예산·증빙 심사위원만 `score=1, warning=True`로 정확히 트리거, 나머지 7인은 전부 정상 — 격리 성공.
+  - `synthetic_deduction_qualification.json`: 필수서류 전부 미준비 → `deduction_map`에 "자격 증빙 미확보"(직접감점 BLOCK, 전파 실행 -3/발표 -3) 정확히 노출.
+  - 이 4개 파일은 정식 회귀테스트 스위트 편입 여부 판단 보류 상태(사용자 지시) — 지금은 "신규 로직 발동 확인" 용도로만 존재.
+- **lock_state 판정 규칙**: `quality_gate_result.confidence_passed` AND `judge_pass_recommendation`이 둘 다 true일 때만 `READY_FOR_APPROVAL`. (게이트 구조 자체는 v0.5.0에서도 안 바뀜 — `judge_pass_recommendation` 계산에 들어가는 재료만 넓어짐.)
+- **Git 이력**: `.git`을 프로젝트 폴더 안에 직접 두지 않고 `gov-support-matching-skill.bundle` 파일로 관리 중. 커밋 이력: 84c5163(v0.1.0) → 4000860(v0.2.0) → 7f64411(HANDOFF.md) → a1e8f8e(실제 공고 테스트 데이터 추가) → 365f3f8(v0.4.0) → 3949f05(HANDOFF.md 루트 통합) → [v0.5.0 커밋, 이번에 추가 예정].
+  - 로컬에서 히스토리 복원: `git clone gov-support-matching-skill.bundle my-skill` 또는 기존 폴더에서 `git pull gov-support-matching-skill.bundle master`
+
+## 추가 라운드 (real_announcements.json에 실제 공고 2번째 추가 + 8인심사위원 4번 검증)
+- `scripts/real_announcements.json`에 **두 번째 실제 공고** 추가(기존 경력단절여성 공고 유지, 병행): `gov-support-skill/1_2026년 혁신 소상공인 AI 활용지원 사업 참여 소상공인 모집공고(수정).pdf` 파싱. deadline 2026-07-03, `budget_criteria.max_grant_krw=40,000,000`, `excluded_categories=["인건비"]`(정부지원금 집행항목 7종엔 인건비가 없고 자부담금 전용 항목이라 확인됨). `scoring_rubric`: AI활용 적합성(15+15=30) / 성장가능성(20+20=40) / 참여역량(15+15=30). `_unmapped_requirements`에 업종별 상시근로자·매출액 차등기준, 지원제외업종 40+개, 공동대표 제한, 사전 온라인교육 이수 조건, 4단계 선정구조(서류평가 100점은 전체 평가의 일부일 뿐 발표평가 배점표는 원문에 없음) 기록.
+- `test/synthetic_ai_judge_exaggeration.json` vs `test/synthetic_ai_judge_concrete.json`: 위 공고를 실제 매칭 대상으로 8인심사위원 4번(AI 필요성 심사위원)이 과장 케이스(완벽히 해결/100% 자동화/AI가 판단한다 포함)와 구체적 AI계획 케이스(반자동화/대표자 확인/승인 후 발송)를 정확히 구분하는지 검증 — `score=1,warning=true` vs `score=5,warning=false`로 정확히 판정됨. GOV_SKILL_TODAY=2026-06-20으로 시뮬레이션해야 이 공고가 마감 전으로 잡힘(경력단절여성 공고는 이 시점 기준 이미 마감이라 자동 제외되어 AI 공고가 top_match로 깔끔하게 격리됨).
+- **알려진 한계 추가 발견**: `mapped_rubric_items`가 AI활용 적합성(30점) 2개 항목은 정확히 잡지만, "성장가능성 - AI 적용을 통한 사업모델 개선 가능성"(20점) 항목도 텍스트에 "AI"가 포함돼 있어 AI필요성 심사위원에 추가로 매핑됨 — 키워드 휴리스틱이 "AI"라는 짧은 키워드로 인해 다소 넓게 잡히는 현상. 틀린 매핑은 아니지만(그 항목도 실제 AI 관련 내용) 향후 키워드 정교화 여지로 기록.
+- `.gitignore`에 `*.truncated-*` 패턴 추가(동기화 마운트 truncation 복구 시 남는 백업 파일이 git에 안 잡히도록).
+- 6개 회귀테스트 이번에도 전부 기존과 동일하게 통과 재확인(두 번째 공고 추가가 기존 케이스에 영향 없음).
+
+## 파일 배치 컨벤션
+- **HANDOFF.md는 프로젝트 루트에만 둔다.** 하위 폴더(`gov-support-skill/` 등)에는 만들지 않는다. (과거 `gov-support-skill/HANDOFF.md`라는 오래된 사본을 삭제하려 했으나, 이 마운트 폴더의 파일 삭제 제한 때문에 실제로는 물리적으로 남아있을 수 있음 — 발견 시 내용을 신뢰하지 말고 이 루트 파일을 기준으로 삼을 것.)
+- **`gov-support-skill/` 폴더는 사용자가 업로드한 원본 데이터 폴더**(예: `my_business_profile.json`, `정부지원사업_판정로직_확장스펙.md`)이고 스킬 코드 저장소와는 별개다. `.gitignore`에 추가해서 git 추적 대상에서 제외함.
+
+## 진행 중 이슈 / 알아둘 것
+1. **outputs 폴더는 파일 삭제·덮어쓰기가 제한된 동기화 마운트다.** 기존 파일을 Edit 도구로 직접 수정하거나 Write로 덮어쓰면 간헐적으로 파일이 중간에 잘려서(truncated) 문법 오류가 난다(`wc -l`로 줄 수가 안 맞는 것으로 확인 가능). v0.5.0 작업 중에도 `scripts/run.py`(Edit 1회, Write 1회), `manifest.yaml`(Edit 1회), `HANDOFF.md`(Write 1회, 지금 이 파일) 모두에서 재현됨. 재현되는 우회법: **기존 파일을 새 이름으로 `mv`(rename)한 뒤, 원래 경로에 완전히 새로운 내용으로 Write.** 매 수정 직후 `wc -l`/`py_compile`/`yaml.safe_load`로 검증할 것. 파일 삭제가 안 되므로(`rm` permission denied) 잘린 사본은 `*.truncated-<timestamp>` 이름으로 폴더에 남아있음 — 무시하면 됨.
+2. **같은 이유로 `git init`을 outputs 폴더 안에서 직접 실행하면 `.git/config`가 깨진다.** git 작업은 항상 `/tmp` 같은 완전히 자유로운 스크래치 공간에서 하고, 완료되면 `git bundle create ... --all`로 묶어서 단일 파일로 outputs에 복사한다. 이번 라운드에는 `/tmp/bundle_check/restored`에 기존 bundle을 clone해서 v0.4.0 커밋 시점의 `manifest.yaml` 전체(305줄)를 복구 기준으로 사용함 — Edit 도구가 파일 일부만 봤다고 착각해 전체를 다시 쓸 때 매우 유용한 패턴이니 앞으로도 truncation 복구 시 우선 시도할 것.
+3. **`judge_pass_recommendation`이 이제 형식요건 + PSST/8인심사위원 경고까지 반영한다(v0.5.0).** 다만 PSST/8인심사위원 판정 자체가 여전히 키워드·구조존재여부 기반 휴리스틱이다(숫자+단위 정규식, budget_detail 존재여부, 문서 준비여부 등) — 의미 기반 판단이 아니므로 최종 판단은 사람 몫이다. 특히 8인심사위원의 rubric 키워드 매핑(`JUDGE_DEFINITIONS[*].rubric_keywords`)은 공고마다 표현이 달라지면 매핑이 빗나갈 수 있다.
+4. **공고 자동 수집이 안 된다.** `collect_and_extract_announcements()`는 여전히 로컬 JSON 파일(목업 또는 손수 파싱한 실제 공고)만 읽는다. 기업마당/K-스타트업 API·PDF 자동 파싱 연동은 미착수.
+5. **rubric 매칭(v0.4.0)과 PSST/8인심사위원 판정(v0.5.0)은 전부 키워드·구조 기반 휴리스틱이다.** 의미 기반(NLP) 매칭이 아니라서, 테이블/정규식에 없는 새로운 표현이 나오면 오탐/누락 가능하다. 이번 라운드에도 "300만 개" 만/억 단위 누락 버그가 실제로 발생했다(위 참고).
+6. **문서명 fuzzy 매칭 미지원.** documents_status의 document_name이 공고 required_documents 문자열과 정확히 일치해야 매칭된다. `my_business_profile_input.json`/`real_program_input_simulated.json`에서 PSST-Support가 fail로 나오는 것도 이 known limitation 때문(실제로는 서류가 있어도 표기가 달라 미준비로 집계됨).
+7. **위험표현 사전(9종)은 고정 세트로 시작했다.** 스펙 원문 비고: "새로운 탈락사례가 나오면 계속 업데이트되는 걸 전제". 표에 없는 새 과장 표현은 감지되지 않는다.
+
+## 실행 방법
+```
+python3 scripts/run.py test/sample_input_ideal.json                                    # READY_FOR_APPROVAL 재현 (목업 공고)
+python3 scripts/run.py test/sample_input.json                                          # 정상이지만 서술형 필드 없어 DRAFT (목업 공고)
+python3 scripts/run.py test/sample_input_edge.json                                     # 자격 데이터 일부 누락 -> DRAFT (목업 공고)
+python3 scripts/run.py test/my_business_profile_input.json                             # 실제 mo,on 사업자 데이터 (목업 공고)
+python3 scripts/run.py test/real_program_input.json scripts/real_announcements.json     # 실제 PDF 공고 + 실제 오늘 날짜 (이미 마감됨)
+GOV_SKILL_TODAY=2026-03-15 python3 scripts/run.py test/real_program_input_simulated.json scripts/real_announcements.json  # 실제 PDF 공고 + 마감 전 날짜로 시뮬레이션
+
+# v0.5.0 합성 결함 테스트 (신규 로직 발동 확인용, 정식 회귀 스위트 아님)
+python3 scripts/run.py test/synthetic_risk_phrases.json              # 위험표현 사전 4건 검출 확인
+python3 scripts/run.py test/synthetic_psst_problem_fail.json         # PSST-Problem만 FAIL 확인
+python3 scripts/run.py test/synthetic_judge_panel_equipment.json     # 예산·증빙 심사위원 즉시경고 확인
+python3 scripts/run.py test/synthetic_deduction_qualification.json   # 자격증빙미확보 -> 실행/발표 전파 확인
+```
+결과는 stdout(JSON)로 출력되고, quality_gate 미달/DRAFT 유지 이벤트는 `test/failure_log.jsonl`에 append됨.
+
+## 다음에 할 만한 작업 (제안, 아직 미착수)
+- PDF/HWP 공고문 자동 파싱
+- 문서명 fuzzy 매칭
+- `collect_and_extract_announcements()`를 실제 공고 소스(API/크롤러)에 연결
+- 위험표현 사전(9종)을 실제 탈락사례 누적에 따라 계속 확장할지 검토
+- PSST 숫자+단위 정규식을 더 다양한 한국어 수량 표현(예: "3배", "절반", 서수 등)까지 인식하도록 넓힐지 검토
+- 8인심사위원 rubric 키워드 매핑 테이블을 공고 사례가 늘어나면서 보완
+- `test/synthetic_*.json` 4종을 정식 회귀테스트 스위트에 편입할지 결정 (현재 보류 상태)
+- 지자체별/타 부처 사업 스키마 확장 시 `eligibility` 스키마 필드 보완

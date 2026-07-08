@@ -1,0 +1,145 @@
+"""
+test_storage_bot.py — storage_bot.py를 golden_set.yaml의 실제 사례로 검증
+
+사용한 golden_set 항목: 001(문자, 단독 주문), 005/006(통화 1건에서 나온 주문 2건 —
+같은 bundle_id를 가짐). 002~004는 order_status가 non_order라 애초에 저장 단계까지
+오지 않는 케이스라 이 테스트에서는 제외.
+
+실행: python3 test_storage_bot.py
+"""
+
+import sys
+import json
+import yaml
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import storage_bot
+
+GOLDEN_SET_PATH = Path(__file__).parent.parent / "golden_set.yaml"
+TEST_DB_PATH = Path(__file__).parent / "test_flower_orders.json"
+
+PASS = "PASS"
+FAIL = "FAIL"
+
+results = []
+
+
+def check(label, condition, detail=""):
+    status = PASS if condition else FAIL
+    results.append((status, label, detail))
+    print(f"[{status}] {label}" + (f"  ({detail})" if detail else ""))
+
+
+def main():
+    # 이전 테스트가 남긴 파일을 깨끗이 비운다. 동기화 마운트 폴더에서는 파일 삭제
+    # (unlink)가 권한 오류로 실패할 때가 있어(알려진 이슈), 그 경우 내용만 빈 값으로
+    # 덮어써서 같은 효과를 낸다.
+    if TEST_DB_PATH.exists():
+        try:
+            TEST_DB_PATH.unlink()
+        except PermissionError:
+            storage_bot._save(TEST_DB_PATH, {"orders": {}, "workflow_events": []})
+
+    with open(GOLDEN_SET_PATH, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    entries = {e["id"]: e for e in data["golden_set"]}
+
+    e001 = entries["001"]
+    saved_001 = storage_bot.save_order(
+        confirmed_fields=e001["structured_extract"],
+        manual_edits={},
+        approval_action="주문확정",
+        bundle_id=f"single_{e001['id']}",
+        bundle_sequence={"index": 1, "total": 1},
+        db_path=TEST_DB_PATH,
+    )
+    check("001번 저장 성공(order_id 발급됨)", bool(saved_001 and saved_001.get("order_id")))
+    check(
+        "001번: recipient_name/sender_name이 None이라 확인_필요_필드에 자동으로 잡힘(임의로 안 채움)",
+        set(["recipient_name", "sender_name"]).issubset(set(saved_001["확인_필요_필드"])),
+        f"실제={saved_001['확인_필요_필드']}",
+    )
+    check(
+        "001번: recipient_org 같은 확실한 값은 그대로 저장됨(원문 훼손 없음)",
+        saved_001["confirmed_fields"]["recipient_org"] == "창녕군청 재무과",
+    )
+    status_001 = storage_bot.get_bundle_status(f"single_{e001['id']}", db_path=TEST_DB_PATH)
+    check(
+        "001번: 단독 주문(total=1)은 저장 즉시 묶음 상태가 완료",
+        status_001["bundle_status"] == "완료",
+        f"실제={status_001}",
+    )
+
+    e005, e006 = entries["005"], entries["006"]
+    bundle_id = e005["source_call_id"]
+    check("005/006이 같은 통화(source_call_id)에서 나온 게 맞는지", bundle_id == e006["source_call_id"])
+
+    saved_005 = storage_bot.save_order(
+        confirmed_fields=e005["structured_extract"],
+        manual_edits={},
+        approval_action="주문확정",
+        bundle_id=bundle_id,
+        bundle_sequence={"index": 1, "total": 2},
+        db_path=TEST_DB_PATH,
+    )
+    mid_status = storage_bot.get_bundle_status(bundle_id, db_path=TEST_DB_PATH)
+    check(
+        "005만 저장된 시점엔 묶음 상태가 아직 진행중(2번째 대기)",
+        mid_status["bundle_status"] == "진행중",
+        f"실제={mid_status}",
+    )
+
+    saved_006 = storage_bot.save_order(
+        confirmed_fields=e006["structured_extract"],
+        manual_edits={},
+        approval_action="주문확정",
+        bundle_id=bundle_id,
+        bundle_sequence={"index": 2, "total": 2},
+        db_path=TEST_DB_PATH,
+    )
+    final_status = storage_bot.get_bundle_status(bundle_id, db_path=TEST_DB_PATH)
+    check(
+        "005+006 둘 다 저장되면 묶음 상태가 완료로 바뀜",
+        final_status["bundle_status"] == "완료",
+        f"실제={final_status}",
+    )
+    check(
+        "006번: recipient_region이 None(북면 지명 불확실)이라 확인_필요_필드에 그대로 남음",
+        "recipient_region" in saved_006["확인_필요_필드"],
+        f"실제={saved_006['확인_필요_필드']}",
+    )
+    check(
+        "006번: amount_krw=50000처럼 확실한 값은 확인_필요_필드에 안 들어감",
+        "amount_krw" not in saved_006["확인_필요_필드"],
+    )
+
+    listed = storage_bot.list_orders(bundle_id=bundle_id, db_path=TEST_DB_PATH)
+    check("bundle_id로 조회하면 005,006 두 건이 순서대로(index 1,2) 나옴",
+          [o["bundle_sequence"]["index"] for o in listed] == [1, 2])
+
+    updated = storage_bot.update_order(
+        saved_001["order_id"],
+        confirmed_fields={**saved_001["confirmed_fields"], "sender_name": "백승흔"},
+        db_path=TEST_DB_PATH,
+    )
+    check("수정 후 version이 1에서 2로 올라감", updated["version"] == 2, f"실제 version={updated['version']}")
+    check(
+        "수정 후 sender_name이 채워졌으니 확인_필요_필드에서 빠짐",
+        "sender_name" not in updated["확인_필요_필드"],
+    )
+
+    total = len(results)
+    passed = sum(1 for r in results if r[0] == PASS)
+    print(f"\n총 {total}개 중 {passed}개 통과, {total - passed}개 실패")
+    if TEST_DB_PATH.exists():
+        try:
+            TEST_DB_PATH.unlink()
+        except PermissionError:
+            pass  # 다음 실행 시작부에서 어차피 비움 — 무해함
+    return passed == total
+
+
+if __name__ == "__main__":
+    ok = main()
+    sys.exit(0 if ok else 1)

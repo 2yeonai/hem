@@ -1,0 +1,59 @@
+[
+  {
+    "program_name": "2026 경력단절여성 창업케어 프로그램",
+    "agency": "한국여성벤처협회",
+    "source_note": "[실제 공고문 PDF에서 파싱-확인필요] '2026년 경력단절여성 창업케어 프로그램 공고문.pdf' (공고일 2026-03-06, 한국여성벤처협회장) 기반. PDF 표/구조 파싱이라 세부 수치·조건 누락 가능성 있음.",
+    "announcement_date": "2026-03-06",
+    "deadline": "2026-04-02",
+    "eligibility": {
+      "biz_type": ["법인", "개인"],
+      "industry_codes": "any",
+      "min_years_since_founding": 0,
+      "max_years_since_founding": 1,
+      "region": "any",
+      "max_employees": null,
+      "min_employees": null,
+      "max_annual_revenue_krw": null,
+      "ceo_age_max": null,
+      "required_gender": "여성",
+      "requires_career_interruption": true,
+      "_unmapped_requirements": [
+        "예비창업자(사업자등록 없음)는 min/max_years_since_founding으로 표현이 애매함 — '업력 0~1년'으로 근사했으나 실제로는 '아예 창업 안 한 자'도 포함되는 별도 상태",
+        "해외법인은 대표 대한민국 국적인 경우만 지원 가능, 사업기간 내 국내법인 설립 필수 — 국적 필드 없음",
+        "부동산임대업만 영위하는 개인사업자(1년 미만)는 예비창업자로 간주, 1년 이상+타업종 겸업이면 기창업자로 지원불가 — 업종 조합 조건이라 industry_codes 단일 매칭으로 표현 불가"
+      ]
+    },
+    "exclusion_conditions": [
+      "사행산업 등 경제질서 및 미풍양속에 현저히 어긋나는 업종(일반유흥주점업, 무도유흥주점업, 기타 사행시설 관리 및 운영업) 영위",
+      "금융기관 등으로부터 채무불이행으로 규제 중인 자(기업)",
+      "국세 또는 지방세를 체납 중인 자(기업)",
+      "기타 중소벤처기업부 장관이 참여 제한의 사유가 있다고 인정하는 자(기업)"
+    ],
+    "required_documents": [
+      "참가신청서",
+      "경력단절여성 사유 확인서",
+      "서약서 및 동의서",
+      "사업계획서 (지정양식, [붙임1])",
+      "건강보험자격득실확인서",
+      "사업자등록여부 확인 서류(사실증명)"
+    ],
+    "required_documents_note": "해당시 추가 제출: 사업자등록증 또는 등기부등본(기창업자), 가점 증빙서류(팀창업 채용확약서/공모전 수상증빙/특허증 등). 사업계획서는 지정 양식 외 제출 시 자격 미달로 선정평가 제외됨(명시적 경고).",
+    "submission_format": { "page_limit": null, "file_format": "온라인 제출(협회 홈페이지 접수 링크)" },
+    "budget_criteria": {
+      "max_grant_krw": 10000000,
+      "min_grant_krw": 3000000,
+      "matching_fund_ratio": 0.0,
+      "excluded_categories": ["인건비", "기계장치"],
+      "note": "사업화과제해결지원금 300만원~1,000만원 차등지원. 인건비·기계장치 구매 등에는 집행 불가."
+    },
+    "scoring_rubric": [
+      { "item": "창업의지 및 준비성", "weight": 20 },
+      { "item": "창업 역량", "weight": 20 },
+      { "item": "창업아이템 기술성 및 차별성 보완가능성", "weight": 20 },
+      { "item": "창업아이템 사업성", "weight": 20 },
+      { "item": "사업계획 구체성 및 적정성", "weight": 20 },
+      { "item": "가점", "weight": 4 }
+    ],
+    "scoring_rubric_note": "서류평가(1차, 104점 만점=100점+가점4점) 기준. 발표평가(2차, 100점 만점, 70점 이상 고득점자 순 30명 선정)는 동일 5개 항목(가점 제외)으로 별도 진행 — 단일 rubric 필드로는 2단계 평가구조를 다 담지 못함."
+  }
+]

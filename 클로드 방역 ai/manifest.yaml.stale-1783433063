@@ -1,0 +1,586 @@
+# =====================================================================
+# manifest.yaml — 방역&클린 AI 운영관리 스킬 (파이프라인 초안)
+#
+# 기준 문서:
+#   - Fable 5 아키텍처 결정(2026-07-07): triggers(event/schedule) 섹션과
+#     run_if(조건부 실행) 필드로 event/schedule 트리거 공존 문제 해결.
+#     스키마 근거: ai공장짓기/manifest.schema.v2.yaml (0번, stage_fields 참고)
+#   - 방역&클린 사업계획서(최최종제출본_2026년 혁신 소상공인 AI 활용지원
+#     사업 신청서.pdf): 실제 업무 흐름 = 신규 견적 문의 접수 → 상담 내용
+#     정리 → 방문일정 확인 → 현장 방역 수행 → 완료보고서·소독증명서
+#     요청 대응(조건부) → 사후관리. 정기 고객사 약 110곳, 방문주기 기반
+#     D-day 리마인더가 이 선형 흐름과 별개로 병행 존재.
+#   - 꽃집 12봇_kind분류표.yaml 및 재사용성 분석
+#     (방역_업무흐름_및_꽃집재사용성_분석_2026-07-07.md, ai공장짓기 폴더):
+#     14봇 중 9개는 겉모양 재사용 가능, 3개는 부분재사용/필요성 확인 필요,
+#     2개는 완전 신규설계 필요. 아래 각 stage의 "재사용_출처" 필드에
+#     그 판정을 그대로 반영함.
+#
+# 주의: 이 파일은 "클로드 방역 ai" 폴더 전용 — 꽃집 폴더 파일은
+# 건드리지 않음(참고만 함).
+#
+# 아직 확정하지 않은 3개 선택형 stage(사용자 지시, 2026-07-07):
+#   현장분리봇 / 견적금액산정봇 / 현장사진봇 — 필요 여부를 지금 정하지
+#   않고, run_if로 켜고 끌 수 있는 자리만 만들어둠. 실제 사용 여부는
+#   방역 골든셋을 몇 건 모은 뒤에 결정.
+#
+# 2026-07-07 갱신: 방문알림봇의 event/schedule 이중 진입 문제를
+# entry_points 필드(신규, manifest.schema.v2.yaml#stage_fields.entry_points)로
+# 해결함. depends_on 그래프는 안 건드림.
+#
+# 2026-07-07 (새 문서 반영, 1단계) 갱신: 법정요구사항_대조표_2026-07-07.md의
+# (b)그룹 "필드만 추가하면 되는 것" 6개 반영 — 소독증명서 9개 법정필드,
+# used_chemicals(사용 약품명) 신규 필드, site_photo 배열/객체로 확장,
+# document_draft 잠금/보관위치/보존기간 필드, approval_action에 "반려" 값
+# 추가 + rejection_reason 신규 필드, history_log 설명 상세화.
+#
+# 2026-07-07 (새 문서 반영, 2단계) 갱신: 3단계 12건 테스트에서 발견한 갭 3개
+# 재분류 결과 — 문서종류구분 불가와 정기방문 알림 연결+날짜계산은 필드/
+# 구현 추가로 해결(report_requested/certificate_requested 분리, run.py
+# entry_points 실행기 연결 + 리마인더봇 날짜비교). 승인상태 4종은 구조변경
+# 카드(card-A)로 이관.
+#
+# 2026-07-07 (문서승인워크플로우, Fable 5 결정) 갱신: card-A 구조변경 결정
+# 반영 — decision-log_skill-factory-architecture.md 7절 참고.
+#   1) document_draft.report/certificate 각각에 공통 승인 블록(approval)
+#      추가: status(초안/승인대기/승인완료/반려)/version/approved_by/
+#      approved_at/rejection_reason/rejection_target/version_history.
+#      기존 document_draft 최상위의 단일 locked 필드는 폐기하고, report/
+#      certificate 각자의 locked로 이동(문서 종류별로 독립적인 잠금 상태를
+#      가질 수 있어야 하므로 — 예: 완료보고서는 승인, 소독증명서는 반려인
+#      케이스를 표현하려면 공유 필드로는 안 됨).
+#   2) 새 stage "문서승인"(kind: human) 추가 — 문서생성봇 뒤, 문자장부봇
+#      (발송) 앞. run_if: 승인필수_문서가_존재함.
+#   3) 문자장부봇에 "승인완료 아닌 문서는 발송 금지" 철칙 추가(가장 중요한
+#      안전장치 — scripts/run.py에 강제 구현, 파이프라인 순서만 믿지 않고
+#      발송 stage 자체에서 이중 검증).
+#   4) 반려 2갈래: 표현오류→문서생성봇, 데이터오류→현장완료입력봇. 이를
+#      위해 on_fail.human_reject.return_to를 매핑(object)도 허용하도록
+#      스키마 확장(기존 단일값 방식과 하위호환, manifest.schema.v2.yaml 참고).
+#   5) 스키마 레벨엔 승인 블록/approval_required 플래그/return_to 매핑
+#      패턴만 반영 — "소독증명서" 같은 방역 전용 단어는 이 manifest
+#      인스턴스에서 certificate.approval_required: true로만 표현.
+#
+# 2026-07-07 (템플릿-스키마 말 맞추기, 사용자 지시) 갱신: 필드 추가만,
+# 구조 변경 아님.
+#   1) 템플릿 3종의 "작성상태" 표기를 스키마 enum과 완전히 동일하게
+#      통일(승인 → 승인완료).
+#   2) 신규 shared_context.business_info(상호명/대표자명/사업자등록번호)
+#      추가 — 현장완료입력봇이 쓰고 문서생성봇이 읽어 document_draft.
+#      report/certificate 양쪽에 복사. certificate.상호는 이 값으로 자동
+#      채움. 템플릿 "사업자 정보" 섹션이 이제 실제 데이터모델과 연결됨.
+# =====================================================================
+
+schema_version: v2
+domain: pest_control
+skill_name: pest-control-ai-ops
+based_on_schema: "ai공장짓기/manifest.schema.v2.yaml"
+
+# ---------------------------------------------------------------------
+# 트리거 — event(문의 접수) + schedule(정기 방문주기) 공존
+# (schema_ref: manifest.schema.v2.yaml#0.트리거)
+# ---------------------------------------------------------------------
+triggers:
+  - type: event
+    source: inquiry
+    entry_stage: 수집봇
+    note: "전화/카톡/문자 등으로 신규 견적 문의가 들어오면 즉시 시작"
+  - type: schedule
+    interval: visit_cycle
+    entry_stage: 리마인더봇
+    note: >
+      정기 고객사(약 110곳)의 방문주기 도래 여부를 확인해 시작. 실제 날짜
+      확인·실행 트리거링은 이 스키마 밖의 별도 소형 스케줄러 프로그램이
+      담당(예: 매일 1회 배치 실행) — 이 manifest 안에는 그 스케줄러
+      코드나 실행주기를 넣지 않는다(스키마 원칙, Fable 5 결정).
+
+# ---------------------------------------------------------------------
+# 공유 컨텍스트 객체 (방역 실제 필드 모델 기준)
+# ---------------------------------------------------------------------
+shared_context:
+
+  raw_text: { type: string, written_by: [수집봇], read_by: [전사봇] }
+  raw_audio: { type: string, format: uri, written_by: [수집봇], read_by: [전사봇] }
+  source_type: { type: string, description: "call/kakao/sms/manual", written_by: [수집봇] }
+  created_at: { type: string, format: date-time, written_by: [수집봇] }
+
+  stt_text: { type: string, written_by: [전사봇], read_by: [문의판정봇, 보정봇] }
+  cleaned_text: { type: string, written_by: [전사봇] }
+
+  inquiry_classification:
+    type: string
+    description: "문의판정봇 출력 — enum: 방역요청 | 견적문의 | 일반문의 | 스팸무관 | 확인필요"
+    written_by: [문의판정봇]
+    read_by: [현장분리봇]
+
+  site_segments:
+    type: array
+    description: >
+      현장분리봇 출력 — 한 통화/문자 안에 여러 현장(건)이 섞여 있을 때의
+      분리 후보 목록. [상태: 미정 — run_if 조건 자체가 아직 안 정해져
+      기본적으로 이 필드는 비어있다고 가정]
+    written_by: [현장분리봇]
+    read_by: [보정봇]
+  split_status: { type: string, description: "완료 | 확인필요", written_by: [현장분리봇], read_by: [검수매니저] }
+
+  normalized_text: { type: string, written_by: [보정봇], read_by: [문의정리봇] }
+  correction_log: { type: array, written_by: [보정봇], read_by: [검수매니저] }
+
+  customer_name: { type: string, written_by: [문의정리봇], read_by: [검수매니저] }
+  space_type: { type: string, description: "공간 유형(예: 음식점/공방/숙박시설 등)", written_by: [문의정리봇], read_by: [검수매니저] }
+  visit_requested_date: { type: string, format: date, written_by: [문의정리봇], read_by: [검수매니저] }
+  request_note: { type: string, written_by: [문의정리봇], read_by: [검수매니저] }
+  report_requested: { type: boolean, description: "완료보고서 요청 여부. document_requested를 분리해 도입(card-06 해결). 고객DB저장봇 이후엔 customer_record 안에 포함돼 전달됨", written_by: [문의정리봇], read_by: [검수매니저] }
+  certificate_requested: { type: boolean, description: "소독증명서 요청 여부. report_requested와 짝 필드", written_by: [문의정리봇], read_by: [검수매니저] }
+  followup_needed: { type: boolean, description: "후속 연락 필요 여부", written_by: [문의정리봇], read_by: [검수매니저] }
+  field_confidence: { type: object, written_by: [문의정리봇], read_by: [검수매니저] }
+  field_sources: { type: object, written_by: [문의정리봇], read_by: [검수매니저] }
+  missing_fields: { type: array, written_by: [문의정리봇], read_by: [검수매니저] }
+
+  estimated_price:
+    type: number
+    description: "[상태: 미정] 견적금액산정봇 출력 — 표준가격 적용 가능 여부 자체가 확인 필요라 run_if로 켜고 끔"
+    written_by: [견적금액산정봇]
+    read_by: [검수매니저]
+
+  review_checklist: { type: array, written_by: [검수매니저], read_by: [대표자검수] }
+  review_priority: { type: string, written_by: [검수매니저], read_by: [대표자검수] }
+  editable_fields: { type: array, written_by: [검수매니저], read_by: [대표자검수] }
+
+  confirmed_fields: { type: object, written_by: [대표자검수], read_by: [고객DB저장봇] }
+  manual_edits: { type: object, written_by: [대표자검수], read_by: [고객DB저장봇] }
+  approval_action: { type: string, description: "검수저장 | 방문확정 | 반려 — 이 필드는 '고객 문의/방문확정' 승인 게이트용이며, 완료보고서·소독증명서 문서 자체의 초안/승인대기/승인완료/반려 워크플로우(아래 document_draft.report/certificate.approval)와는 완전히 별개", written_by: [대표자검수], read_by: [고객DB저장봇] }
+  rejection_reason: { type: string, description: "대표자검수에서 반려 시 반려사유. approval_action=반려일 때만 채워짐", written_by: [대표자검수], read_by: [고객DB저장봇] }
+
+  customer_record: { type: object, written_by: [고객DB저장봇], read_by: [방문알림봇, 리마인더봇, 문서생성봇] }
+  visit_cycle: { type: string, description: "방문주기(예: 격월/분기 등)", written_by: [고객DB저장봇], read_by: [리마인더봇] }
+  last_visit_date: { type: string, format: date, written_by: [고객DB저장봇], read_by: [리마인더봇] }
+  workflow_event: { type: object, written_by: [고객DB저장봇] }
+  version: { type: integer, written_by: [고객DB저장봇] }
+
+  reminder_due_list:
+    type: array
+    description: "리마인더봇 출력 — 방문주기가 도래한 고객 목록(schedule 트리거 경로). 각 항목에 실제 날짜비교 결과(D-day/지연 여부)를 담는다."
+    items:
+      type: object
+      properties:
+        customer_name: { type: string }
+        space_type: { type: string }
+        visit_cycle: { type: string }
+        last_visit_date: { type: string, format: date }
+        due_date: { type: string, format: date, description: "last_visit_date + visit_cycle 주기로 계산된 다음 방문 예정일" }
+        days_until_due: { type: integer, description: "오늘 기준 며칠 남았는지. 음수면 지연(overdue)" }
+        is_overdue: { type: boolean, description: "days_until_due < 0 이면 true" }
+    written_by: [리마인더봇]
+    read_by: [방문알림봇]
+
+  visit_notice: { type: object, description: "방문일정 확정 안내 정보(담당자 화면용)", written_by: [방문알림봇], read_by: [현장완료입력봇] }
+
+  site_completion_note: { type: string, description: "현장 방역 수행 완료 후 입력하는 완료 메모", written_by: [현장완료입력봇], read_by: [문서생성봇, 문자장부봇] }
+  used_chemicals: { type: string, description: "사용 약품명(및 필요시 희석/사용내역)", written_by: [현장완료입력봇], read_by: [문서생성봇] }
+  business_info:
+    type: object
+    description: >
+      [2026-07-07 신규 — 템플릿 "사업자 정보" 섹션과 데이터모델 연결] 문서
+      발급 주체(방역업체 자신)의 사업자 정보. 완료보고서·소독증명서 템플릿의
+      "사업자 정보" 섹션(상호명/대표자명/사업자등록번호) 및 소독증명서
+      법정 필드 "상호"에 대응. 실제 발급 전 국세청 공식 사업자등록증명과
+      대조 확인이 필요하다는 경고는 여전히 템플릿에 남겨둠 — 이 필드는
+      "값이 시스템에 저장·전달된다"는 것만 보장하고, 그 값이 진짜 맞는지
+      검증하는 것은 여전히 사람(대표자) 몫.
+    properties:
+      상호명: { type: string }
+      대표자명: { type: string }
+      사업자등록번호: { type: string }
+    written_by: [현장완료입력봇]
+    read_by: [문서생성봇]
+  site_photo:
+    type: array
+    description: "[상태: 미정 — run_if로 켜고 끔] 현장사진봇 출력 — 현장 완료 증빙 사진(배열: uri+description)."
+    items:
+      type: object
+      properties:
+        uri: { type: string, format: uri }
+        description: { type: string, description: "사진 설명(예: 작업 전/후, 처리구역)" }
+    written_by: [현장사진봇]
+    read_by: [문서생성봇]
+
+  document_draft:
+    type: object
+    description: >
+      완료보고서·소독증명서 초안 — report_requested/certificate_requested
+      중 하나라도 참일 때만 생성됨(run_if). report/certificate 두 하위
+      객체로 나눠, 요청된 것만 채워지고 나머지는 null로 남는다(card-06 해결).
+      [2026-07-07 문서승인워크플로우, Fable 5 결정 — decision-log 7절] report/
+      certificate 각각에 공통 승인 블록(approval, manifest.schema.v2.yaml#
+      check_output_schema.approval_block 패턴)과 approval_required 플래그를
+      추가함. 문서 종류별로 독립적인 승인/잠금 상태를 가질 수 있어야 해서
+      (예: 완료보고서는 승인완료, 소독증명서는 반려인 케이스), 예전에
+      document_draft 최상위에 하나뿐이던 locked 필드는 폐기하고 report/
+      certificate 각자의 locked로 이동함(마이그레이션 — 예전 스키마와 호환
+      안 됨, 이 필드를 쓰는 코드는 scripts/run.py까지 전부 이번에 같이 갱신함).
+      법정 서식 원문 미검증 상태이므로 certificate 하위 필드명은 초안
+      수준(국가법령정보센터·관할 보건소 서식 재확인 전까지 최종 확정 아님).
+    properties:
+      report:
+        type: object
+        description: >
+          report_requested가 참일 때만 채워짐(거짓이면 null) — 완료보고서
+          초안. approval_required: true(MVP 문서에 "대표자 승인 전 외부
+          발송 금지"가 완료보고서 템플릿에도 명시돼 있어 소독증명서와 동일하게
+          승인 필수로 설정 — card-A 결정 반영).
+        properties:
+          작업일: { type: string, format: date }
+          작업구역: { type: string }
+          처리내용: { type: string, description: "site_completion_note 참조" }
+          사용약품: { type: string, description: "used_chemicals 필드값 참조" }
+          business_info: { type: object, description: "[신규, 2026-07-07] shared_context.business_info 참조(상호명/대표자명/사업자등록번호) — 완료보고서 템플릿의 '사업자 정보' 섹션에 대응" }
+          approval_required: { type: boolean, description: "[신규] 이 문서가 문서승인 게이트를 거쳐야 하는지 여부. 완료보고서는 true로 고정" }
+          approval:
+            type: object
+            description: "[신규] manifest.schema.v2.yaml#check_output_schema.approval_block 패턴 적용 — status/version/approved_by/approved_at/rejection_reason/rejection_target/version_history"
+          locked: { type: boolean, description: "[이동됨 — 예전엔 document_draft 최상위 필드였음] approval.status=승인완료가 되면 true로 전환. locked=true인 버전은 수정 불가, 새 버전(version+1)만 가능" }
+      certificate:
+        type: object
+        description: >
+          certificate_requested가 참일 때만 채워짐(거짓이면 null) — 소독증명서
+          초안(법정 9필드). approval_required: true(법정 문서라 항상 승인
+          필수 — "소독증명서"라는 방역 전용 개념은 스키마가 아니라 여기,
+          이 필드 값으로만 표현함, card-A 결정 3 반영).
+        properties:
+          상호: { type: string, description: "소독증명서 법정 필드 — 업체 상호명. [2026-07-07] business_info.상호명과 같은 값이어야 함 — 문서생성봇이 생성 시 business_info.상호명으로 자동 채움(사람이 두 번 입력할 필요 없음, 템플릿에도 동일 안내 있음)" }
+          business_info: { type: object, description: "[신규, 2026-07-07] shared_context.business_info 참조(상호명/대표자명/사업자등록번호) — 소독증명서 템플릿의 '사업자 정보' 섹션에 대응. 위 '상호' 필드와 상호명 값이 동일함" }
+          실시면적: { type: string, description: "소독증명서 법정 필드 — 방역 실시 면적" }
+          소재지: { type: string, description: "소독증명서 법정 필드 — 현장 소재지" }
+          관리자확인: { type: string, description: "소독증명서 법정 필드 — 현장 관리자 확인 정보" }
+          소독기간: { type: string, description: "소독증명서 법정 필드 — 소독 실시 기간" }
+          소독내용종류: { type: string, description: "소독증명서 법정 필드 — 소독 내용/종류" }
+          약품사용내용: { type: string, description: "소독증명서 법정 필드 — 사용 약품 관련 기재 내용(used_chemicals 필드값 참조)" }
+          발급일: { type: string, format: date, description: "소독증명서 법정 필드 — 증명서 발급일" }
+          소독실시자: { type: string, description: "소독증명서 법정 필드 — 소독 실시자(담당자/업체)" }
+          approval_required: { type: boolean, description: "[신규] 소독증명서는 법정 문서라 항상 true(card-A 결정 3)" }
+          approval:
+            type: object
+            description: "[신규] manifest.schema.v2.yaml#check_output_schema.approval_block 패턴 적용"
+          locked: { type: boolean, description: "[이동됨] approval.status=승인완료가 되면 true. 이후 수정 불가, 새 버전만 가능" }
+      storage_location: { type: string, description: "문서 보관 위치" }
+      retention_period: { type: string, description: "문서 보존기간(예: 2년) — 법령 원문 기간 미확인, 잠정값" }
+    written_by: [문서생성봇, 문서승인]
+    read_by: [문자장부봇]
+
+  message_job: { type: object, written_by: [문자장부봇] }
+  message_result: { type: object, written_by: [문자장부봇] }
+  history_log: { type: object, description: "감사로그 — 누가/언제 작성·수정·승인·반려·잠금했는지 이벤트 단위로 기록. 필드는 문자장부봇 하나가 씀(상류 stage 액션을 ctx로 이어받아 마지막에 한 번에 기록)", written_by: [문자장부봇] }
+
+  satisfaction_response: { type: object, description: "만족도·불편사항 수집표 응답", written_by: [만족도수집봇] }
+
+# ---------------------------------------------------------------------
+# stages
+# ---------------------------------------------------------------------
+stages:
+
+  - id: 수집봇
+    kind: local
+    kind_rationale: "전화/카톡/문자 등 신규 견적 문의를 그대로 저장 — 판단 없음"
+    재사용_출처: "꽃집 collection_bot — 겉모양 재사용 가능(domain_neutral: true)"
+    io: { reads: [], writes: [raw_text, raw_audio, source_type, created_at] }
+    exec_params: { timeout_sec: 5, retry_count: 0 }
+    depends_on: []
+    domain_neutral: true
+
+  - id: 전사봇
+    kind: local
+    kind_rationale: "STT 호출 및 결과 저장만 수행 — 판단 없음"
+    재사용_출처: "꽃집 transcription_bot — 겉모양 재사용 가능(domain_neutral: true)"
+    io: { reads: [raw_audio, raw_text], writes: [stt_text, cleaned_text] }
+    exec_params: { timeout_sec: 60, retry_count: 2 }
+    depends_on: [수집봇]
+    domain_neutral: true
+
+  - id: 문의판정봇
+    kind: model
+    tier: sonnet
+    tier_rationale: "[확인 필요 — 꽃집 order_classification_bot과 동일하게 Sonnet 5 제안 수준, 실측 안 함] 방역요청/견적문의/일반문의/스팸을 문맥으로 가르는 판정이라 haiku 범위를 벗어난다고 잠정 판단"
+    kind_rationale: "전체를 5가지 상태로 분류하는 문맥 판단 작업"
+    재사용_출처: "꽃집 order_classification_bot — 겉모양 재사용 가능, enum 값만 교체(domain_neutral: true)"
+    io: { reads: [stt_text, raw_text], writes: [inquiry_classification] }
+    depends_on: [전사봇]
+    check: { mode: self_check, schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.self_check" }
+    on_fail: { action: route_to_human }
+    stop_condition: "inquiry_classification이 일반문의|스팸무관이면 여기서 종료. 방역요청|견적문의만 다음 단계로. 확인필요는 대표자검수로 직행"
+    exec_params: { retry_count: 1 }
+    domain_neutral: true
+
+  - id: 현장분리봇
+    kind: model
+    tier: sonnet
+    run_if: "미정_골든셋수집후결정"
+    run_if_status: "보류 — 사용자 지시(2026-07-07): 지금 필요 여부를 정하지 않는다. run_if 자리만 만들어두고 실제 조건/on-off는 방역 골든셋 확보 후 결정."
+    kind_rationale: "한 통화/문자 안에 여러 현장(건)이 섞였는지 판단해 분리"
+    재사용_출처: "꽃집 order_split_bot — 부분재사용(구조는 domain_neutral: true, 실사용 빈도 근거 없어 필요성 확인 필요)"
+    io: { reads: [inquiry_classification, stt_text, raw_text], writes: [site_segments, split_status] }
+    io_note: "run_if가 꺼져 있으면(현재 기본) 이 stage는 건너뛰고 site_segments는 비어있는 채로 다음 단계 진행 — 보정봇은 이 경우 stt_text/raw_text를 직접 읽음"
+    depends_on: [문의판정봇]
+    domain_neutral: true
+
+  - id: 보정봇
+    kind: model
+    tier: sonnet
+    tier_rationale: "구어체·사투리(진주 지역) 보정은 문맥 추론이 필요"
+    kind_rationale: "구어체·오인식을 문맥으로 보정"
+    재사용_출처: "꽃집 correction_bot — 겉모양 재사용 가능(domain_neutral: true)"
+    io: { reads: [site_segments, stt_text, raw_text], writes: [normalized_text, correction_log] }
+    io_note: "site_segments가 비어있으면(현장분리봇 run_if 꺼짐) stt_text/raw_text를 그대로 사용"
+    depends_on: [현장분리봇]
+    exec_params: { retry_count: 1 }
+    domain_neutral: true
+
+  - id: 문의정리봇
+    kind: model
+    tier: haiku
+    tier_rationale: "[꽃집 order_draft_bot과 동일 근거] 이미 의미 해석이 끝난 normalized_text에서 정형 필드만 구조화하는 작업"
+    kind_rationale: "normalized_text에서 고객명/공간유형/방문희망일/요청사항/문서요청여부/후속연락여부를 구조화 — 방역 사업계획서에 이미 명시된 필드셋"
+    재사용_출처: "꽃집 order_draft_bot — 겉모양 재사용 가능, 필드셋만 교체(domain_neutral: true)"
+    io: { reads: [normalized_text], writes: [customer_name, space_type, visit_requested_date, request_note, report_requested, certificate_requested, followup_needed, field_confidence, field_sources, missing_fields] }
+    depends_on: [보정봇]
+    exec_params: { retry_count: 1 }
+    domain_neutral: true
+
+  - id: 견적금액산정봇
+    kind: model
+    tier: haiku
+    run_if: "미정_골든셋수집후결정"
+    run_if_status: "보류 — 사용자 지시(2026-07-07): 지금 필요 여부를 정하지 않는다."
+    kind_rationale: "표준 가격/견적 정규화 — 사전+규칙 기반 정형화 작업으로 가정(미검증)"
+    재사용_출처: "꽃집 ribbon_price_bot — 이전 분석에서는 대응 개념 없음(domain_neutral: false)으로 판정했으나 사용자 지시로 자리만 예약, 확정 아님"
+    io: { reads: [customer_name, space_type, normalized_text], writes: [estimated_price] }
+    io_note: "run_if가 꺼져 있으면(현재 기본) estimated_price는 비어있는 채로 다음 단계 진행"
+    depends_on: [문의정리봇]
+    domain_neutral: false
+
+  - id: 검수매니저
+    kind: model
+    tier: sonnet
+    tier_rationale: "여러 상류 stage의 confidence/후보값을 종합해 자동확정 vs 대표자 에스컬레이션을 가르는 임계값 판단"
+    kind_rationale: "quality_gate의 특수화 — '통과/대표자에스컬레이션' 분기 출력"
+    재사용_출처: "꽃집 review_manager_bot — 겉모양 재사용 가능, 임계값만 재조정(domain_neutral: true)"
+    io: { reads: [customer_name, space_type, visit_requested_date, request_note, report_requested, certificate_requested, followup_needed, field_confidence, field_sources, missing_fields, correction_log, split_status, estimated_price], writes: [review_checklist, review_priority, editable_fields] }
+    check: { mode: self_check, schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.self_check" }
+    on_fail: { action: route_to_human }
+    depends_on: [견적금액산정봇]
+    exec_params: { retry_count: 1 }
+    domain_neutral: true
+
+  - id: 대표자검수
+    kind: human
+    kind_rationale: >
+      방역&클린 사업계획서에 이미 명문화된 운영 원칙 — "대표자 입력 →
+      AI 구조화 → 오더메모·고객DB·리마인더·문서 초안 생성 → 대표자 최종
+      검수" 순으로 운영. 예약 확정, 문서 발송, 고객 안내는 대표자 확인
+      후 진행. 주의: 이 stage는 "고객 문의/방문확정"만 승인함 — 완료
+      보고서·소독증명서 문서 자체 승인은 아래 문서승인 stage가 별도로 담당.
+    재사용_출처: "꽃집 human_reviewer — 겉모양 재사용 가능, 그대로(domain_neutral: true). 보고서상 실제 운영원칙과 정확히 일치"
+    io: { reads: [review_checklist, review_priority, editable_fields], writes: [confirmed_fields, manual_edits, approval_action, rejection_reason] }
+    check: { mode: human_gate, schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.human_gate" }
+    on_fail: { action: retry, human_reject: { return_to: null } }
+    depends_on: [검수매니저]
+    async: true
+    domain_neutral: true
+
+  - id: 고객DB저장봇
+    kind: local
+    kind_rationale: "승인 결과를 고객DB에 저장/버저닝 — 규칙 기반 코드, 판단 없음"
+    재사용_출처: "꽃집 storage_bot — 겉모양 재사용 가능(domain_neutral: true)"
+    io: { reads: [confirmed_fields, manual_edits, approval_action, rejection_reason], writes: [customer_record, visit_cycle, last_visit_date, workflow_event, version] }
+    exec_params: { timeout_sec: 10, retry_count: 2 }
+    depends_on: [대표자검수]
+    domain_neutral: true
+
+  - id: 방문알림봇
+    kind: local
+    kind_rationale: "확정된 방문일정 정보를 담당자(대표/직원) 화면에 전달 — 데이터 라우팅, 판단 없음"
+    재사용_출처: >
+      꽃집 dispatch_bot — 완전 신규설계 필요로 판정됨(domain_neutral: true지만
+      "배송"→"방문" 개념 치환만 가능, 내용은 백지에서 새로 작성).
+    io: { reads: [customer_record, reminder_due_list], writes: [visit_notice] }
+    depends_on: [고객DB저장봇]
+    entry_points: [event:inquiry, schedule:visit_cycle]
+    io_note: >
+      [해결 — entry_points 필드로 이중 진입 표현] event 경로(고객DB저장봇
+      이후)와 schedule 경로(리마인더봇 이후) 양쪽에서 도달 가능. 실행기
+      (scripts/run.py의 build_graph)가 이를 실제로 반영함(card-08 해결).
+    exec_params: { timeout_sec: 5, retry_count: 1 }
+    domain_neutral: true
+
+  - id: 현장완료입력봇
+    kind: local
+    kind_rationale: "현장 방역 수행 완료 후 대표/직원이 입력하는 완료 메모를 저장 — 판단 없음"
+    재사용_출처: "방역 전용 신규 stage — 꽃집 14봇에 직접 대응 없음"
+    io: { reads: [visit_notice], writes: [site_completion_note, used_chemicals, business_info] }
+    io_note: >
+      [2026-07-07 신규] business_info(상호명/대표자명/사업자등록번호)도 이
+      단계에서 같이 입력·확인한다 — 매 건마다 새로 입력하는 값이라기보다는
+      업체 고정값에 가깝지만, 문서 생성 시점에 최신값을 반영할 수 있도록
+      이 stage의 출력에 포함시킴(사용자 지시, "completed_work_input이나
+      비슷한 곳에 필드로 추가").
+    exec_params: { timeout_sec: 30, retry_count: 1 }
+    depends_on: [방문알림봇]
+    domain_neutral: true
+    문서승인_반려_복귀지점: >
+      [2026-07-07 신규 — Fable 5 결정] 아래 문서승인 stage에서 rejection_target=
+      데이터오류로 반려되면 이 stage로 되돌아온다(현장 데이터 자체를 다시
+      입력받은 뒤 문서생성봇을 재실행). on_fail.human_reject.return_to의
+      매핑값으로만 참조되며, depends_on 그래프 자체는 안 바뀜(DAG 유지).
+
+  - id: 현장사진봇
+    kind: local
+    run_if: "미정_골든셋수집후결정"
+    run_if_status: "보류 — 사용자 지시(2026-07-07): 지금 필요 여부를 정하지 않는다."
+    kind_rationale: "현장 증빙사진 촬영·저장 — 판단 없음(가정)"
+    재사용_출처: "꽃집 delivery_photo_bot — 부분재사용(구조 domain_neutral: true, 실사용 필요성 확인 필요)"
+    io: { reads: [site_completion_note], writes: [site_photo] }
+    io_note: "run_if가 꺼져 있으면(현재 기본) site_photo는 비어있는 채로 다음 단계 진행"
+    exec_params: { timeout_sec: 30, retry_count: 1 }
+    depends_on: [현장완료입력봇]
+    domain_neutral: true
+
+  - id: 문서생성봇
+    kind: local
+    run_if: "완료보고서_또는_소독증명서를_요청함"
+    run_if_status: "확정 — report_requested 또는 certificate_requested 중 하나라도 참일 때 실행."
+    kind_rationale: >
+      확정 데이터에서 완료보고서·소독증명서 초안 템플릿 생성 — 템플릿
+      채우기, 판단 없음. [2026-07-07 신규 — Fable 5 결정] 반려-재생성
+      루프의 재진입점이기도 함: 문서승인에서 반려되면(rejection_target
+      무관하게 최종적으로) 이 stage가 다시 실행돼 version+1로 문서를
+      재생성한다. 이전(반려된) 버전은 삭제하지 않고 approval.version_history
+      에 보존한다.
+    재사용_출처: "꽃집 print_prep_bot — 부분재사용(확정데이터→템플릿 채우기 골격만 재사용, 템플릿 내용은 완전히 새로 작성 필요)"
+    io: { reads: [customer_record, site_completion_note, used_chemicals, site_photo, business_info], writes: [document_draft] }
+    io_note: >
+      report_requested/certificate_requested는 확정 시점에 customer_record
+      안에 포함돼 전달됨. document_draft.report는 report_requested가
+      참일 때만, document_draft.certificate는 certificate_requested가
+      참일 때만 채워짐(나머지는 null). 새로 생성될 때마다 report/
+      certificate 각각의 approval 블록을 status=초안으로(재생성이면
+      version+1로) 초기화한다 — approval_by/approved_at/rejection_reason/
+      rejection_target은 초기화 시 비움, version_history만 이전 반려
+      이력을 이어서 보존. [2026-07-07 신규] business_info는 report/
+      certificate 양쪽에 그대로 복사해 넣고, certificate.상호는
+      business_info.상호명 값으로 자동 채운다(중복 입력 방지).
+    exec_params: { timeout_sec: 10, retry_count: 1 }
+    depends_on: [현장완료입력봇]
+    domain_neutral: false
+    domain_neutral_rationale: "문서 양식(완료보고서/소독증명서) 자체는 방역업 전용 — 골격(확정데이터→템플릿)은 범용이나 내용은 특화"
+
+  - id: 문서승인
+    kind: human
+    kind_rationale: >
+      [2026-07-07 신규 — Fable 5 결정: 문서승인워크플로우(card-A) 해결,
+      decision-log_skill-factory-architecture.md 7절 참고] 완료보고서·
+      소독증명서 등 승인이 필요한(approval_required=true) 문서 자체를
+      대표자가 검토해 승인/반려하는 게이트. 기존 대표자검수는 "고객 문의/
+      방문확정"만 승인하고 문서 생성 전 단계라 문서 자체를 승인하지
+      않았음 — 그 공백을 메우기 위해 별도 stage로 신설.
+      결정 근거(Fable 5): ① stage는 완료/미완료 일방향 흐름인데 승인은
+      반려→재생성→재승인 루프라 표현이 다름. ② 한 건에서 문서 2종이
+      나오고 각각 승인 상태가 다를 수 있어(보고서 승인+증명서 반려) stage
+      단위로는 표현 불가 — 그래서 상태는 문서(document_draft.report/
+      certificate.approval) 필드로 두고, 파이프라인엔 게이트 1개만 둠.
+      ③ 완전 별도 실행기를 만드는 건 과함 — 기존 human_gate 패턴 재사용.
+    재사용_출처: "방역 전용 신규 stage — 꽃집 14봇에 대응 없음. 대표자검수(human)와 같은 패턴 재사용(kind:human, check.human_gate)"
+    run_if: "승인필수_문서가_존재함"
+    run_if_status: "확정 — document_draft.report.approval_required 또는 document_draft.certificate.approval_required 중 하나라도 true면 실행. 둘 다 없거나 false면 건너뜀"
+    io: { reads: [document_draft], writes: [document_draft] }
+    io_note: >
+      report/certificate의 approval 하위 블록(status/approved_by/
+      approved_at/rejection_reason/rejection_target/locked)만 갱신한다 —
+      본문 내용 필드(작업일/약품사용내용 등)는 건드리지 않음. 승인완료
+      시 해당 문서의 locked를 true로 전환.
+    check: { mode: human_gate, schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.human_gate" }
+    on_fail:
+      action: retry
+      human_reject:
+        return_to:
+          표현오류: 문서생성봇
+          데이터오류: 현장완료입력봇
+    depends_on: [문서생성봇]
+    async: true
+    domain_neutral: false
+    domain_neutral_rationale: >
+      게이트 패턴(human 승인 + rejection_target 매핑) 자체는 범용이라
+      스키마(manifest.schema.v2.yaml#check_output_schema.approval_block,
+      stage_fields.on_fail)에 반영됨. 다만 rejection_target의 실제 값
+      (표현오류/데이터오류)과 그 라우팅 대상은 방역 도메인의 판단이라
+      이 stage 자체는 domain_neutral: false.
+
+  - id: 문자장부봇
+    kind: local
+    kind_rationale: >
+      문자·알림톡 발송 + 발송 직후 자동 장부화 — 정형 로직, 판단 없음.
+      [2026-07-07 신규 — Fable 5 결정, 가장 중요한 안전장치] 발송 철칙:
+      approval_required=true인 문서는 approval.status가 반드시
+      "승인완료"여야만 발송 가능 — 아니면 절대 발송하지 않는다. 이 규칙은
+      depends_on 순서(문서승인 다음이라는 것)에만 기대지 않고, 이 stage
+      실행 로직 자체(scripts/run.py)에서 다시 한번 강제 검증한다(이중 방어).
+    재사용_출처: "꽃집 sms_ledger_bot — 겉모양 재사용 가능(domain_neutral: true)."
+    io: { reads: [site_completion_note, document_draft], writes: [message_job, message_result, history_log] }
+    io_note: >
+      document_draft가 비어있어도(문서생성봇 run_if 거짓) 완료 안내 문자는
+      발송 — 문서 첨부 여부만 분기. document_draft.report/certificate 중
+      approval_required=true인데 approval.status != 승인완료인 문서가
+      하나라도 있으면 발송 자체를 차단한다(철칙, scripts/run.py 참고).
+    exec_params: { timeout_sec: 15, retry_count: 2 }
+    depends_on: [문서승인]
+    domain_neutral: true
+
+  - id: 만족도수집봇
+    kind: local
+    kind_rationale: "만족도·불편사항 수집표 응답 저장 — 판단 없음(가정, 정성적 분류가 필요해지면 model로 격상 검토)"
+    재사용_출처: "방역 전용 신규 stage — 꽃집 14봇에 대응 없음. 보고서의 '사후관리 환류 구조'(시즌 해충 리포트, 재방문 상담 근거)에 대응"
+    io: { reads: [message_result], writes: [satisfaction_response] }
+    exec_params: { timeout_sec: 10, retry_count: 1 }
+    depends_on: [문자장부봇]
+    domain_neutral: true
+
+  - id: 리마인더봇
+    kind: local
+    kind_rationale: >
+      고객DB의 visit_cycle/last_visit_date를 기준으로 날짜를 비교해
+      방문주기가 도래한 고객을 뽑아내는 카운트/날짜비교 작업 — 판단
+      없음. schedule 트리거의 entry_stage. 실제 날짜비교 로직은
+      scripts/run.py에 구현됨(card-09 해결).
+    재사용_출처: "방역 전용 신규 stage — 꽃집 14봇에 대응 없음(꽃집은 100% 이벤트 트리거만 존재)."
+    io: { reads: [customer_record, visit_cycle, last_visit_date], writes: [reminder_due_list] }
+    io_note: "실제 '오늘 날짜 확인' 동작은 스키마 밖의 별도 스케줄러 프로그램이 매일 1회 등 주기로 호출 — 이 stage 자체는 호출됐을 때 카운트/비교만 수행"
+    exec_params: { timeout_sec: 10, retry_count: 1 }
+    depends_on: []
+    domain_neutral: true
+
+# ---------------------------------------------------------------------
+# 요약
+# ---------------------------------------------------------------------
+summary:
+  local: [수집봇, 전사봇, 고객DB저장봇, 방문알림봇, 현장완료입력봇, 현장사진봇, 문서생성봇, 문자장부봇, 만족도수집봇, 리마인더봇]   # 10개
+  model: [문의판정봇, 현장분리봇, 보정봇, 문의정리봇, 견적금액산정봇, 검수매니저]   # 6개
+  human: [대표자검수, 문서승인]   # 2개 (2026-07-07 문서승인 추가)
+  total: 18
+  optional_run_if_pending: [현장분리봇, 견적금액산정봇, 현장사진봇]   # 사용자 지시로 확정 보류
+  reused_as_is: [수집봇, 전사봇, 문의판정봇, 보정봇, 문의정리봇, 검수매니저, 대표자검수, 고객DB저장봇, 문자장부봇]   # 9개 — 겉모양 재사용
+  redesigned: [방문알림봇, 문서생성봇]   # 2개 — 완전/부분 신규설계
+  pest_control_only_new: [현장완료입력봇, 만족도수집봇, 리마인더봇, 문서승인]   # 4개 — 꽃집 14봇에 대응 없음
+
+# ---------------------------------------------------------------------
+# 확인이 필요한 항목 (임의로 결정하지 않고 남긴 것)
+# ---------------------------------------------------------------------
+open_questions:
+  - "[해결] 방문알림봇의 두 진입경로 — entry_points 필드로 해결(manifest.schema.v2.yaml#stage_fields.entry_points), 실행기(run.py)까지 반영 완료(card-08 해결)."
+  - "현장분리봇/견적금액산정봇/현장사진봇 3개의 run_if 조건은 아직 '미정_골든셋수집후결정' 플레이스홀더 값 — 실제 조건 문자열과 on/off 여부는 방역 골든셋 확보 후 결정 예정"
+  - "문의판정봇/보정봇의 tier(sonnet)는 꽃집 사례를 그대로 따른 잠정 판단 — 방역 데이터로 실측 안 됨"
+  - "만족도수집봇의 타이밍 — 보고서상 사후관리가 방문 직후인지 일정 기간 후인지 불명확."
+  - "estimated_price 필드가 실제로 필요한 도메인 개념인지(표준 가격표가 있는지) 자체가 미확인"
+  - "[해결] document_requested 단일 boolean 문제 — report_requested/certificate_requested 2개 필드로 분리해 해결(card-06)."
+  - "[해결] 리마인더봇 날짜비교 부재 — due_date/days_until_due/is_overdue 필드 추가, run.py에 실제 계산 로직 구현(card-09)."
+  - "[해결 — Fable 5 결정, 2026-07-07] 승인상태 4종(승인완료/반려/승인대기/초안, card-A) — document_draft.report/certificate에 공통 승인 블록 추가 + 새 human stage '문서승인' 신설로 해결. decision-log_skill-factory-architecture.md 7절 및 scripts/run.py 참고."
+  - "[신규 미확정] 문서승인 반려 재시도 최대 횟수(현재 run.py mock은 3회로 임의 설정) — 실제 운영에서 몇 회까지 자동 루프를 허용할지, 그 이상은 무조건 사람이 수동 개입할지는 미정(골든셋/실사용 확인 후 결정)."
+  - "[신규 미확정] version_history의 보존 기간·형식(스냅샷 전체 vs 요약)은 법정 보존기간(2년, 잠정값)과 별개로 논의 안 됨 — 문서 자체 보존기간과 승인이력 보존기간이 같아야 하는지도 미확인."

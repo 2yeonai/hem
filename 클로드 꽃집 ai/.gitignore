@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*_prev.py
+*_prev.yaml
+*_prev.json
+*_prev.md
+gov-support-skill/

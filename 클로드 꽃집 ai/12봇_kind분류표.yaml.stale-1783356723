@@ -1,0 +1,376 @@
+# =====================================================================
+# 12봇_kind분류표.yaml — 꽃집(온천꽃식물원) 12봇 파이프라인 kind 분류 (작업 C)
+#
+# 기준 문서:
+#   - Fable 5 결정(2026-07-06): kind는 local/model/human 세 값만.
+#   - Sonnet 5 리뷰(2026-07-06): 검수매니저 tier는 Fable 답변에서 누락 —
+#     "판단 복잡도 기준으로 haiku/sonnet 중 결정" 지시.
+#   - 온천꽃식물원 AI 주문 운영 앱 설계 보고서: 자동화 직원별 상세 설계 표,
+#     mermaid 플로우, 데이터모델(order_sources/order_fields/attachments/
+#     workflow_events/print_jobs/deliveries/message_jobs).
+#
+# 전제: 작업 A(ai공장짓기/manifest.schema.v2.yaml)의 shared_context는 스키마
+# 설명용 6필드 예시였고, 실제 12봇 파이프라인에는 해상도가 부족함. 아래
+# shared_context는 설계 보고서의 실제 필드 모델을 기준으로 확장한 것 —
+# 작업 A 예시를 대체하는 게 아니라, "실제 도메인 인스턴스"로서 병행 존재.
+#
+# 2026-07-07 갱신: 실데이터 diff 로그 #2에서 발견된 두 개의 신규 stage
+# (order_classification_bot, order_split_bot) 추가 — 파일명은 "12봇"으로
+# 두지만(기존 참조 안 깨지게) 실제로는 14 stage. summary 블록에서 카운트
+# 갱신함.
+# =====================================================================
+
+schema_version: v2
+domain: flower_shop
+
+# ---------------------------------------------------------------------
+# 공유 컨텍스트 객체 (설계 보고서 필드 모델 기준, snake_case로 통일)
+# ---------------------------------------------------------------------
+shared_context:
+  raw_text: { type: string, written_by: [collection_bot], read_by: [transcription_bot] }
+  raw_image: { type: string, format: uri, written_by: [collection_bot], read_by: [transcription_bot] }
+  raw_audio: { type: string, format: uri, written_by: [collection_bot], read_by: [transcription_bot] }
+  source_type: { type: string, description: "call/kakao/sms/photo/manual", written_by: [collection_bot], read_by: [] }
+  created_at: { type: string, format: date-time, written_by: [collection_bot], read_by: [] }
+
+  stt_text: { type: string, written_by: [transcription_bot], read_by: [correction_bot] }
+  ocr_text: { type: string, written_by: [transcription_bot], read_by: [correction_bot] }
+  cleaned_text: { type: string, description: "받아쓰기봇 자체 최소 정리(띄어쓰기 등). 의미 보정은 아님 — 말귀봇 몫", written_by: [transcription_bot], read_by: [] }
+  engine_meta: { type: object, written_by: [transcription_bot], read_by: [] }
+
+  order_classification:
+    type: string
+    description: "주문판정봇 출력 — enum: 주문전화 | 주문가능성있음 | 단순문의 | 일반통화 | 스팸무관 | 확인필요"
+    written_by: [order_classification_bot]
+    read_by: [order_split_bot]
+
+  order_segments:
+    type: array
+    description: >
+      주문분리봇 출력 — 통화/문자 1건 안에 있는 개별 주문 단위 목록. 각 원소는
+      {segment_text, split_confidence} 형태. split_status가 확인필요면 이 배열은
+      "후보 경계"일 뿐 확정이 아님(아래 split_status 참고).
+    written_by: [order_split_bot]
+    read_by: [correction_bot]
+    # 알려진 스키마 한계: 이 필드는 배열이고, 이후 stage(correction_bot~review_manager_bot)는
+    # 원래 "주문 1건"을 전제로 설계됨. 배열 원소마다 이후 전체 stage를 독립 실행해야 하는데
+    # (fan-out), 지금 v2 스키마의 depends_on 그래프는 이런 "1:N 분기 실행"을 표현하는 수단이
+    # 없음 — open_questions에 신규 항목으로 기록.
+
+  split_status:
+    type: string
+    description: "완료 | 확인필요 — 분리 기준이 애매하면 임의로 나누지 않고 확인필요로 남김(사용자 지시)"
+    written_by: [order_split_bot]
+    read_by: [review_manager_bot]
+
+  normalized_text: { type: string, written_by: [correction_bot], read_by: [order_draft_bot, ribbon_price_bot] }
+  correction_log: { type: array, written_by: [correction_bot], read_by: [review_manager_bot] }
+  candidates: { type: array, description: "불확실한 값의 후보 목록(원문 덮어쓰기 금지)", written_by: [correction_bot], read_by: [review_manager_bot] }
+
+  order_draft: { type: object, written_by: [order_draft_bot], read_by: [ribbon_price_bot, review_manager_bot] }
+  field_confidence: { type: object, written_by: [order_draft_bot], read_by: [review_manager_bot] }
+  field_sources: { type: object, description: "필드별 provenance(어느 원문/파일에서 왔는지)", written_by: [order_draft_bot], read_by: [review_manager_bot] }
+  missing_fields: { type: array, written_by: [order_draft_bot], read_by: [review_manager_bot] }
+
+  ribbon_message_raw: { type: string, written_by: [ribbon_price_bot], read_by: [review_manager_bot] }
+  ribbon_message_final: { type: string, written_by: [ribbon_price_bot], read_by: [review_manager_bot] }
+  product_name: { type: string, written_by: [ribbon_price_bot], read_by: [review_manager_bot] }
+  price: { type: number, written_by: [ribbon_price_bot], read_by: [review_manager_bot] }
+  quantity: { type: integer, written_by: [ribbon_price_bot], read_by: [review_manager_bot] }
+
+  review_checklist: { type: array, written_by: [review_manager_bot], read_by: [human_reviewer] }
+  review_priority: { type: string, description: "초록/노랑/빨강/파랑 색상 규칙", written_by: [review_manager_bot], read_by: [human_reviewer] }
+  editable_fields: { type: array, written_by: [review_manager_bot], read_by: [human_reviewer] }
+
+  confirmed_fields: { type: object, written_by: [human_reviewer], read_by: [storage_bot] }
+  manual_edits: { type: object, description: "사람이 고친 값 — 이후 자동 재파싱으로 덮어쓰기 금지", written_by: [human_reviewer], read_by: [storage_bot] }
+  approval_action: { type: string, description: "검수저장 | 주문확정 | 출력준비", written_by: [human_reviewer], read_by: [storage_bot] }
+
+  order: { type: object, written_by: [storage_bot], read_by: [print_prep_bot, dispatch_bot, sms_ledger_bot] }
+  workflow_event: { type: object, written_by: [storage_bot], read_by: [] }
+  version: { type: integer, written_by: [storage_bot], read_by: [] }
+
+  order_print: { type: object, written_by: [print_prep_bot], read_by: [] }
+  ribbon_print: { type: object, written_by: [print_prep_bot], read_by: [] }
+  delivery_memo: { type: string, written_by: [print_prep_bot], read_by: [dispatch_bot] }
+  driver_summary: { type: string, written_by: [print_prep_bot], read_by: [dispatch_bot] }
+
+  dispatch_record: { type: object, written_by: [dispatch_bot], read_by: [delivery_photo_bot] }
+
+  delivery_photo: { type: string, format: uri, written_by: [delivery_photo_bot], read_by: [sms_ledger_bot] }
+  photo_status: { type: string, written_by: [delivery_photo_bot], read_by: [sms_ledger_bot] }
+
+  message_job: { type: object, written_by: [sms_ledger_bot], read_by: [] }
+  message_result: { type: object, written_by: [sms_ledger_bot], read_by: [] }
+  history_log: { type: object, written_by: [sms_ledger_bot], read_by: [] }
+
+# ---------------------------------------------------------------------
+# 12봇 kind 분류 (+ 근거 1줄) — depends_on은 선형이지만 배열 순서가 아니라
+# 명시적 의존성 선언 (stop_rule 1 준수: "12봇 순서를 코드에 하드코딩 금지")
+# ---------------------------------------------------------------------
+stages:
+
+  - id: collection_bot
+    name: 수집봇
+    kind: local
+    kind_rationale: "카톡/사진/녹음파일/수기 입력을 받아 그대로 저장 — 판단 없음, 원본 소실 금지 규칙만 적용"
+    io: { reads: [], writes: [raw_text, raw_image, raw_audio, source_type, created_at] }
+    exec_params: { timeout_sec: 5, retry_count: 0 }
+    depends_on: []
+    domain_neutral: true
+    domain_neutral_rationale: "입력 채널 수집이라는 개념 자체는 도메인 무관"
+
+  - id: transcription_bot
+    name: 받아쓰기봇
+    kind: local
+    kind_rationale: >
+      설계보고서: "전사 단계에서는 주문 판단 금지, 텍스트화만 수행" — 외부 STT/OCR API 호출과
+      결과 저장만 하는 기계적 변환. Fable 결정문의 local 목록에도 포함됨.
+    kind_open_question: >
+      Fable 답변 내 불일치 발견: decision 섹션은 "STT받아쓰기"를 local로 명시하지만,
+      plan 섹션은 local 목록에서 이를 빼고 "배송사진수신"을 넣었고, 작업 C 작업범위
+      지시문은 "받아쓰기 후처리... haiku 제안"이라며 이 봇에 model(haiku) tier를
+      암시한다. 즉 "STT 호출 자체"(local)와 "STT 후처리/정리"(model 가능성)를
+      분리해야 하는지가 원 설계안 안에서부터 불명확함 — 임의로 하나만 골라 확정하지
+      않고 여기 기록. 현재 표는 "STT 호출" 관점으로 local 채택.
+    io: { reads: [raw_audio, raw_image, raw_text], writes: [stt_text, ocr_text, cleaned_text, engine_meta] }
+    exec_params: { timeout_sec: 60, retry_count: 2 }   # 외부 STT/OCR 공급자 호출 — gap④(exec_params) 실사례
+    depends_on: [collection_bot]
+    domain_neutral: true
+    domain_neutral_rationale: "STT/OCR 자체는 범용 — 단 hintWords(기관명/인명 사전)는 도메인 특화 설정값으로 분리 가능"
+
+  - id: order_classification_bot
+    name: 주문판정봇
+    kind: model
+    tier: sonnet
+    tier_rationale: >
+      [Sonnet 5 판단 — 사용자가 haiku/sonnet을 명시하지 않아 근거를 남김] golden_set 003번
+      ("꽃 심으로 가야 되는데..." — "꽃" 언급이 있지만 주문 아님)이 haiku급 키워드/규칙
+      분류로는 걸러지지 않는 실제 오탐 사례. CLAUDE.md 정책상 "단순 분류"는 haiku
+      대상이지만, 이 판정은 문맥을 봐야 하는 분류라 "단순"의 범위를 벗어난다고 판단해
+      sonnet 제안. 확인 필요하면 알려주세요 — 아직 실측(정확도 비교)은 안 했음.
+    kind_rationale: "통화/문자 전체를 6가지 상태로 분류하는 판단 작업 — 키워드 매칭이 아니라 맥락 이해가 필요(golden_set 003 참고)"
+    io:
+      reads: [stt_text, ocr_text, raw_text]
+      writes: [order_classification]
+    io_note: >
+      음성 채널은 stt_text/ocr_text를, 텍스트 채널(sms/kakao)은 raw_text를 직접 읽어야
+      이상적이지만, v2 스키마에 조건부 스킵이 없어(manifest.schema.v2.yaml open_issues
+      참고) 지금은 셋 다 reads에 넣고 실행기가 채워진 필드를 골라 쓰는 것으로 임시 처리.
+    depends_on_note: >
+      사용자는 "12봇 파이프라인 맨 앞(수집봇 다음)"을 요청했으나, 통화 내용을 판정하려면
+      텍스트가 있어야 하므로(음성은 STT 전엔 판정 불가) 실제로는 transcription_bot 다음에
+      둠 — "맨 앞"의 의도(다운스트림 낭비 방지)는 유지하되 문자 그대로의 위치는 기술적
+      이유로 한 단계 미룬 것. 이견 있으면 알려주세요.
+    depends_on: [transcription_bot]
+    check:
+      mode: self_check
+      schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.self_check"
+      note: >
+        self_check.pass는 라우팅에 안 쓰고 order_classification 값 자체가 라우팅 신호.
+        단, confidence가 낮으면 예측된 분류값과 무관하게 order_classification을 강제로
+        "확인필요"로 덮어써야 함(사용자 지시: "애매하면 무조건 확인 필요로 남겨").
+    on_fail:
+      action: route_to_human   # order_classification == 확인필요일 때만. 스팸무관/일반통화/단순문의는 human 에스컬레이션 없이 그냥 종료(아래 stop_condition 참고)
+    stop_condition: "order_classification이 단순문의 | 일반통화 | 스팸무관이면 여기서 파이프라인 종료(다음 stage로 안 넘어감). 주문전화 | 주문가능성있음만 order_split_bot으로 진행. 확인필요는 human_reviewer로 직행(순서상 나중이지만 조기 에스컬레이션)"
+    exec_params: { retry_count: 1 }
+    domain_neutral: true
+    domain_neutral_rationale: "'이게 애초에 처리 대상인지' 판정하는 게이트는 도메인 무관 — 판정 기준(꽃 관련 키워드 등) 내용만 도메인 특화"
+
+  - id: order_split_bot
+    name: 주문분리봇
+    kind: model
+    tier: sonnet
+    tier_rationale: "통화 안에서 서로 다른 주문 경계를 찾는 건 golden_set 005/006처럼 화제 전환·수신자 전환을 인식해야 하는 의미 단위 판단 — order_draft_bot(haiku)보다 어려운 작업이라 sonnet 제안. 확인 필요."
+    kind_rationale: "1건의 통화/문자 안에 독립된 주문이 여러 개 있는지 판단해서 분리 — golden_set 005/006(부곡면장 건 vs 북면장 건)이 근거 사례"
+    io:
+      reads: [stt_text, ocr_text, raw_text, order_classification]
+      writes: [order_segments, split_status]
+    depends_on: [order_classification_bot]
+    check:
+      mode: self_check
+      schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.self_check"
+      note: "분리 경계가 애매하면 confidence를 낮게 주고 split_status를 '확인필요'로 강제 — 임의로 나누지 않는다(사용자 지시)"
+    on_fail:
+      action: route_to_human   # split_status == 확인필요일 때
+    exec_params: { retry_count: 1 }
+    fan_out_warning: >
+      ⚠️ 이 stage의 출력(order_segments)은 배열이고, 이후 모든 stage(correction_bot ~
+      review_manager_bot)는 원래 "주문 1건"을 전제로 설계됨. 즉 order_segments 원소마다
+      correction_bot부터 다시 실행해야 하는 1:N 분기(fan-out)가 필요한데, 지금 v2
+      스키마의 depends_on 그래프는 이걸 표현할 방법이 없음 — 지금까지 발견된 스키마
+      한계 중 가장 큰 것. manifest.schema.v2.yaml에 아직 반영 안 했음(open_questions 참고,
+      결정 필요).
+    domain_neutral: true
+    domain_neutral_rationale: "'하나의 접촉 안에 여러 처리단위가 섞일 수 있다'는 패턴 자체는 범용(방역에서도 한 통화에 여러 현장 이슈가 섞일 수 있음) — 분리 기준(면장/수신자 전환 등)만 도메인 특화"
+
+  - id: correction_bot
+    name: 말귀봇
+    kind: model
+    tier: sonnet
+    tier_rationale: "작업 C 지시문에 명시(비정형 주문 해석 = sonnet). 오인식 보정은 문맥 추론이 필요해 haiku로는 부족하다고 판단"
+    kind_rationale: "구어체·오인식을 문맥으로 보정 — 사전 매칭을 넘어서는 해석 판단이 필요"
+    io: { reads: [order_segments, stt_text, ocr_text], writes: [normalized_text, correction_log, candidates] }
+    io_note: "order_segments의 원소 1개(세그먼트 1건)를 입력으로 받는다는 전제 — order_split_bot의 fan_out_warning 참고, 실행기가 아직 이 반복 실행을 어떻게 할지 미정"
+    exec_params: { retry_count: 1 }
+    depends_on: [order_split_bot]
+    domain_neutral: true
+    domain_neutral_rationale: "보정 로직 자체(사전+규칙+추론)는 범용 구조. 사전 데이터(기관명/상품명)만 도메인 특화 — io 필드명 자체엔 도메인 명사 없음"
+
+  - id: order_draft_bot
+    name: 주문정리봇
+    kind: model
+    tier: haiku
+    tier_rationale: >
+      [Sonnet 5 제안, Fable 답변에 명시 없음 — 확인 필요] 이미 말귀봇이 의미 해석을
+      끝낸 normalized_text에서 정형 필드(수령처/수령자/일시)만 구조화하는 작업이라
+      리본상품금액봇(haiku로 이미 확정)과 난이도가 비슷하다고 보고 haiku 제안.
+    kind_rationale: "normalized_text에서 필드를 구조화 — 사전 정의된 스키마로 채우는 작업"
+    io: { reads: [normalized_text], writes: [order_draft, field_confidence, field_sources, missing_fields] }
+    exec_params: { retry_count: 1 }
+    depends_on: [correction_bot]
+    domain_neutral: true
+    domain_neutral_rationale: "주문 구조화(수령자/일시/품목) 패턴 자체는 커머스 일반에 적용 가능 — 필드명이 꽃집 고유 명사 아님"
+
+  - id: ribbon_price_bot
+    name: 리본상품금액봇
+    kind: model
+    tier: haiku
+    tier_rationale: "작업 C 지시문에 명시(리본금액 계산 = haiku)"
+    kind_rationale: "리본 문구/상품명/금액 정규화 — 사전+규칙 기반 정형화 작업"
+    io: { reads: [order_draft, normalized_text], writes: [ribbon_message_raw, ribbon_message_final, product_name, price, quantity] }
+    exec_params: { retry_count: 1 }
+    depends_on: [order_draft_bot]
+    domain_neutral: false
+    domain_neutral_rationale: "'리본 문구'는 꽃집(조화/근조/축하화환) 전용 개념 — 방역 등 다른 도메인엔 대응 개념 없음. product_name/price/quantity만 범용"
+
+  - id: review_manager_bot
+    name: 검수매니저
+    kind: model
+    tier: sonnet
+    tier_rationale: >
+      [Sonnet 5 제안 — Fable 답변에서 명시적으로 "누락, 별도 판단 필요"로 남긴 항목]
+      단순 필드 추출이 아니라 여러 상류 stage의 confidence/후보값을 종합해
+      "자동확정 가능 vs 사람 에스컬레이션"을 가르는 임계값 판단이라 haiku보다
+      sonnet이 적합하다고 판단. 근거: 오판정 시 금액/배송 오류로 바로 이어지는
+      고위험 판단이라 gov-support의 judge_self_review(가장 높은 tier)와 유사한
+      성격 — 다만 gov-support처럼 opus급 심층 논증은 아니라서 sonnet으로 제안.
+    kind_rationale: "quality_gate의 특수화 — '통과/사람에스컬레이션' 분기를 출력하는 model stage(사람 자체는 아님)"
+    io: { reads: [order_draft, field_confidence, field_sources, missing_fields, candidates, ribbon_message_raw, ribbon_message_final, product_name, price, quantity, correction_log, split_status], writes: [review_checklist, review_priority, editable_fields] }
+    check:
+      mode: self_check
+      schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.self_check"
+      note: "reason은 review_checklist를 join, confidence는 review_priority 색상규칙(초록=high)을 수치화해서 매핑 — 정확한 매핑 함수는 미정(확인 필요)"
+    on_fail:
+      action: route_to_human   # 검수매니저 자체가 human_reviewer로의 에스컬레이션 분기이므로 on_fail=route_to_human이 사실상 정상 경로
+    exec_params: { retry_count: 1 }
+    depends_on: [ribbon_price_bot]
+    domain_neutral: true
+    domain_neutral_rationale: "통과/에스컬레이션 분기 로직 자체는 범용 — 임계값만 도메인별로 다름(stop_rule 3: 임계값 상수화 금지, manifest 파라미터로)"
+
+  - id: human_reviewer
+    name: 사람 검수자
+    kind: human
+    kind_rationale: "설계보고서 검수화면 — 사람이 카드에서 직접 필드 수정 후 [검수저장]/[주문확정]/[출력준비] 버튼으로 승인"
+    io: { reads: [review_checklist, review_priority, editable_fields], writes: [confirmed_fields, manual_edits, approval_action] }
+    check:
+      mode: human_gate
+      schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.human_gate"
+    on_fail:
+      action: retry
+      human_reject:
+        return_to: null
+      open_question: >
+        설계보고서에는 "반려 후 특정 stage로 되돌아간다"는 흐름이 명시돼 있지 않음.
+        실제로는 사람이 카드에서 직접 값을 고쳐서(manual_edits) 확정하는 "제자리 수정"
+        모델이지, 자동봇으로 되돌리는 "반려" 모델이 아닐 수 있음. return_to를
+        order_draft_bot이나 review_manager_bot 중 하나로 임의로 채우지 않고 비워둠 —
+        v2 human_reject.return_to 개념이 이 실제 UX와 맞는지부터 확인 필요.
+    depends_on: [review_manager_bot]
+    async: true
+    domain_neutral: true
+    domain_neutral_rationale: "사람 검수라는 패턴 자체는 범용 — 검수 화면 UI 구성만 도메인별로 다름"
+
+  - id: storage_bot
+    name: 저장봇
+    kind: local
+    kind_rationale: "승인 결과를 저장/버저닝 — 저장 규칙(검수저장은 느슨, 주문확정은 핵심필드 검사)은 규칙 기반 코드"
+    io: { reads: [confirmed_fields, manual_edits, approval_action], writes: [order, workflow_event, version] }
+    exec_params: { timeout_sec: 10, retry_count: 2 }
+    depends_on: [human_reviewer]
+    domain_neutral: true
+    domain_neutral_rationale: "저장/버저닝/이벤트로깅 패턴은 완전히 범용"
+
+  - id: print_prep_bot
+    name: 출력준비봇
+    kind: local
+    kind_rationale: "확정 주문에서 인쇄용 데이터(주문서/리본/배송메모) 생성 — 템플릿 채우기, 판단 없음"
+    io: { reads: [order], writes: [order_print, ribbon_print, delivery_memo, driver_summary] }
+    exec_params: { timeout_sec: 10, retry_count: 1 }
+    depends_on: [storage_bot]
+    domain_neutral: false
+    domain_neutral_rationale: "ribbon_print은 꽃집 전용 산출물. order_print(주문서)/driver_summary는 범용에 가까움 — stage 전체로는 '특화'로 표시"
+
+  - id: dispatch_bot
+    name: 배송전달봇
+    kind: local
+    kind_rationale: >
+      [Fable 답변에서 명시적으로 분류되지 않은 stage — Sonnet 5 추론] 기사 화면에
+      최소 정보(배송지/연락처/상품/리본/사진버튼)만 노출하는 데이터 라우팅, 판단 없음
+    io: { reads: [driver_summary, delivery_memo, order], writes: [dispatch_record] }
+    exec_params: { timeout_sec: 5, retry_count: 1 }
+    depends_on: [print_prep_bot]
+    domain_neutral: true
+    domain_neutral_rationale: >
+      '배송'이라는 개념 자체는 도메인별로 다른 것(예: 방역의 '현장방문')으로 치환될 수
+      있어 골격은 재사용 가능하나, blind_spot에서 지적된 대로 stage 내용은 백지에서
+      다시 짜야 함(구조만 참고, 복붙 금지)
+
+  - id: delivery_photo_bot
+    name: 배송사진봇
+    kind: local
+    kind_rationale: "촬영→미리보기→재촬영/사용선택 UI 흐름, 판단 없음(Capacitor Camera 플러그인 연동)"
+    io: { reads: [dispatch_record], writes: [delivery_photo, photo_status] }
+    exec_params: { timeout_sec: 30, retry_count: 1 }
+    depends_on: [dispatch_bot]
+    domain_neutral: true
+    domain_neutral_rationale: "현장 증빙사진 캡처 패턴은 범용(방역에서도 현장사진 증빙 가능)"
+
+  - id: sms_ledger_bot
+    name: 문자장부봇
+    kind: local
+    kind_rationale: "문자 발송(mock/real) + 발송 직후 자동 장부화 — 정형 로직, 판단 없음"
+    io: { reads: [order, delivery_photo, photo_status], writes: [message_job, message_result, history_log] }
+    exec_params: { timeout_sec: 15, retry_count: 2 }
+    depends_on: [delivery_photo_bot]
+    domain_neutral: true
+    domain_neutral_rationale: "문자발송+이력기록 패턴은 완전히 범용"
+
+# ---------------------------------------------------------------------
+# 요약 카운트 (2026-07-07 갱신 — order_classification_bot/order_split_bot 추가로
+# 원래 작업 C 지시문의 "model 4~5개" 기준은 더 이상 그대로 안 맞음, 아래는 현재 상태)
+# ---------------------------------------------------------------------
+summary:
+  local: [collection_bot, transcription_bot, storage_bot, print_prep_bot, dispatch_bot, delivery_photo_bot, sms_ledger_bot]   # 7개
+  model: [order_classification_bot, order_split_bot, correction_bot, order_draft_bot, ribbon_price_bot, review_manager_bot]   # 6개
+  human: [human_reviewer]   # 1개
+  total: 14
+  note: >
+    신규 2개(order_classification_bot, order_split_bot) 모두 tier: sonnet으로 제안함 —
+    작업 C가 원래 예상한 "model 4~5개" 범위를 넘어섰지만, 이건 스킬 자체의 기능 범위가
+    늘어난 것(false-positive 방지 + 다중주문 분리)이라 자연스러운 확장으로 판단. 다만
+    두 stage의 tier가 sonnet이 맞는지는 실측 없이 제안한 것 — open_questions 참고.
+
+# ---------------------------------------------------------------------
+# 확인이 필요한 항목 (임의로 결정하지 않고 남긴 것)
+# ---------------------------------------------------------------------
+open_questions:
+  - "transcription_bot(받아쓰기봇)의 kind: Fable 답변 내부에서도 local/model 사이 불일치 있음 (kind_open_question 참고)"
+  - "order_draft_bot의 tier: Fable 답변에 명시 없음, haiku는 Sonnet 5의 제안일 뿐 (tier_rationale 참고)"
+  - "review_manager_bot의 tier: Fable 답변이 명시적으로 '별도 판단 필요'로 남긴 항목, sonnet은 Sonnet 5의 제안 (tier_rationale 참고)"
+  - "dispatch_bot: Fable 답변 어디에도 명시적으로 분류되지 않음, local 분류는 Sonnet 5의 추론"
+  - "human_reviewer의 on_fail.human_reject.return_to: 설계보고서의 실제 검수 UX(제자리 수정)와 v2 스키마의 반려-복귀 개념이 맞는지 자체가 불확실 — 임의로 특정 stage id를 채우지 않음"
+  - "review_manager_bot.check의 confidence 매핑: review_priority(초록/노랑/빨강/파랑) 색상 규칙을 self_check.confidence(0~1 float)로 어떻게 수치화할지 미정"
+  - "[신규] order_classification_bot/order_split_bot의 tier(sonnet): 사용자 지시에 명시 없음, Sonnet 5 제안이고 실측 안 함 — haiku로 충분할 수도 있음"
+  - "[신규] order_classification_bot의 위치: 사용자는 '수집봇 다음'을 요청했으나 텍스트가 있어야 판정 가능해 transcription_bot 다음으로 배치함(depends_on_note 참고) — 이견 있으면 알려주세요"
+  - "[신규, 가장 중요] order_split_bot의 fan-out 문제: order_segments(배열) 이후 stage들을 세그먼트별로 반복 실행해야 하는데, v2 스키마의 depends_on 그래프가 1:N 분기를 표현하지 못함 (order_split_bot.fan_out_warning 참고) — manifest.schema.v2.yaml 레벨 결정 필요, 아직 미반영"

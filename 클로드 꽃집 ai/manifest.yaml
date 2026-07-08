@@ -1,0 +1,305 @@
+name: gov-support-matching-skill
+version: 0.4.0
+domain: flower_shop
+
+io_contract:
+  input_schema:
+    type: object
+    required: ["business_profile", "target_period"]
+    properties:
+      business_profile:
+        type: object
+        description: "사업자 정보 — 기업형태(법인/개인), 업종(KSIC 코드), 설립일, 소재지, 직전연도 매출액, 상시근로자수, 대표자 생년월일, 성별, 경력단절 여부, 인증/이력(벤처인증, 여성/사회적기업 등), 신용상태(세금체납 등 결격사유 관련), 신청서 작성을 위한 서술형 내용, 필수서류 준비 현황"
+        properties:
+          biz_type: { type: string }
+          industry_code: { type: string }
+          founded_date: { type: string, format: date }
+          region: { type: string }
+          annual_revenue_krw: { type: number }
+          employees: { type: integer }
+          ceo_birth_date: { type: string, format: date }
+          gender:
+            type: string
+            description: "대표자 성별 (예: '여성'/'남성'). 여성 전용 등 성별 제한이 있는 공고 매칭에 사용. (v0.4.0 신규) 비어있으면 성별 조건이 있는 공고에서 '확인 필요'로 처리됨"
+          career_interruption_status:
+            type: boolean
+            description: "경력단절 여부 (혼인·임신·출산·육아·가족돌봄·근로조건 등으로 경제활동을 중단한 이력이 있는지). 경력단절여성 대상 공고 매칭에 사용. (v0.4.0 신규) 비어있으면 '확인 필요'로 처리됨"
+          career_interruption_reason:
+            type: string
+            description: "경력단절 사유 (예: '출산·육아'). 선택 항목 — 참고용 서술, 매칭 로직에는 career_interruption_status만 사용됨 (v0.4.0 신규)"
+          certifications: { type: array, items: { type: string } }
+          disqualification_flags: { type: array, items: { type: string }, description: "세금체납, 부정수급 이력, 휴폐업 등 결격 관련 자기신고 항목" }
+          business_description:
+            description: "사업 아이템 설명. string(v0.2.0) 또는 실제 예비창업패키지류 사업계획서에서 흔한 중첩 객체(v0.3.0)를 지원한다. 비어있으면 draft_application의 '2_신청동기_및_필요성' 섹션이 [확인 필요]로 표시됨"
+            oneOf:
+              - type: string
+                description: "v0.2.0 방식 — 자유서술 텍스트 그대로 사용"
+              - type: object
+                description: "v0.3.0 방식 — 구조화된 사업 설명 (실사용 사례 기준)"
+                properties:
+                  brand_name: { type: string }
+                  brand_meaning: { type: string }
+                  business_item: { type: string }
+                  description: { type: string }
+                  target_customer: { type: string }
+                  core_problem: { type: string }
+                  solution_structure:
+                    type: object
+                    properties:
+                      service_type: { type: string }
+                      program_steps: { type: array, items: { type: string } }
+                      measurement_items: { type: array, items: { type: string } }
+                      differentiation: { type: array, items: { type: string } }
+                      non_medical_boundary: { type: string }
+                  initial_channels: { type: array, items: { type: string } }
+                  long_term_direction: { type: array, items: { type: string } }
+          team_experience:
+            description: "대표자 및 팀원 이력/역할. draft_application의 '4_팀_역량' 섹션에 반영됨. 비어있으면 [확인 필요]로 표시됨"
+            oneOf:
+              - type: string
+                description: "v0.2.0 방식 — 자유서술 텍스트"
+              - type: object
+                description: "v0.3.0 방식 — 구조화된 팀 정보"
+                properties:
+                  founder:
+                    type: object
+                    properties:
+                      role: { type: string }
+                      experience_summary: { type: string }
+                      certifications_and_training: { type: array, items: { type: string } }
+                      work_experience: { type: array, items: { type: string } }
+                      execution_strength: { type: array, items: { type: string } }
+                  planned_team:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        role: { type: string }
+                        status: { type: string }
+                        responsibility: { type: string }
+                        requirement: { type: string }
+                        training_plan: { type: string }
+                  partners_or_advisors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        role: { type: string }
+                        status: { type: string }
+                        purpose: { type: string }
+          budget_detail:
+            description: "예산 세부내역. draft_application의 '3_사업화_계획'/'5_예산_계획' 섹션에 반영됨. 또한 judge_review 단계에서 공고 budget_criteria와의 정합성(총액 초과, 집행제외 항목 카테고리 포함 여부) 점검에 사용됨(v0.4.0). 비어있으면 [확인 필요]로 표시됨"
+            oneOf:
+              - type: array
+                description: "v0.2.0 방식 — 항목별 평면 리스트"
+                items:
+                  type: object
+                  properties:
+                    category: { type: string, description: "예산 항목 카테고리 (예: 인건비, 재료비, 외주용역비). budget_criteria.excluded_categories와의 충돌 검사에 사용됨 (v0.4.0)" }
+                    item: { type: string }
+                    amount_krw: { type: number }
+                    note: { type: string }
+              - type: object
+                description: "v0.3.0 방식 — 단계(phase)별 예산 구조 (실사용 사례 기준, 예: 예비창업패키지)"
+                properties:
+                  budget_principle: { type: string }
+                  phase_1:
+                    type: object
+                    properties:
+                      title: { type: string }
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            category: { type: string }
+                            item: { type: string }
+                            amount_krw: { type: number }
+                            verification_purpose: { type: string }
+                            expected_output: { type: string }
+                      subtotal_krw: { type: number }
+                  phase_2:
+                    type: object
+                    description: "phase_1과 동일 구조. phase_3 이상 필요 시 동일 패턴으로 확장 가능 (phase_ 접두사 키를 모두 스캔함)"
+                  total_krw: { type: number }
+                  self_funding_note: { type: string }
+          expected_outcomes:
+            description: "기대효과 및 산출 근거. draft_application의 '6_기대효과' 섹션에 반영됨. 비어있으면 [확인 필요]로 표시됨"
+            oneOf:
+              - type: string
+                description: "v0.2.0 방식 — 자유서술 텍스트"
+              - type: object
+                description: "v0.3.0 방식 — 구조화된 기대효과"
+                properties:
+                  business_outputs: { type: array, items: { type: string } }
+                  market_validation_goals: { type: array, items: { type: string } }
+                  revenue_goals:
+                    type: object
+                    properties:
+                      main_product: { type: string }
+                      package_price_krw: { type: number }
+                      initial_customer_goal: { type: string }
+                      estimated_revenue_krw: { type: string }
+                      calculation: { type: string }
+                  social_value: { type: array, items: { type: string } }
+                  long_term_outcomes: { type: array, items: { type: string } }
+          documents_status:
+            description: "필수서류 준비 현황. required_documents_checklist.prepared에 반영됨. document_name은 공고의 required_documents 문자열과 정확히 일치해야 매칭됨 (fuzzy match 없음 — 표기가 다르면 미준비로 집계되고 needs_confirmation에 표시됨)"
+            oneOf:
+              - type: object
+                description: "v0.2.0 방식 — {문서명: true/false} 평면 맵"
+                additionalProperties: { type: boolean }
+              - type: object
+                description: "v0.3.0 방식 — 준비됨/미준비 목록을 분리 (실사용 사례 기준)"
+                properties:
+                  prepared_documents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        document_name: { type: string }
+                        status: { type: string, description: "'준비됨' 또는 '파일 보유' 포함 시 prepared=true로 매핑" }
+                        note: { type: string }
+                  not_prepared_or_needs_check:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        document_name: { type: string }
+                        status: { type: string, description: "'확인 필요' 또는 '미보유' 포함 시 prepared=false로 매핑" }
+                        note: { type: string }
+      target_period:
+        type: object
+        required: ["start_date", "end_date"]
+        properties:
+          start_date: { type: string, format: date }
+          end_date: { type: string, format: date }
+        description: "이 기간 내 마감(접수)하는 공고만 조회 대상. 필수 항목 — 생략 시 실행 불가 (사업자 프로필 파일에 이 값이 없다면 별도로 보완해서 넣어야 함)"
+  output_schema:
+    type: object
+    properties:
+      matched_programs:
+        type: array
+        description: "마감일이 지나지 않고 필수서류 목록이 확인된 공고만 포함 (그 외는 excluded_programs로 분리)"
+        items:
+          type: object
+          properties:
+            program_name: { type: string }
+            eligibility_confidence: { type: number, minimum: 0, maximum: 1 }
+            required_documents: { type: array, items: { type: string } }
+            deadline: { type: string, format: date }
+            disqualification_risks: { type: array, items: { type: string } }
+      excluded_programs:
+        type: array
+        description: "마감지남/필수서류 없음/결격사유로 자동 제외된 공고와 사유"
+        items:
+          type: object
+          properties:
+            program_name: { type: string }
+            exclusion_reason: { type: string }
+      draft_application:
+        type: object
+        description: "matched_programs 중 confidence 최고 1건에 대한 신청서 초안 (섹션별 텍스트). business_description/team_experience/budget_detail/expected_outcomes가 채워진 경우(string 또는 object 어느 쪽이든) 해당 섹션은 실제 내용으로, 비어있으면 [확인 필요]로 표시됨"
+      judge_review:
+        type: object
+        description: "심사위원 모드 자기검수 결과 — 감점위험, 과장표현, 증빙부족 주장 목록. 무조건 긍정 금지, 떨어질 이유를 우선 탐색. v0.4.0부터 예산 정합성(총액 초과, 집행제외 항목 카테고리 충돌) 점검도 rejection_risks에 포함됨"
+        properties:
+          rejection_risks: { type: array, items: { type: string } }
+          exaggeration_flags: { type: array, items: { type: string } }
+          unsupported_claims: { type: array, items: { type: string } }
+          overall_pass_recommendation: { type: boolean }
+      quality_gate_result:
+        type: object
+        description: "숫자 기준(confidence)과 질적 기준(judge_review) 둘 다 통과해야 lock_state가 READY_FOR_APPROVAL이 됨. 하나라도 미달이면 DRAFT로 유지."
+        properties:
+          overall_confidence: { type: number }
+          confidence_threshold: { type: number }
+          confidence_passed: { type: boolean, description: "숫자 기준(overall_confidence >= confidence_threshold) 통과 여부" }
+          judge_pass_recommendation: { type: boolean, description: "질적 기준 — judge_review.overall_pass_recommendation 값을 그대로 반영" }
+          lock_state: { type: string, enum: ["READY_FOR_APPROVAL", "DRAFT"], description: "confidence_passed AND judge_pass_recommendation 일 때만 READY_FOR_APPROVAL" }
+          routed_to: { type: string, enum: ["auto_complete", "human_review"] }
+          reasons: { type: array, items: { type: string }, description: "숫자 기준/질적 기준 각각의 통과 여부와 구체적 미통과 사유([확인 필요] 섹션 수, 미준비 서류 수 등)" }
+      lock_state:
+        type: string
+        enum: ["READY_FOR_APPROVAL", "DRAFT"]
+        description: "quality_gate_result.lock_state와 동일한 값을 최상위에도 노출 (호출측 편의)"
+      needs_confirmation:
+        type: array
+        items: { type: string }
+        description: "가정값/불확실 항목 — 사람이 반드시 확인해야 할 목록. 공고 eligibility에 _unmapped_requirements가 있으면(스키마로 표현 못하는 자격요건) 여기에도 노출됨"
+
+model_routing:
+  stages:
+    - step: "공고문 수집 및 핵심 기준 추출 (신청자격/지원제외/제출양식/페이지제한/예산기준/심사표)"
+      tier: low_cost
+    - step: "신청자격 체크 및 지원제외·결격 위험 점검"
+      tier: mid
+    - step: "자격요건 매칭 (마감지남 제외, 필수서류 없으면 실패처리)"
+      tier: mid
+    - step: "신청서 초안 작성"
+      tier: mid
+    - step: "심사위원 모드 자기검수 (감점위험/과장/증빙부족/예산정합성 탐지)"
+      tier: high
+
+quality_gate:
+  confidence_threshold: 0.85
+  self_check_rules:
+    - "마감일이 target_period.end_date 이전이거나 오늘 이전인 공고는 matched_programs에서 자동 제외되어야 함"
+    - "required_documents가 비어있거나 원문에서 확인 불가한 공고는 매칭 실패(excluded_programs) 처리되어야 함"
+    - "disqualification_flags에 해당하는 결격사유가 있으면 해당 공고는 confidence와 무관하게 excluded_programs로 이동해야 함"
+    - "judge_review는 rejection_risks가 0건이어도 '검토했으나 없음'을 명시적으로 기재해야 함 (생략 금지)"
+    - "overall_confidence가 confidence_threshold 미만이면 quality_gate_result.routed_to는 human_review여야 함"
+    - "lock_state는 confidence_passed와 judge_pass_recommendation이 모두 true일 때만 READY_FOR_APPROVAL이어야 함 — 숫자 기준만 통과하고 심사위원 모드가 불합격 추천을 낸 경우에도 반드시 DRAFT로 유지"
+    - "lock_state가 DRAFT인 경우 reasons에 confidence_passed/judge_pass_recommendation 중 무엇이, 왜(어떤 섹션·서류·위험 때문에) 실패했는지 구체적으로 명시해야 함"
+    - "business_description/team_experience/budget_detail/expected_outcomes가 채워져 있는데도 draft_application에 [확인 필요]가 남아있으면 버그로 간주 (string이든 object든 값이 있으면 반영되어야 함)"
+    - "documents_status에 명시된 준비완료 서류는 required_documents_checklist.prepared=true로 정확히 반영되어야 함 (문서명이 required_documents와 정확히 일치하는 경우에 한함 — 불일치는 needs_confirmation에 표시)"
+    - "biz_type/industry_code/founded_date/region/employees/annual_revenue_krw/ceo_birth_date/gender/career_interruption_status가 profile에 없을 때는 '불합격(False)'이 아니라 '확인 필요(unresolved)'로 채점해야 함"
+    - "business_profile.budget_detail 총액이 공고 budget_criteria.max_grant_krw를 초과하거나, budget_detail 항목의 category가 budget_criteria.excluded_categories에 해당하면 judge_review.rejection_risks에 구체적으로 명시해야 함 (v0.4.0)"
+    - "심사배점 커버리지 판정('가점'류 제외)은 항목명 전체 토큰을 확인해야 하며, 단일 첫 단어 완전일치만으로 판정해서는 안 됨 (v0.4.0 — 실전 공고 문구 차이로 인한 오탐 방지 목적, 단 여전히 키워드 휴리스틱이므로 의미 기반 판정은 아님)"
+  on_fail:
+    retry_count: 1
+    escalation_target: human_review
+
+invocation:
+  entrypoint: "scripts/run.py"
+  callable_by:
+    - "manual_cli"
+    - "ai_employee_platform"
+  cli_usage: "python3 scripts/run.py <input.json> [announcements.json] — announcements.json 생략 시 scripts/sample_announcements.json(목업) 사용 (v0.4.0)"
+
+state:
+  external_store_ref: "실행별 결과 JSON(run_result_<timestamp>.json)이 상태 — 동일 사업자/기간 재실행 시 이전 결과와 diff 비교 권장"
+
+failure_log_format:
+  fields:
+    - "timestamp"
+    - "step"
+    - "input_summary"
+    - "error"
+    - "confidence_at_failure"
+
+changelog:
+  - version: "0.4.0"
+    changes:
+      - "실제 공고문 PDF('2026년 경력단절여성 창업케어 프로그램')를 손으로 파싱해 scripts/real_announcements.json으로 구조화, 실제 사업자 프로필과 함께 테스트 — 5가지 문제 발견 후 3가지 수정"
+      - "[예산 정합성] check_budget_compatibility() 추가 — business_profile.budget_detail 총액이 공고 budget_criteria.max_grant_krw를 초과하는지, budget_detail 항목의 category가 budget_criteria.excluded_categories(집행 불가 항목)에 해당하는지 점검해 judge_review.rejection_risks에 반영. announcement eligibility에 budget_criteria.excluded_categories 필드 신설"
+      - "[심사배점 매칭 개선] '항목명 첫 단어만 완전일치' 방식이 실전 문구 차이로 심사배점 5개 항목 전부 오탐(미다룸으로 판정)을 낸 것을 확인. 토큰 분리 + 동의어 테이블(창업/사업, 아이템/아이디어/서비스/제품/솔루션, 사업화/사업) 부분매칭 + 그 외 단어 완전일치 방식으로 교체. '가점'류(서술로 커버 불가능한 항목)는 커버리지 체크에서 제외. 주의: 첫 시도에서는 모든 토큰에 2글자 부분매칭을 허용했다가 '창업'/'사업' 같은 흔한 어근 때문에 거의 모든 항목이 과다커버로 판정되는 문제를 발견해 동의어 테이블 등록 어근에만 부분매칭 허용하도록 좁힘. 여전히 키워드 휴리스틱이며 의미 기반 판정은 아님"
+      - "[eligibility 스키마 확장] business_profile에 gender/career_interruption_status/career_interruption_reason 추가. 공고 eligibility에 required_gender/requires_career_interruption 추가. 값이 없으면(None) 기존 패턴대로 '확인 필요(unresolved)'로 처리 — 여성전용/경력단절여성 대상 공고를 이제 정확히 반영 가능"
+      - "main()이 두 번째 CLI 인자로 announcements 파일 경로를 받을 수 있도록 확장 (실공고 테스트용)"
+      - "고치지 않기로 결정한 문제(다음 버전 후보): PDF/HWP 공고 자동 파싱, documents_status의 document_name fuzzy 매칭"
+  - version: "0.3.0"
+    changes:
+      - "business_profile에 business_description/team_experience/budget_detail/expected_outcomes/documents_status 필드 추가"
+      - "draft_application()의 하드코딩된 [확인 필요] 제거 — 위 필드가 채워지면 실제 내용 반영, 비어있을 때만 [확인 필요] 표시"
+      - "required_documents_checklist.prepared가 documents_status 입력값을 그대로 반영하도록 수정 (기존: 항상 false로 하드코딩)"
+      - "business_description/team_experience/budget_detail/expected_outcomes가 string 또는 중첩 object(실사용 사업계획서 구조)를 모두 받도록 확장"
+      - "check_eligibility_and_disqualification: 필드가 profile에 없을 때 False(불합격)로 채점되던 버그 수정 -> None(확인 필요)으로 일관되게 처리"
+  - version: "0.2.0"
+    changes:
+      - "business_profile에 business_description/team_experience/budget_detail/expected_outcomes/documents_status 필드 추가"
+      - "draft_application()의 하드코딩된 [확인 필요] 제거 — 위 필드가 채워지면 실제 내용 반영, 비어있을 때만 [확인 필요] 표시"
+      - "required_documents_checklist.prepared가 documents_status 입력값을 그대로 반영하도록 수정 (기존: 항상 false로 하드코딩)"
+      - "위 변경으로 자격/서류/서술 요건을 모두 충족한 입력에 한해 lock_state=READY_FOR_APPROVAL 도달 가능해짐"
+  - version: "0.1.0"
+    changes:
+      - "최초 버전 — business_profile/target_period 입력, matched_programs/draft_application 출력, quality_gate.confidence_threshold=0.85"

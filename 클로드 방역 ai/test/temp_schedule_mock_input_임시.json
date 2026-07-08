@@ -1,0 +1,29 @@
+{
+  "_note": "실제 골든셋 아님 — schedule 트리거(리마인더봇 entry_stage)가 entry_points를 통해 방문알림봇 이후까지 실제로 이어지는지, 리마인더봇의 날짜비교 로직이 실제로 동작하는지 확인하기 위한 구조 테스트용 가짜 고객 목록입니다. PEST_SKILL_TODAY 환경변수로 오늘 날짜를 고정할 수 있습니다(기본은 시스템 오늘 날짜).",
+  "customers": [
+    {
+      "customer_name": "해오름카페(가상)",
+      "space_type": "카페",
+      "visit_cycle": "격월",
+      "last_visit_date": "2026-05-01",
+      "report_requested": true,
+      "certificate_requested": true
+    },
+    {
+      "customer_name": "청솔유치원(가상)",
+      "space_type": "유치원",
+      "visit_cycle": "격월",
+      "last_visit_date": "2026-05-10",
+      "report_requested": true,
+      "certificate_requested": false
+    },
+    {
+      "customer_name": "행복마트(가상)",
+      "space_type": "마트",
+      "visit_cycle": "격월",
+      "last_visit_date": "2026-07-01",
+      "report_requested": false,
+      "certificate_requested": false
+    }
+  ]
+}
