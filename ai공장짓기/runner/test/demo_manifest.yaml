@@ -1,0 +1,67 @@
+# 데모 공장 — 범용 러너 자체 테스트 전용 (실제 업무 없음)
+# 목적: 러너 MVP 기능 + 공통규칙 3가지가 실제로 작동하는지 증명
+schema_version: v2
+domain: demo
+skill_name: demo_factory
+execution: pipeline-type
+
+triggers:
+  - type: event
+    source: demo
+    entry_stage: s1_intake
+
+rerun_gate:            # 공통규칙 ① — 재실행 게이트
+  enabled: true
+  hash_inputs: [user_input]
+  scope: full
+
+shared_context:
+  raw_input:    {type: string, written_by: [s1_intake],   read_by: [s2_summarize]}
+  summary:      {type: string, written_by: [s2_summarize], read_by: [s3_draft]}
+  draft:        {type: object, written_by: [s3_draft],     read_by: [s4_review, s5_archive]}
+  archive_note: {type: string, written_by: [s5_archive],   read_by: []}
+
+stages:
+  - id: s1_intake
+    kind: local
+    io: {reads: [], writes: [raw_input]}
+    exec_params: {retry_count: 1}     # MVP: "N회 재시도" 검증용
+    depends_on: []
+
+  - id: s2_summarize
+    kind: model
+    tier: low_cost                    # 규범 티어명 (모델명 아님)
+    io: {reads: [raw_input], writes: [summary]}
+    depends_on: [s1_intake]
+    # 핸들러 없음 → MockModelProvider가 mock 값 생성 (실제 API 자리)
+
+  - id: s3_draft
+    kind: model
+    tier: mid
+    io: {reads: [summary], writes: [draft]}
+    depends_on: [s2_summarize]
+
+  - id: s4_review
+    kind: human
+    io: {reads: [draft], writes: []}
+    depends_on: [s3_draft]
+    review:                           # 공통규칙 ③ — 골격만, 값 집행 없음
+      risk_tier: T3
+      reviewer_grade: any
+      sla_hours: 24
+      queue_priority: normal
+      mandatory: false
+    on_reject:                        # 공통규칙 ② — 반려루프 라우팅
+      default: s3_draft
+      by_reason:
+        형식: s3_draft
+        내용: s1_intake
+      max_loops: 2
+      on_exhaust: escalate_human
+
+  - id: s5_archive
+    kind: local
+    io: {reads: [draft], writes: [archive_note]}
+    depends_on: [s4_review]
+
+summary: "러너 자체 테스트용 데모 공장 — local/model/human, rerun_gate, on_reject, review 전부 포함"

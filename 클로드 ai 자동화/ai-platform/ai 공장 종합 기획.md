@@ -343,3 +343,7 @@ s1_ledger_read(local) → s2_input_normalize(local) → s3_priority_calc(local)
 
 - [[클로드 ai 자동화/company_charter|company_charter]]
 - [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
+- [[ai공장짓기/설계노트/0_전체_그림|0_전체_그림]]
+- [[ai공장짓기/설계노트/관련_문서|관련_문서]]
+- [[ai공장짓기/runner/README|README]]
+- [[2. Areas/핵심맥락|핵심맥락]]

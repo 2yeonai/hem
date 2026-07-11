@@ -54,3 +54,12 @@ python3 "클로드 방역 ai/scripts/test_12cases_batch.py"
 - 스키마는 `ai공장짓기/manifest.schema.v2.yaml`을 따른다 — 이 스킬만의 스키마 변경이 필요하면 먼저 공용 스키마 파일을 고치고 그 변경 이력을 스키마의 open_issues에 남긴다(이번 작업의 triggers/run_if/entry_points 추가가 그 선례).
 - 이 폴더(`클로드 방역 ai`)에서 큰 파일을 Edit할 때는 알려진 동기화 버그(파일이 중간에 잘리는 현상)가 재현된 적이 있다 — **2026-07-07부터 자동 점검으로 대응 중**: `ai공장짓기/scripts/verify_write.py`가 Write/Edit 직후 "의도한 내용"과 "실제 디스크 내용"을 바이트 단위로 비교해, 다르면 자동으로 `.stale-*` rename + 재작성하고 HANDOFF.md에 한 줄 기록까지 남긴다. 다만 이건 진짜 후크(hook)가 아니라 "매번 호출하는 루틴"이라 호출 자체를 빼먹으면 소용없다 — 큰 파일을 고칠 때마다 이 스크립트를 부르는 걸 잊지 않는 게 핵심이다.
 - 골든셋이 쌓이면 `클로드 꽃집 ai/golden_set.yaml`과 같은 형식(원문 보존 + 불확실 값은 null+확인필요 표시)으로 이 폴더에 별도 파일을 만든다. 빈 템플릿은 `golden_set_template.yaml` 참고.
+
+## 관련 문서
+
+- [[클로드 방역 ai/실행방법|실행방법]]
+- [[클로드 방역 ai/방역스킬_현황보고|방역스킬_현황보고]]
+- [[클로드 방역 ai/최종요약보고서_2026-07-07|최종요약보고서_2026-07-07]]
+- [[ai공장짓기/runner/README|README]]
+- [[ai공장짓기/failure_log|failure_log]]
+- [[ai공장짓기/HANDOFF|HANDOFF]]

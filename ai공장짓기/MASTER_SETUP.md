@@ -97,3 +97,26 @@ tags: [ai공장, 복원, 이식]
 - [[1. Projects/완전자동화_실행계획|완전자동화_실행계획]]
 - [[ai공장짓기/감사_로드맵_2026-07-09|감사_로드맵_2026-07-09]]
 - [[ai공장짓기/AI모델정책_전체버전|AI모델정책_전체버전]]
+- [[클로드 ai 자동화/ai-platform/ai 공장 종합 기획|ai 공장 종합 기획]]
+- [[ai공장짓기/runner/README|README]]
+- [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
+- [[클로드 ai 자동화/company_charter|company_charter]]
+
+---
+
+## [2026-07-12 추가] 아무 맥락 없는 사람/다른 계정이 이어받는 법 (콘텐츠 공장 포함)
+
+> 이 볼트(hem 폴더)만 있으면 어떤 Claude 계정/세션이든 아래 순서로 전부 복원된다.
+
+1. **읽는 순서 (10분)**: `2. Areas/핵심맥락.md` → 최신 `2. Areas/Claude 세션로그/` →
+   작업할 폴더의 `HANDOFF.md` → `0. Docs/명령어_사전.md`
+2. **실행 엔진**: `ai공장짓기/runner/README.md` — 모든 공장의 공용 실행기.
+   상태 점검은 테스트 3종 재실행(README 2부 명령어 그대로).
+3. **콘텐츠 공장 (블로그·스레드 발행)**: `클로드 콘텐츠 ai/` 폴더가 전부.
+   - 계정·주소·발행시간: `channel_config.yaml` (마시땅=진주맛집, 2yeon_sz=육아·아기코디, 네이버 eunoia9496, 월/수/금 오후5시)
+   - 글 스타일·일하는 방식: `콘텐츠_작업스타일.md`
+   - 대기 주제: `콘텐츠_주제백로그.md` / 승인 대기 초안: `초안/`
+   - 게시 방법(왜 Chrome인지): `게시연결_방법조사.md` / 연결법: `연결_안내.md`
+4. **오류가 있으면**: `ai공장짓기/failure_log.md`의 open 카드부터 — 카드에 재현법·수리법·최소 모델 티어가 적혀 있음.
+5. **절대 규칙**: 승인 없는 게시/발송 금지(company_charter), 파일 잘림 대응은
+   bash heredoc + 즉시 파싱검증, 기록 삭제 금지(상태만 갱신).

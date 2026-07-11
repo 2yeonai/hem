@@ -48,3 +48,11 @@
 - 실패 로그는 `failure_log_format`에 정의된 필드로 남음 — 이걸 보고 Sonnet/Codex가 디버깅
 - 이 스킬을 고칠 때는 `manifest.yaml`의 `io_contract`는 되도록 건드리지 말 것 (다른 시스템이 이 계약에 의존할 수 있음)
 - 실제 공고 수집기를 연동할 때는 `scripts/run.py`의 `collect_and_extract_announcements()` 함수 시그니처(반환값: `(announcements: list, needs_confirmation: list)`)만 유지하면 나머지 파이프라인은 그대로 재사용 가능
+
+## 관련 문서
+
+- [[클로드 정부지원사업 ai/HANDOFF|HANDOFF]]
+- [[클로드 정부지원사업 ai/마이그레이션_diff_리포트_v1_to_v2|마이그레이션_diff_리포트_v1_to_v2]]
+- [[ai공장짓기/설계노트/2_①_정부지원사업_스킬_(실구현_완료,_오늘_반영할_것만)|2_①_정부지원사업_스킬_(실구현_완료,_오늘_반영할_것만)]]
+- [[ai공장짓기/runner/README|README]]
+- [[2. Areas/핵심맥락|핵심맥락]]

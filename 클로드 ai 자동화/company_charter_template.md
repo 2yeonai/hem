@@ -38,3 +38,7 @@
 ## 관련 문서
 
 - [[클로드 ai 자동화/company_charter|company_charter]]
+- [[ai공장짓기/MASTER_SETUP|MASTER_SETUP]]
+- [[클로드 ai 자동화/ai-platform/ai 공장 종합 기획|ai 공장 종합 기획]]
+- [[2. Areas/핵심맥락|핵심맥락]]
+- [[클로드 ai 자동화/future-vision|future-vision]]

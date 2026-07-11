@@ -100,6 +100,8 @@ Note: Dataview and Templater query examples appear throughout these docs, but as
 
 ## Working with 혜미 (owner) — communication & routing rules
 
+- **간단 명령어 사전 (2026-07-12 신설).** 혜미의 짧은 명령("마시땅 글 써줘", "PPT 만들어줘", "게시해줘", "이어서 해줘" 등)은 `0. Docs/명령어_사전.md`에 정의돼 있다 — 해당 명령을 받으면 사전대로 즉시 실행하고, 되돌릴 수 없는 일(게시/발송)만 승인 게이트를 거친다. 콘텐츠 계정 매핑: @maasittang=진주 맛집, @2yeon_sz=육아·아기코디, 네이버 블로그=eunoia9496 (상세: `클로드 콘텐츠 ai/channel_config.yaml`).
+
 - **Non-developer communication.** 혜미 is not a developer. Explain every technical term in one plain-Korean line the first time it appears. Report in Korean. Lead with the outcome (first sentence = what happened / what she should do), details after.
 - **Request routing.** When she asks for a deliverable, check the vault first, then route:
   - "PPT 만들어줘" → read related vault notes for content → build .pptx (pptx skill) → save to the relevant project folder.

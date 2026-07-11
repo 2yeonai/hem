@@ -1,0 +1,14 @@
+{
+  "_note": "혜미 대표님이 실제로 말씀해주신 첫 골든셋 사례(신규_문의_사례 1번)를 run.py 테스트용 입력으로 변환한 파일. 파이프라인이 실제 사례로도 끝까지 도는지 확인하는 용도.",
+  "text": "저희집에 바퀴가 나와서요. 평수 41평정도고 5층이요.",
+  "source_type": "미확인",
+  "created_at": "2026-07-11T00:00:00",
+  "customer_name": "테스트고객",
+  "space_type": "가정집",
+  "visit_requested_date": null,
+  "report_requested": false,
+  "certificate_requested": false,
+  "followup_needed": false,
+  "visit_cycle": null,
+  "last_visit_date": null
+}

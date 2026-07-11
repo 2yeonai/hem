@@ -48,3 +48,12 @@
 - 실패 로그는 `failure_log_format`에 정의된 필드로 남음 — 이걸 보고 Sonnet/Codex가 디버깅
 - 이 스킬을 고칠 때는 `manifest.yaml`의 `io_contract`는 되도록 건드리지 말 것 (다른 시스템이 이 계약에 의존할 수 있음)
 - 실제 공고 수집기를 연동할 때는 `scripts/run.py`의 `collect_and_extract_announcements()` 함수 시그니처(반환값: `(announcements: list, needs_confirmation: list)`)만 유지하면 나머지 파이프라인은 그대로 재사용 가능
+
+## 관련 문서
+
+- [[클로드 꽃집 ai/HANDOFF|HANDOFF]]
+- [[클로드 꽃집 ai/최종점검_리포트_2026-07-07|최종점검_리포트_2026-07-07]]
+- [[클로드 꽃집 ai/리스크_메모_통화녹음_제3자동의|리스크_메모_통화녹음_제3자동의]]
+- [[ai공장짓기/설계노트/3_②_꽃집_스킬|3_②_꽃집_스킬]]
+- [[클로드 ai 자동화/company_charter|company_charter]]
+- [[ai공장짓기/runner/README|README]]

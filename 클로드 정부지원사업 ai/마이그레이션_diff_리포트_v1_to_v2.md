@@ -48,3 +48,6 @@
 
 - [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
 - [[클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업)]]
+- [[클로드 정부지원사업 ai/SKILL|SKILL]]
+- [[ai공장짓기/설계노트/2_①_정부지원사업_스킬_(실구현_완료,_오늘_반영할_것만)|2_①_정부지원사업_스킬_(실구현_완료,_오늘_반영할_것만)]]
+- [[ai공장짓기/MASTER_SETUP|MASTER_SETUP]]

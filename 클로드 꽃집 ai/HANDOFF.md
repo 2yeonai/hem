@@ -63,3 +63,10 @@ GOV_SKILL_TODAY=2026-03-15 python3 scripts/run.py test/real_program_input_simula
 
 - [[클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업, 복제 원본)]]
 - [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
+- [[클로드 꽃집 ai/SKILL|SKILL]]
+- [[클로드 꽃집 ai/최종점검_리포트_2026-07-07|최종점검_리포트_2026-07-07]]
+- [[클로드 꽃집 ai/리스크_메모_통화녹음_제3자동의|리스크_메모_통화녹음_제3자동의]]
+- [[클로드 꽃집 ai/실데이터_diff_로그_001|실데이터_diff_로그_001]]
+- [[클로드 꽃집 ai/실데이터_diff_로그_002|실데이터_diff_로그_002]]
+- [[ai공장짓기/설계노트/3_②_꽃집_스킬|3_②_꽃집_스킬]]
+- [[2. Areas/핵심맥락|핵심맥락]]

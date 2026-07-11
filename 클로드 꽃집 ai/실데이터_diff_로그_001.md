@@ -78,3 +78,6 @@ golden_set_entry:
 - [[클로드 꽃집 ai/실데이터_diff_로그_002|실데이터_diff_로그_002]]
 - [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
 - [[클로드 꽃집 ai/최종점검_리포트_2026-07-07|최종점검_리포트_2026-07-07]]
+- [[클로드 꽃집 ai/SKILL|SKILL]]
+- [[클로드 꽃집 ai/HANDOFF|HANDOFF]]
+- [[ai공장짓기/설계노트/3_②_꽃집_스킬|3_②_꽃집_스킬]]

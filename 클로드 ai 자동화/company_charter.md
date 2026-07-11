@@ -50,3 +50,7 @@
 
 - [[클로드 ai 자동화/company_charter_template|company_charter_template]]
 - [[클로드 ai 자동화/future-vision|future-vision]]
+- [[클로드 ai 자동화/ai-platform/ai 공장 종합 기획|ai 공장 종합 기획]]
+- [[2. Areas/핵심맥락|핵심맥락]]
+- [[클로드 콘텐츠 ai/SKILL|SKILL]]
+- [[ai공장짓기/runner/README|README]]

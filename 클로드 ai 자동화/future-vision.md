@@ -162,3 +162,7 @@ LOCK 가능 =
 - [[클로드 ai 자동화/company_charter|company_charter]]
 - [[클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업)]]
 - [[클로드 정부지원사업 ai/gov-support-skill/정부지원사업_판정로직_확장스펙|정부지원사업_판정로직_확장스펙]]
+- [[2. Areas/핵심맥락|핵심맥락]]
+- [[클로드 ai 자동화/ai-platform/ai 공장 종합 기획|ai 공장 종합 기획]]
+- [[ai공장짓기/설계노트/5_신규_11개_공장_—_stages_설계_확정본|5_신규_11개_공장_—_stages_설계_확정본]]
+- [[ai공장짓기/MASTER_SETUP|MASTER_SETUP]]
