@@ -33,7 +33,16 @@ Each domain skill folder implements this contract:
 
 Two schema versions exist for this contract:
 - v1: `클로드 ai 자동화/manifest.schema.json` (JSON Schema; validated by `클로드 ai 자동화/validate_manifest.py`)
-- v2 (yaml): referenced everywhere else as `ai공장짓기/manifest.schema.v2.yaml` and `ai공장짓기/scripts/validate_manifest.py` — **this `ai공장짓기` folder does not currently exist in the vault** (see Gotchas). v2 adds `triggers`, `run_if`, `entry_points`, and the `approval` block on top of v1.
+- v2 (yaml): `ai공장짓기/manifest.schema.v2.yaml`, validated by `ai공장짓기/scripts/validate_manifest.py`. v2 adds `triggers`, `run_if`, `entry_points`, and the `approval` block on top of v1. (The `ai공장짓기` folder was restored to the vault root on 2026-07-08.)
+
+## Operating docs (read these before starting work)
+
+- `2. Areas/핵심맥락.md` — who the user is (mo,on 대표 + 비개발자 AI 공장 설계자), the full 4-factory picture and current status. **Read first in any new session.**
+- `ai공장짓기/CLAUDE.md` — model-usage policy: default Sonnet; Haiku for trivial classification; Fable/high-tier only for new design decisions or conflicts, and only after asking the user for approval.
+- `ai공장짓기/감사_로드맵_2026-07-09.md` — audited priority roadmap; each item carries its executor model and exact instructions.
+- `ai공장짓기/MASTER_SETUP.md` — how to rebuild this whole system on another account/model/tool from the vault alone.
+- `1. Projects/완전자동화_실행계획.md` — the current step-by-step execution plan with copy-paste prompts.
+- `2. Areas/Claude 세션로그/` — daily session logs auto-written at 22:30 by a scheduled task (+ weekly synthesis on Sundays). To resume interrupted work, read the latest note here.
 
 ## Commands
 
@@ -67,8 +76,8 @@ git pull gov-support-matching-skill.bundle master
 ## Gotchas (read before trusting file layout or cross-references)
 
 - **`클로드 꽃집 ai/` root is not the flower shop skill.** Its root `SKILL.md`, `manifest.yaml`, `scripts/`, and `test/` are a copy of the **정부지원사업 매칭 스킬 (gov-support-matching-skill)** — same content as `클로드 정부지원사업 ai/`, apparently placed here by mistake in a past session. The actual flower-shop artifacts live alongside it without their own root manifest/SKILL.md: `golden_set.yaml`, `12봇_kind분류표.yaml` (the real 12-bot pipeline classification), `code/storage_bot.py`, `참고자료_행정구역_지명사전.yaml`. There's also a nested `gov-support-skill/` subfolder with yet another copy. Don't assume `클로드 꽃집 ai/SKILL.md` describes flower-shop behavior.
-- **The shared v2 schema folder is missing.** `클로드 방역 ai/manifest.yaml` and `클로드 꽃집 ai/12봇_kind분류표.yaml` both reference `ai공장짓기/manifest.schema.v2.yaml` and `ai공장짓기/scripts/validate_manifest.py` as if they were siblings of each skill folder. As of 2026-07-08 no `ai공장짓기` folder exists anywhere in the vault (it existed as recently as 2026-07-07 per `클로드 꽃집 ai/최종점검_리포트_2026-07-07.md`). It most likely needs to be restored/relocated — possibly related to `클로드 ai 자동화/` (which has the older v1 `manifest.schema.json` but not a v2 yaml). Commands that reference this path will fail until it's resolved — ask the user where it went before recreating it from scratch.
-- **`.stale-*` / `.truncated-*` files are not real content.** They're backups left by a documented Edit/Write bug where large-file edits get silently truncated mid-byte on this Windows/bash-mount setup (see `클로드 방역 ai/SKILL.md` "유지보수" section and `클로드 정부지원사업 ai/HANDOFF.md`). The workaround in use: rename the target to `file.stale-<timestamp>` before rewriting, then rewrite via bash heredoc and verify with `python3 -m py_compile` / `yaml.safe_load` rather than trusting the Edit/Write tool result on large files in these folders. Safe to ignore these files, but don't delete them without checking whether they're the only copy of something.
+- **(RESOLVED 2026-07-08) The shared v2 schema folder was missing but has been restored.** `ai공장짓기/` now exists at the vault root with `manifest.schema.v2.yaml`, `scripts/validate_manifest.py`, `scripts/verify_write.py`, its own `CLAUDE.md` (model policy), `HANDOFF.md`, and the decision log. Note: skill-folder files reference it as a sibling path (`ai공장짓기/...`), but it lives at the vault root — run validation commands from the vault root or adjust the relative path.
+- **`.stale-*` / `.truncated-*` files are not real content.** They're backups left by a documented Edit/Write bug where large-file edits get silently truncated mid-byte on this Windows/bash-mount setup (see `클로드 방역 ai/SKILL.md` "유지보수" section and `클로드 정부지원사업 ai/HANDOFF.md`). The workaround in use: rename the target to `file.stale-<timestamp>` before rewriting, then rewrite via bash heredoc and verify with `python3 -m py_compile` / `yaml.safe_load` rather than trusting the Edit/Write tool result on large files in these folders. This bug hit this very file on 2026-07-09 (root CLAUDE.md truncated mid-word after an Edit; restored via heredoc). Safe to ignore these files, but don't delete them without checking whether they're the only copy of something.
 - **`클로드 정부지원사업 ai/jbjw-main/jbjw-main/hyemi-ai-factory/` is a separate, unrelated project** (has its own `CLAUDE.md`, `pyproject.toml`, numbered docs folders `00_rules` … `10_handoff`). It's nested inside the gov-support folder but isn't part of the AI-factory skill pattern described above — read its own `CLAUDE.md` before working in it rather than applying anything from this file.
 - Nothing here calls a real LLM or STT API yet — every `run.py` is a mock stub. Don't report a skill as "working end-to-end" without checking `SKILL.md`'s "알려진 한계" (known limitations) section first.
 
@@ -88,3 +97,15 @@ Separate from the four AI-skill folders above, the vault root also has a general
 Each of these folders has its own `CLAUDE.md` with the detailed rules (frontmatter schema, Dataview queries, tag conventions, maintenance checklist) for that folder — read the relevant one before creating or filing a note there rather than assuming from the folder name. `5. Zettelkasten/CLAUDE.md` holds the cross-cutting ZK principles; its three subfolders each have their own more specific `CLAUDE.md`.
 
 Note: Dataview and Templater query examples appear throughout these docs, but as of 2026-07-08 neither plugin is actually installed in `.obsidian/plugins/` yet (only the `terminal` plugin is) — the queries are written in advance for when those plugins get added, not proof they currently work.
+
+## Working with 혜미 (owner) — communication & routing rules
+
+- **Non-developer communication.** 혜미 is not a developer. Explain every technical term in one plain-Korean line the first time it appears. Report in Korean. Lead with the outcome (first sentence = what happened / what she should do), details after.
+- **Request routing.** When she asks for a deliverable, check the vault first, then route:
+  - "PPT 만들어줘" → read related vault notes for content → build .pptx (pptx skill) → save to the relevant project folder.
+  - "이미지/카드뉴스 만들어줘" → Claude cannot generate AI images natively. If the Canva connector is connected, use it; Higgsfield can be added as custom connector (`https://mcp.higgsfield.ai/mcp`). If neither is available, say so and offer alternatives (SVG/HTML visuals, or Canva connection).
+  - "영상 요약해줘" → follow `0. Docs/글로벌지침_Fable프로토콜.md` §3 (needs transcript; Claude cannot watch video).
+  - Any request implying an external app → check connectors before saying it's impossible.
+- **Update, don't duplicate.** If a note on the same topic/category already exists, update that note instead of creating a new file. Search by tags and filename first. Only create a new file for a genuinely new topic, and tell 혜미 the exact path when you do.
+- **Tags for findability.** Every new/updated note gets frontmatter tags (searchable in Obsidian as #태그). Core tags: #ai공장 #방역 #꽃집 #정부지원 #플랫폼 #지침 #세션로그 #프롬프트. In Obsidian she finds things via search `tag:#방역` or clicking a tag.
+- **Time & model estimates.** When proposing work, always state: which model tier, roughly how long, and what (if anything) only 혜미 can do. She decides faster with those three numbers.

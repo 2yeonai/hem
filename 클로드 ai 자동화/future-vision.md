@@ -156,3 +156,9 @@ LOCK 가능 =
 
 ---
 *원본: 2026-07-06 작성된 요구정의 보고서 전문 보관. SaaS 전환 검토 시 재열람.*
+
+## 관련 문서
+
+- [[클로드 ai 자동화/company_charter|company_charter]]
+- [[클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업)]]
+- [[클로드 정부지원사업 ai/gov-support-skill/정부지원사업_판정로직_확장스펙|정부지원사업_판정로직_확장스펙]]

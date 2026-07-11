@@ -1,5 +1,5 @@
 name: gov-support-matching-skill
-version: 0.5.0
+version: 0.5.4
 domain: gov_support
 
 io_contract:
@@ -88,7 +88,7 @@ io_contract:
                         status: { type: string }
                         purpose: { type: string }
           budget_detail:
-            description: "예산 세부내역. draft_application의 '3_사업화_계획'/'5_예산_계획' 섹션에 반영됨. 또한 judge_review 단계에서 공고 budget_criteria와의 정합성(총액 초과, 집행제외 항목 카테고리 포함 여부) 점검에 사용됨(v0.4.0). 비어있으면 [확인 필요]로 표시됨"
+            description: "예산 세부내역. draft_application의 '3_사업화_계획'/'5_예산_계획' 섹션에 반영됨. 또한 judge_review 단계에서 공고 budget_criteria와의 정합성(정부지원분 한도 초과, 집행제외 항목 카테고리 포함 여부) 점검에 사용됨(v0.4.0, v0.5.3부터 정부지원분/자기부담분 구분 반영). 비어있으면 [확인 필요]로 표시됨"
             oneOf:
               - type: array
                 description: "v0.2.0 방식 — 항목별 평면 리스트"
@@ -98,6 +98,7 @@ io_contract:
                     category: { type: string, description: "예산 항목 카테고리 (예: 인건비, 재료비, 외주용역비). budget_criteria.excluded_categories와의 충돌 검사에 사용됨 (v0.4.0)" }
                     item: { type: string }
                     amount_krw: { type: number }
+                    fund_source: { type: string, enum: ["government", "self"], description: "이 항목 금액의 자금 출처 — \"government\"(정부지원분) | \"self\"(자기부담분). 선택 필드(optional), 없으면 미지정으로 처리됨(v0.5.3). check_budget_compatibility()가 budget_criteria.max_grant_krw와 비교할 때 fund_source==\"government\"로 명시된 항목의 합계만 사용함 — 총사업비(정부지원+자부담 합계) 전체를 지원한도와 비교하면 자부담이 있는 정상적인 사업 구성도 '한도 초과'로 오탐되기 때문(v0.4.0 known issue, v0.5.3에서 수정). 미지정 항목은 이 초과 판정에서 제외되고, 대신 judge_review.budget_breakdown.unresolved_note에 '확인 필요' 안내로만 노출됨(자동 판정에는 영향 없음 — 오탐 방지가 우선이라는 원칙, 2026-07-09 사용자 결정)" }
                     note: { type: string }
               - type: object
                 description: "v0.3.0 방식 — 단계(phase)별 예산 구조 (실사용 사례 기준, 예: 예비창업패키지)"
@@ -115,6 +116,7 @@ io_contract:
                             category: { type: string }
                             item: { type: string }
                             amount_krw: { type: number }
+                            fund_source: { type: string, enum: ["government", "self"], description: "v0.2.0 리스트 방식의 fund_source와 동일 의미/동작 (v0.5.3)" }
                             verification_purpose: { type: string }
                             expected_output: { type: string }
                       subtotal_krw: { type: number }
@@ -252,6 +254,17 @@ io_contract:
                     propagated_deductions: { type: array, items: { type: object } }
                     interpretation: { type: string }
               note: { type: string }
+          budget_breakdown:
+            type: object
+            nullable: true
+            description: "(v0.5.3 신규) check_budget_compatibility()의 예산 정합성 판단 근거를 사람이 볼 수 있게 노출. business_profile.budget_detail 또는 announcement.budget_criteria가 없으면 null. fund_source가 지정된 항목이 하나도 없으면(기존 데이터 전부 해당) confirmed_government_krw/confirmed_self_krw는 0이 되고 unresolved_note에 안내문이 채워짐 — 이 note는 참고 정보 전용이며 quality_gate_result.overall_confidence나 judge_panel_review/deduction_map 판정에는 반영되지 않음(2026-07-09 사용자 결정: fund_source 미지정 항목을 '전부 정부지원분'으로도 '전부 확인필요 처리'로도 자동 취급하지 않고, 한도초과 판정에서는 제외하되 그 사실만 별도로 알림)"
+            properties:
+              total_krw: { type: number, description: "budget_detail 전체 항목 합계(정부지원+자기부담 포함, fund_source 무관)" }
+              confirmed_government_krw: { type: number, description: "fund_source==\"government\"로 명시된 항목의 합계. budget_criteria.max_grant_krw와의 초과 여부 비교에 사용되는 값" }
+              confirmed_self_krw: { type: number, description: "fund_source==\"self\"로 명시된 항목의 합계" }
+              unresolved_krw: { type: number, description: "fund_source가 지정되지 않은 항목의 합계 (한도초과 판정에는 포함되지 않음)" }
+              unresolved_count: { type: integer }
+              unresolved_note: { type: string, nullable: true, description: "unresolved_count > 0이고 max_grant_krw가 있을 때만 채워짐. 정부지원분 합계를 완전히 확인하지 못했다는 사실을 사람에게 알리는 안내문 — 자동 판정에는 미반영" }
       quality_gate_result:
         type: object
         description: "숫자 기준(confidence)과 질적 기준(judge_review) 둘 다 통과해야 lock_state가 READY_FOR_APPROVAL이 됨. 하나라도 미달이면 DRAFT로 유지."
@@ -298,7 +311,7 @@ quality_gate:
     - "business_description/team_experience/budget_detail/expected_outcomes가 채워져 있는데도 draft_application에 [확인 필요]가 남아있으면 버그로 간주 (string이든 object든 값이 있으면 반영되어야 함)"
     - "documents_status에 명시된 준비완료 서류는 required_documents_checklist.prepared=true로 정확히 반영되어야 함 (문서명이 required_documents와 정확히 일치하는 경우에 한함 — 불일치는 needs_confirmation에 표시)"
     - "biz_type/industry_code/founded_date/region/employees/annual_revenue_krw/ceo_birth_date/gender/career_interruption_status가 profile에 없을 때는 '불합격(False)'이 아니라 '확인 필요(unresolved)'로 채점해야 함"
-    - "business_profile.budget_detail 총액이 공고 budget_criteria.max_grant_krw를 초과하거나, budget_detail 항목의 category가 budget_criteria.excluded_categories에 해당하면 judge_review.rejection_risks에 구체적으로 명시해야 함 (v0.4.0)"
+    - "business_profile.budget_detail 중 fund_source==\"government\"로 명시된 항목의 합계가 공고 budget_criteria.max_grant_krw를 초과하거나, budget_detail 항목의 category가 budget_criteria.excluded_categories에 해당하면 judge_review.rejection_risks에 구체적으로 명시해야 함 (v0.4.0, v0.5.3부터 총액이 아니라 정부지원분 명시 항목 기준으로 판정)"
     - "심사배점 커버리지 판정('가점'류 제외)은 항목명 전체 토큰을 확인해야 하며, 단일 첫 단어 완전일치만으로 판정해서는 안 됨 (v0.4.0 — 실전 공고 문구 차이로 인한 오탐 방지 목적, 단 여전히 키워드 휴리스틱이므로 의미 기반 판정은 아님)"
     - "psst_review 4구간이 전부 pass이고 judge_panel_review.warning_count가 0일 때만 judge_pass_recommendation의 질적 조건을 만족한 것으로 간주해야 함 (v0.5.0 — 기존 형식요건 조건에 AND로 추가, 대체 아님)"
     - "deduction_map은 quality_gate_result.overall_confidence를 다시 깎는 데 사용해서는 안 됨 — 설명 문장으로만 노출해야 함 (v0.5.0)"
@@ -325,6 +338,20 @@ failure_log_format:
     - "confidence_at_failure"
 
 changelog:
+  - version: "0.5.4"
+    changes:
+      - "[JUDGE_DEFINITIONS 키워드 보강] 예산·증빙 심사위원 rubric_keywords에 \"사업비\" 추가, 성과·확장 심사위원 rubric_keywords에 \"기대효과\" 추가. 3번째 실제 공고(생활문화 혁신지원)의 심사배점 항목이 '예산'/'자금'/'성과'/'확장'/'고용'/'사회적' 어느 키워드와도 매칭되지 않아 발견된 과소매칭(backlog 항목) 해소. 추가 전 real_announcements.json/sample_announcements.json 전체 scoring_rubric 텍스트와 기타 JSON 필드를 스캔해 \"사업비전\" 같은 무관 단어에 우연히 포함되는 사례가 없는지 확인한 뒤 추가함(v0.4.0의 짧은 키워드 과다매칭 재발 방지 원칙 준수)"
+      - "교차 검증: 경력단절여성 공고/AI활용지원 공고(과장·구체 대조군 2건)/생활문화 공고 4개 케이스 전부 재실행 — AI활용지원 공고에서 기존 'AI' 키워드 과다매칭 문제가 재발하지 않음을 확인(신규 키워드 2개가 이 공고의 rubric 텍스트에 아예 등장하지 않아 매핑 변화 없음). 생활문화 공고에서만 예산·증빙/성과·확장 심사위원의 mapped_rubric_items가 빈 배열에서 정확한 항목으로 채워짐"
+      - "회귀테스트 12개(6개 정식 + AI판사 대조군 2개 + synthetic 4개) 전부 기존과 완전히 동일한 lock_state/confidence/judge_panel_review.warning_count/deduction_map.triggered_issues로 재확인됨 — rubric_keywords는 mapped_rubric_items(표시용 필드)에만 영향을 주고 score/warning 계산에는 관여하지 않으므로 이론적으로도 예상된 결과"
+      - "[부분 해소로 기록] 이번 라운드에서 3번째 공고의 '수행역량 - 참여인력현황및경험/참여인력별 수행역할'(30점) 항목은 여전히 8인 중 어느 심사위원에도 매핑되지 않음을 추가로 발견함 — 이는 어휘 차이(키워드 테이블 보강으로 해결 가능한 문제)가 아니라, 스펙상 고정된 8인 심사위원 중 '팀/참여인력의 역량'을 평가 목적으로 하는 심사위원이 애초에 없는 구조적 공백으로 판단됨(8인 로직 자체는 스펙상 공고 불변이라 함부로 확장하지 않음). 억지로 기존 심사위원 중 하나에 키워드를 끼워맞추면 그 심사위원의 실제 평가 취지와 맞지 않게 되므로 이번 라운드에서는 손대지 않고 기록만 함 — 즉 'rubric 키워드 과소매칭' backlog는 이번에 지시받은 2개 사례(사업비/기대효과)에 대해서는 해소됐으나, 키워드 휴리스틱 자체의 한계(의미 기반 매칭이 아님, 공고마다 새 표현이 나오면 재발 가능)와 이번에 새로 발견한 구조적 공백(수행역량류 심사위원 부재) 두 가지는 미해결 상태로 남음"
+  - version: "0.5.3"
+    changes:
+      - "[budget_detail 스키마] 각 항목에 fund_source(\"government\"|\"self\", 선택 필드) 추가. business_profile.budget_detail.oneOf[0].items.properties와 oneOf[1].phase_N.items.properties 양쪽 모두에 추가(v0.2.0 리스트 방식/v0.3.0 phase 방식 둘 다 지원)"
+      - "[check_budget_compatibility() 수정] 기존에는 budget_detail 총액(정부지원+자기부담 합계)을 budget_criteria.max_grant_krw와 그대로 비교해, 자기부담이 있는 정상적인 사업 구성도 '한도 초과'로 오탐하는 버그가 있었음(2026-07-08 세션, 3번째 실제 공고 real_program_3rd_input.json에서 발견 — 총사업비 111.2백만원 vs 지원한도 100백만원). v0.5.3부터 fund_source==\"government\"로 명시된 항목의 합계만 한도 비교에 사용하도록 수정"
+      - "[후행 호환 — 미지정 항목 처리, 2026-07-09 사용자 결정] fund_source가 없는 기존/향후 데이터(현재 모든 test/*.json 전부 해당)를 '전부 정부지원분으로 간주'하지도 '전부 확인필요로 제외'하지도 않기로 함. 대신: (1) 한도초과 자동 판정에서는 미지정 항목을 제외(안전장치 우선), (2) 미지정 항목이 있다는 사실 자체는 judge_review.budget_breakdown.unresolved_note에 참고 정보로만 노출(quality_gate/8인심사위원/감점전파 등 자동 판정에는 미반영 — deduction_map과 동일한 '설명 전용' 원칙 적용). 두 기존 대안(전부 정부지원 간주 / 전부 제외)을 실제로 시뮬레이션해서 6개 회귀테스트에 대한 영향을 비교한 결과, 어느 쪽을 택하든 6개 회귀테스트의 최종 lock_state/confidence/judge_panel_review/deduction_map은 전혀 달라지지 않음을 먼저 확인한 뒤(즉 판단은 오직 향후의 새 데이터에만 영향), 이 절충안으로 결정함"
+      - "budget_breakdown 필드 신설(judge_review 하위) — total_krw/confirmed_government_krw/confirmed_self_krw/unresolved_krw/unresolved_count/unresolved_note. 총액과 정부지원분 단독 금액을 항상 함께 노출해 어느 기준으로 판정됐는지 사람이 볼 수 있게 함"
+      - "회귀테스트 12개(6개 정식 + AI판사 대조군 2개 + synthetic 4개) 전부 기존과 동일한 lock_state/confidence/judge_panel_review.warning_count/deduction_map.triggered_issues로 재확인됨 — fund_source 스키마 추가가 기존 결과에 전혀 영향 없음"
+      - "real_program_3rd_input.json(111.2백만원 케이스) 재검증 결과: 예산 관련 오탐이 해소됨(confidence 0.35→0.40, judge_panel_review.warning_count 3→2, deduction_map.triggered_issues에서 '예산 근거 누락' 소멸, '예산·증빙 심사위원' score 1/warning True → score 5/warning False). 단, 이 파일의 실제 예산 8개 항목에 fund_source를 채워 넣지는 않음 — 원본 합격 사업계획서에 '총사업비 111.2백만원(정부지원금 100백만원+기업부담금 11.2백만원)'이라는 총액 단위 구분만 있고 항목별 구분은 원문에 없어 임의로 배정하지 않기로 함(추측 금지 원칙). 즉 이번 케이스의 개선은 '항목별로 정확히 확인해서 통과시킨 것'이 아니라 '확인 안 된 상태를 정직하게 확인 필요로 남기고, 그로 인해 근거 없는 초과 경고만 제거한 것' — 위 confirmed_government_krw=0, unresolved_count=8 상태로 남아있음"
   - version: "0.5.0"
     changes:
       - "정부지원사업_판정로직_확장스펙.md(위험표현 사전/PSST/8인 가상 심사위원/감점 전파 모델 4개 표) 기반으로 judge_mode_self_review()에 질적 판정 레이어 4종 추가. 기존 confidence 공식(overall_confidence)은 불변 — 4개 신규 결과는 judge_pass_recommendation 판정 근거를 '형식요건만' -> '형식+내용품질'로 넓히는 데만 사용"

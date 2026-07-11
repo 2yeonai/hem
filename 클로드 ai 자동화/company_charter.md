@@ -45,3 +45,8 @@
 
 ---
 *버전: 0.1 · 마지막 수정: 2026-07-06 · 다음 리뷰 트리거: 위 5번 참고*
+
+## 관련 문서
+
+- [[클로드 ai 자동화/company_charter_template|company_charter_template]]
+- [[클로드 ai 자동화/future-vision|future-vision]]

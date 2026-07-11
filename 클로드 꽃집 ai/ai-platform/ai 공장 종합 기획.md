@@ -338,3 +338,8 @@ s1_ledger_read(local) → s2_input_normalize(local) → s3_priority_calc(local)
 7. 소수공유 조건(6번)은 전 공장 공통이므로 러너 레벨에서 먼저 처리하면 개별 공장 작업이 줄어듦
 
 각 단계마다 모호 지점 있으면 추측하지 말고 blocked로 보고할 것.
+
+## 관련 문서
+
+- [[클로드 꽃집 ai/HANDOFF|HANDOFF (꽃집)]]
+- [[클로드 꽃집 ai/최종점검_리포트_2026-07-07|최종점검_리포트_2026-07-07]]

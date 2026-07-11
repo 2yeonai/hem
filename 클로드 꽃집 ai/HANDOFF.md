@@ -58,3 +58,8 @@ GOV_SKILL_TODAY=2026-03-15 python3 scripts/run.py test/real_program_input_simula
 - `collect_and_extract_announcements()`를 실제 공고 소스(API/크롤러)에 연결
 - judge_mode_self_review에 "내용 품질" 체크 보강, 예산/rubric 리스크를 judge_pass_recommendation 게이트에도 반영할지 검토
 - 지자체별/타 부처 사업 스키마 확장 시 `eligibility` 스키마 필드 보완
+
+## 관련 문서
+
+- [[클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업, 복제 원본)]]
+- [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]

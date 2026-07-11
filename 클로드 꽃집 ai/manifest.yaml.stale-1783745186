@@ -1,0 +1,250 @@
+# =====================================================================
+# manifest.yaml — 꽃집(온천꽃식물원) 주문처리 스킬 (플랫폼 표준 포맷, 신규 작성)
+#
+# 이 파일은 "ai-platform/ai 공장 종합 기획.md"(2026-07-08, Fable 5 확정)의
+# §1(플랫폼 공통 스펙)과 §3(꽃집 스킬 작업 순서)을 따라 처음부터 새로 쓴 것이다.
+# 이전 manifest.yaml은 정부지원사업 스킬을 domain 필드만 바꿔 복제한 것이었고
+# (name: gov-support-matching-skill로 남아있었음), 내용이 전혀 안 맞았다 — 폐기.
+#
+# 이 파일 = "무엇을 하는가"의 표준 계약(플랫폼이 읽는 파일).
+# 12봇_kind분류표.yaml(같은 폴더) = "왜 이렇게 정했는가"의 상세 근거/미해결 항목 기록.
+# 이 파일과 그 파일의 stage 목록/필드명은 항상 일치해야 함 — 바뀌면 양쪽 다 갱신.
+#
+# 검증: python3 "클로드 ai 자동화/validate_manifest.py" manifest.yaml
+#       code/test_manifest.py (이 폴더, pipeline.stages 구조 정합성 검사)
+# =====================================================================
+
+name: flower-shop-order-skill
+version: 0.1.0
+domain: flower_shop
+
+# ---------------------------------------------------------------------
+# io_contract — 스킬의 진짜 정체성 (내부 구현이 바뀌어도 이건 안 바뀌어야 함)
+# ---------------------------------------------------------------------
+io_contract:
+  input_schema:
+    type: object
+    required: ["source_type"]
+    description: >
+      접수 1건(통화/문자/카톡/사진/수기입력 중 하나)의 원본. source_type에 따라
+      raw_text/raw_audio/raw_image 중 해당하는 것만 채워짐. 상세는 12봇_kind분류표.yaml의
+      shared_context(collection_bot이 쓰는 필드들) 참고.
+    properties:
+      source_type: { type: string, enum: ["call", "kakao", "sms", "photo", "manual"] }
+      raw_text: { type: string, description: "문자/카카오톡 등 텍스트 채널 원문" }
+      raw_audio: { type: string, format: uri, description: "통화 녹음 파일 URI" }
+      raw_image: { type: string, format: uri, description: "사진(수기 주문서 등) URI" }
+      created_at: { type: string, format: date-time }
+  output_schema:
+    type: object
+    description: >
+      접수 1건 처리 결과. 접수 안에 독립 주문이 여러 건이면(주문분리봇이 판단)
+      순차 처리 정책에 따라 orders 배열에 하나씩 쌓인다 — bundle_status가 "완료"가
+      되어야 이 접수 전체가 끝난 것.
+    properties:
+      bundle_id: { type: string }
+      bundle_status: { type: string, enum: ["진행중", "완료", "확인 필요"] }
+      orders:
+        type: array
+        items:
+          type: object
+          properties:
+            order_id: { type: string }
+            confirmed_fields: { type: object }
+            확인_필요_필드:
+              type: array
+              items: { type: string }
+              description: "human_reviewer를 거친 뒤에도 임의로 채우지 않고 남겨둔 필드 목록"
+            approval_action: { type: string }
+            message_result: { type: object, description: "고객에게 보낸 완료 문자 발송 결과" }
+
+# ---------------------------------------------------------------------
+# model_routing — 모델명 절대 금지, 티어만. tier는 여기 한 곳에서만 선언한다
+# (pipeline.stages 쪽에는 tier를 중복 기입하지 않음 — 불일치 방지).
+# haiku→low_cost, sonnet→mid, opus→high 매핑 (12봇_kind분류표.yaml의 기존 표기 그대로 환산)
+# ---------------------------------------------------------------------
+model_routing:
+  stages:
+    - step: order_classification_bot
+      tier: mid   # 확인 필요 — 실측 없이 제안된 값, 12봇_kind분류표.yaml open_questions 참고
+    - step: order_split_bot
+      tier: mid   # 확인 필요 — 상동
+    - step: correction_bot
+      tier: mid
+    - step: order_draft_bot
+      tier: low_cost   # 확인 필요 — 상동
+    - step: ribbon_price_bot
+      tier: low_cost
+    - step: review_manager_bot
+      tier: mid   # 확인 필요 — 상동
+
+# ---------------------------------------------------------------------
+# quality_gate — 스킬 전체 단위의 대표 게이트(플랫폼 필수 필드).
+# 개별 stage별 더 세밀한 check/on_fail은 pipeline.stages 쪽에 따로 있음.
+# ---------------------------------------------------------------------
+quality_gate:
+  confidence_threshold: 0.6
+  # 저위험(T3) 공장이라 정부지원사업(0.85, 고위험)보다 낮게 잡음 — manifest.schema.json의
+  # "저위험(꽃집)은 낮게" 지침에 따른 초기값. golden_set 실측 없이 고른 숫자라 확인 필요.
+  self_check_rules:
+    - "order_classification이 확인필요면 무조건 사람 검수로 — 도메인 키워드(꽃 등) 매칭만으로 통과 금지(golden_set 003 참고)"
+    - "split_status가 확인필요면 임의로 나누지 않고 사람 검수로"
+    - "review_manager_bot 통과 기준 미달이면 human_reviewer로"
+  on_fail:
+    retry_count: 1
+    escalation_target: human_review
+
+# ---------------------------------------------------------------------
+# invocation — AI직원 플랫폼이 이 스킬을 tool로 호출할 때 쓰는 계약
+# ---------------------------------------------------------------------
+invocation:
+  entrypoint: "code/run_pipeline.py"
+  # 계획된 경로 — 아직 존재하지 않음. 지금 실제로 동작하는 코드는 code/storage_bot.py
+  # (저장봇, golden_set으로 테스트 완료)뿐이고 order_classification_bot/order_split_bot은
+  # 규칙기반 임시 버전 작업 중. 14 stage를 잇는 run_pipeline.py는 범용 러너가 나온 뒤 작업.
+  callable_by:
+    - "ai_employee_platform"
+    - "manual_cli"
+
+state:
+  external_store_ref: "code/flower_orders.json — storage_bot.py가 관리하는 JSON 파일 DB (SQLite는 동기화 폴더에서 disk I/O error로 실패해서 채택 안 함, storage_bot.py 주석 참고)"
+
+failure_log_format:
+  fields: ["timestamp", "step", "input_summary", "error", "confidence_at_failure"]
+
+# =======================================================================
+# 아래부터 2026-07-08 "ai 공장 종합 기획.md" §1-4에서 신규 확정된 공통규칙 3가지
+# =======================================================================
+
+# ① 재실행 게이트 — 같은 접수(녹음파일/문자)가 실수로 중복 처리되지 않도록
+rerun_gate:
+  enabled: true
+  hash_inputs: [raw_text, raw_audio, raw_image]
+  scope: full
+  # 판단 근거: 접수 원문이 그대로면 그 이후 판단도 바뀔 이유가 없음 — 다만 이 가정
+  # 자체는 실측 전 초기 판단(확인 필요, 특히 같은 통화를 재검토 요청하는 케이스와
+  # 충돌 안 하는지는 운영 중 확인 필요).
+
+# ③ 검수원 등급 — "ai 공장 종합 기획.md" §3에서 T3로 확정됨
+review:
+  risk_tier: T3
+  mandatory: true   # 현재 설계상 human_reviewer 없이는 storage_bot으로 못 감(depends_on 강제)
+  reviewer_grade: "확인 필요"   # 마스터 문서 §1-4③: "값 배정은 지금 안 함" — 임의로 안 채움
+  sla_hours: "확인 필요"        # 상동
+  queue_priority: "확인 필요"   # 상동
+
+# ② 반려 루프 라우팅 — on_reject는 kind: human 스테이지에만 붙인다(마스터 문서 예시가
+# human 스테이지에만 붙어 있었음). 이 파이프라인엔 human stage가 human_reviewer 하나뿐이라
+# "T3는 default 하나면 충분"이라는 지침과도 맞음. kind: model인 self_check 실패는 기존
+# pipeline.stages[].on_fail.action(route_to_human 등)을 그대로 쓰고 on_reject는 안 씀
+# (아래 pipeline.stages의 human_reviewer 항목 참고).
+
+# ---------------------------------------------------------------------
+# pipeline — 14 stage. depends_on이 실행순서를 결정(배열순서 아님).
+# 각 stage의 상세 판단근거(kind_rationale/tier_rationale/domain_neutral 등)는
+# 이 파일에서 뺐음 — 12봇_kind분류표.yaml에 전부 있음, 여기서는 "무엇을 하는가"만.
+# ---------------------------------------------------------------------
+pipeline:
+  stages:
+
+    - id: collection_bot
+      kind: local
+      io: { reads: [], writes: [raw_text, raw_image, raw_audio, source_type, created_at] }
+      depends_on: []
+
+    - id: transcription_bot
+      kind: local
+      # 확인 필요: kind 4종(local/model/human/tool(external))이 새로 생겼는데, "외부
+      # STT/OCR API 호출"은 local보다 tool(external)에 더 맞을 수 있음 — 기존 결정(local)
+      # 유지, 재검토 대상(12봇_kind분류표.yaml의 kind_open_question 참고)
+      io: { reads: [raw_audio, raw_image, raw_text], writes: [stt_text, ocr_text, cleaned_text, engine_meta] }
+      depends_on: [collection_bot]
+
+    - id: order_classification_bot
+      kind: model
+      io: { reads: [stt_text, ocr_text, raw_text], writes: [order_classification] }
+      check: { mode: self_check, schema_ref: "manifest.schema.v2.yaml#check_output_schema.self_check" }
+      on_fail: { action: route_to_human }   # order_classification == 확인필요일 때
+      depends_on: [transcription_bot]
+
+    - id: order_split_bot
+      kind: model
+      io: { reads: [stt_text, ocr_text, raw_text, order_classification], writes: [order_segments, split_status, bundle_id, bundle_sequence] }
+      check: { mode: self_check, schema_ref: "manifest.schema.v2.yaml#check_output_schema.self_check" }
+      on_fail: { action: route_to_human }   # split_status == 확인필요일 때
+      depends_on: [order_classification_bot]
+
+    - id: correction_bot
+      kind: model
+      io: { reads: [order_segments, stt_text, ocr_text], writes: [normalized_text, correction_log, candidates] }
+      depends_on: [order_split_bot]
+
+    - id: order_draft_bot
+      kind: model
+      io: { reads: [normalized_text], writes: [order_draft, field_confidence, field_sources, missing_fields] }
+      depends_on: [correction_bot]
+
+    - id: ribbon_price_bot
+      kind: model
+      io: { reads: [order_draft, normalized_text], writes: [ribbon_message_raw, ribbon_message_final, product_name, price, quantity] }
+      depends_on: [order_draft_bot]
+
+    - id: review_manager_bot
+      kind: model
+      io:
+        reads: [order_draft, field_confidence, field_sources, missing_fields, candidates, ribbon_message_raw, ribbon_message_final, product_name, price, quantity, correction_log, split_status]
+        writes: [review_checklist, review_priority, editable_fields]
+      check: { mode: self_check, schema_ref: "manifest.schema.v2.yaml#check_output_schema.self_check" }
+      on_fail: { action: route_to_human }   # 통과/사람에스컬레이션 분기가 원래 정상 경로
+      depends_on: [ribbon_price_bot]
+
+    - id: human_reviewer
+      kind: human
+      io: { reads: [review_checklist, review_priority, editable_fields], writes: [confirmed_fields, manual_edits, approval_action] }
+      check: { mode: human_gate, schema_ref: "manifest.schema.v2.yaml#check_output_schema.human_gate" }
+      on_reject:
+        default: review_manager_bot   # "직전생성 stage" = depends_on상 바로 이전 stage (T3 단순 규칙)
+        max_loops: 3
+        on_exhaust: escalate_human
+      depends_on: [review_manager_bot]
+      async: true
+
+    - id: storage_bot
+      kind: local
+      io: { reads: [confirmed_fields, manual_edits, approval_action, bundle_id, bundle_sequence], writes: [order, workflow_event, version] }
+      depends_on: [human_reviewer]
+
+    - id: print_prep_bot
+      kind: local
+      io: { reads: [order], writes: [order_print, ribbon_print, delivery_memo, driver_summary] }
+      depends_on: [storage_bot]
+
+    - id: dispatch_bot
+      kind: local
+      io: { reads: [driver_summary, delivery_memo, order], writes: [dispatch_record] }
+      depends_on: [print_prep_bot]
+
+    - id: delivery_photo_bot
+      kind: local
+      io: { reads: [dispatch_record], writes: [delivery_photo, photo_status] }
+      depends_on: [dispatch_bot]
+
+    - id: sms_ledger_bot
+      kind: local
+      io: { reads: [order, delivery_photo, photo_status, bundle_id, bundle_sequence], writes: [message_job, message_result, history_log, bundle_status] }
+      depends_on: [delivery_photo_bot]
+
+# ---------------------------------------------------------------------
+# 이 표준화 작업에서 새로 생긴 확인 필요 항목만 여기 적음.
+# 12봇_kind분류표.yaml의 open_questions(9개)는 전부 그대로 유효 — 중복 기재 안 함.
+# ---------------------------------------------------------------------
+open_questions:
+  - "quality_gate.confidence_threshold=0.6은 추측값 — golden_set 실측 후 조정 필요"
+  - "transcription_bot의 kind: 신규 4번째 kind인 tool(external)이 local보다 더 맞을 수 있음(위 stage 주석 참고), 재검토 대상"
+  - "review.reviewer_grade/sla_hours/queue_priority: 마스터 문서가 '값 배정은 지금 안 함'이라 명시 — 임의로 안 채움"
+  - "on_reject는 유일한 human stage인 human_reviewer에만 부여함(마스터 문서 예시가 human stage에만 붙어 있었음). model self_check 실패는 기존 on_fail.action:route_to_human을 그대로 씀 — 다른 판단이면 알려주세요"
+  - "invocation.entrypoint(code/run_pipeline.py)는 아직 없는 파일 — 계획만 명시, 범용 러너 완성 후 작업 예정"
+  - "manifest.schema.json(클로드 ai 자동화 폴더)이 2026-07-08 이전 버전이라 pipeline/rerun_gate/review 섹션을 모름 — additionalProperties 제한이 없어 검증은 통과하지만, 스키마 자체 갱신이 별도로 필요해 보임(이 스킬 작업 범위 밖이라 언급만)"
+
+# 관련 문서: 12봇_kind분류표.yaml(상세 근거), golden_set.yaml(실데이터),
+# ai-platform/ai 공장 종합 기획.md(플랫폼 공통 스펙 원본)

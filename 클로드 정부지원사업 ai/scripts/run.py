@@ -74,10 +74,22 @@ v0.5.1 변경사항 (통합 진입점 추가 — 외부 시스템 연동 준비)
     1건에 대해 초안+심사위원 검수(4개 서브시스템 포함)만 실행하고 싶은 외부 호출측(예: AI직원
     플랫폼)을 위해 추가함.
 
+v0.5.2 변경사항 (문서명 fuzzy 매칭):
+  - [문서명 매칭] match_document_status() 신설: documents_status <-> 공고 required_documents
+    매칭을 기존 "원문 완전일치"에서 "완전일치 -> 정규화(공백/괄호 제거) 후 완전일치 ->
+    DOCUMENT_NAME_SYNONYM_GROUPS에 등록된 동의어 그룹 매칭" 3단계로 확장.
+    RUBRIC_SYNONYMS/_rubric_covered와 동일 원칙(등록된 것끼리만 매칭, 짧은 어근 무분별
+    부분매칭 금지)을 그대로 적용. 매칭 실패 시 이유를 document_match_notes에 기록해
+    향후 동의어 테이블 보강에 쓸 수 있게 함. 동의어 그룹은 괄호 제거 정규화로 서로 다른
+    문서가 붕괴 충돌할 위험이 없는 4개(사업자등록증류/법인등기부등본류/중소기업확인서류/
+    부가가치과세표준증명류)만 안전하게 등록함(국세/지방세 납세증명서처럼 괄호 안 내용이
+    문서를 구분하는 유일한 단서인 경우는 등록하지 않음 — 의미 추측 금지 원칙).
+
 주의(아직 해결 안 됨 — 알려진 한계):
   - PDF/HWP 공고문 자동 파싱 없음 — 공고는 사람이 직접 읽고 scripts/*.json으로 구조화해야 함.
-  - documents_status의 document_name은 required_documents 문자열과 정확히 일치해야 매칭됨
-    (fuzzy match 없음) — 표기가 다르면 미준비로 집계됨.
+  - documents_status 매칭은 v0.5.2에서 fuzzy(정규화+동의어 테이블) 매칭으로 개선됐지만, 등록된
+    동의어 그룹에 없는 표현은 여전히 미준비로 집계된다 — 의미 기반(NLP) 매칭이 아니라 화이트리스트
+    기반이므로, 실제 서류는 있는데 표현이 등록 안 된 경우는 여전히 놓칠 수 있음(known limitation).
   - 예비창업자(사업자등록 자체가 없는 상태)/해외법인 국적 요건/겸업 조합 조건 등은 여전히
     스키마로 표현되지 않음 (eligibility._unmapped_requirements에 텍스트로만 기록).
   - 심사배점 커버리지 체크는 여전히 키워드 기반 휴리스틱이다 (의미 이해 아님).
@@ -634,9 +646,125 @@ def _normalize_documents_status(value):
     return flat
 
 
-# --- v0.4.0: 예산 정합성 체크 ---------------------------------------------
+# ---------------------------------------------------------------------------
+# v0.5.2: 문서명 fuzzy 매칭 (documents_status <-> 공고 required_documents)
+#   배경: documents_status의 document_name이 공고 required_documents 문자열과 정확히
+#   일치해야만 매칭되던 known limitation(주석 79행 참고). RUBRIC_SYNONYMS/_rubric_covered와
+#   동일한 원칙("동의어 테이블에 명시적으로 등록된 것끼리만 매칭, 짧은 어근의 무분별한
+#   부분매칭 금지 — v0.4.0에서 겪은 "창업"/"사업" 과다매칭 실수를 반복하지 않는다")을 그대로
+#   문서명 매칭에 적용한다.
+#
+#   매칭 순서:
+#     1) 원문 그대로 완전일치 (기존 동작, 최우선 보존)
+#     2) 정규화(공백/괄호 안 내용 제거) 후 완전일치 (예: "사업자 등록증"와 "사업자등록증"처럼
+#        순수 표기 차이만 있는 경우 — 의미 추측이 아니라 서식상 흔한 변형이므로 안전)
+#     3) DOCUMENT_NAME_SYNONYM_GROUPS에 등록된 동의어 그룹 매칭 (아래 그룹에 명시적으로
+#        등록된 변형 쌍끼리만 허용 — 그룹에 없는 표현은 매칭하지 않는다)
+#   매칭 실패 시 이유를 함께 남겨(향후 동의어 테이블 보강용) match_reason에 기록한다.
+# ---------------------------------------------------------------------------
+# 주의: 아래 그룹은 "정규화(공백+괄호 제거) 후 문자열"끼리 등록한다. 괄호 제거 정규화 특성상
+# "납세증명(국세)"/"납세증명(지방세)"처럼 괄호 안 내용이 서로 다른 문서를 구분하는 유일한 단서인
+# 경우 괄호를 지우면 둘 다 "납세증명"으로 붕괴해 서로 다른 문서가 같은 것으로 오매칭될 위험이
+# 있다 — 이런 경우는 그룹에 등록하지 않는다(국세/지방세 납세증명서, "사업신청서"~"사업계획서"처럼
+# 괄호 밖에서도 이미 이름이 다른 별개 문서로 볼 여지가 있는 쌍도 제외 — 의미 추측 금지 원칙).
+# 여기 등록된 4개는 괄호를 지워도 동일 문서를 가리킨다는 점이 공고 원문 표기 자체로 명확한
+# 경우만 남긴 것이다(예: 공고가 "중소기업확인서(소상공인확인서)"라고 병기해 이미 동일 취급).
+DOCUMENT_NAME_SYNONYM_GROUPS = [
+    {"사업자등록증", "사업자등록증사본", "사업자등록증명원", "사업자등록증명"},
+    {"중소기업확인서", "소상공인확인서"},
+    {"법인등기부등본", "법인등기사항전부증명서"},
+    {"부가가치과세표준증명", "부가가치세과세표준증명"},
+]
+
+
+def _normalize_whitespace(name):
+    """공백/줄바꿈만 제거. 괄호 안 내용은 건드리지 않는다 — 괄호가 문서를 구분하는
+    유일한 단서인 경우(예: 납세증명(국세) vs 납세증명(지방세))가 있어, 이 단계에서
+    괄호까지 지우면 서로 다른 문서가 같은 것으로 오매칭(충돌)될 위험이 있다. 순수
+    서식(공백) 차이만 흡수하는 안전한 정규화만 여기서 수행한다."""
+    if not name:
+        return ""
+    return re.sub(r"\s+", "", name)
+
+
+def _normalize_doc_name_for_synonym(name):
+    """동의어 그룹 조회 전용 정규화: 공백 제거 + 괄호(원문 안 내용) 제거.
+    괄호 제거는 여기(동의어 그룹 조회)에만 적용한다 — DOCUMENT_NAME_SYNONYM_GROUPS에
+    명시적으로 등록된 그룹 멤버십 조회에만 쓰이므로, 등록되지 않은 조합(예: 납세증명
+    국세/지방세)은 괄호를 지운 뒤에도 어느 그룹에도 속하지 않아 매칭되지 않는다
+    (화이트리스트로만 매칭한다는 원칙을 정규화 단계에서도 깨지 않기 위함)."""
+    if not name:
+        return ""
+    s = re.sub(r"[\(（][^)）]*[\)）]", "", name)  # (...), （...） 안 내용 제거
+    s = re.sub(r"[\[［][^\]］]*[\]］]", "", s)      # [...], ［...］ 안 내용 제거
+    s = re.sub(r"\s+", "", s)                        # 공백/줄바꿈 전부 제거
+    return s
+
+
+def _doc_synonym_group_id(normalized_name):
+    """normalized_name(괄호 제거 정규화된 이름)이 속한 DOCUMENT_NAME_SYNONYM_GROUPS의
+    인덱스, 없으면 None."""
+    for idx, group in enumerate(DOCUMENT_NAME_SYNONYM_GROUPS):
+        if normalized_name in group:
+            return idx
+    return None
+
+
+def match_document_status(required_name, documents_status):
+    """
+    required_name(공고 required_documents 문자열 1건)을 documents_status(사업자 쪽
+    {document_name: bool} flat map)에서 찾는다.
+    반환: (prepared: bool, match_type: str, matched_key: str|None, reason: str)
+      match_type: "exact" | "normalized" | "synonym" | "unmatched"
+
+    3단계 매칭이며, 괄호 제거는 3단계(synonym, 화이트리스트 그룹 조회)에만 적용한다.
+    2단계(normalized)는 공백만 제거하는 안전한 정규화만 수행한다 — 괄호 안 내용이
+    문서를 구분하는 유일한 단서인 경우(납세증명 국세/지방세 등)에 2단계에서 먼저
+    충돌 매칭되는 것을 막기 위함(단위테스트로 발견한 버그 수정, v0.5.2 2차 수정).
+    """
+    if required_name in documents_status:
+        return documents_status[required_name], "exact", required_name, "원문 완전일치"
+
+    ws_required = _normalize_whitespace(required_name)
+    for key, val in documents_status.items():
+        if _normalize_whitespace(key) == ws_required:
+            return val, "normalized", key, f"정규화(공백 제거) 후 완전일치: '{key}'"
+
+    syn_required = _normalize_doc_name_for_synonym(required_name)
+    required_group = _doc_synonym_group_id(syn_required)
+    if required_group is not None:
+        for key, val in documents_status.items():
+            if _doc_synonym_group_id(_normalize_doc_name_for_synonym(key)) == required_group:
+                return val, "synonym", key, f"동의어 테이블 매칭(그룹 {required_group}): '{key}'"
+
+    return (
+        False,
+        "unmatched",
+        None,
+        "매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 "
+        "(동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)",
+    )
+
+
+# --- v0.4.0 / v0.5.3: 예산 정합성 체크 (정부지원분/자기부담분 구분) -----------
+# v0.5.3: budget_detail 각 항목에 fund_source("government"|"self") 필드 추가.
+# 사용자 결정(2026-07-09): fund_source가 없는 항목(기존 데이터 전부 해당)은
+# "전부 정부지원분으로 간주"(A안)도 "전부 제외"(B안)도 하지 않는다. 대신:
+#   - 자동 판정(quality_gate/8인심사위원/감점전파)에는 그 항목들을 아예 반영하지
+#     않는다 — 즉 fund_source="government"로 "명시"된 항목의 합계만으로 한도초과
+#     여부를 판단한다 (B안과 동일한 게이트 동작 — 오탐 방지가 최우선).
+#   - 대신 미지정 항목이 있으면 그 사실 자체를 budget_breakdown.unresolved_note에
+#     "확인 필요" 안내문으로 별도로 노출한다. 이 note는 rejection_risks/budget_risks
+#     리스트에 넣지 않는다 — judge_panel "예산증빙" 심사위원과 deduction_map은
+#     budget_risks가 비어있는지만 보므로, note를 risks에 안 넣어야 fund_source
+#     미지정 상태 자체가 자동으로 감점 판정을 만들지 않는다(거짓 경고 방지).
+#     즉 이 note는 사람이 judge_review를 읽을 때만 보이는 "참고 정보"이며,
+#     자동 pass/fail 판정에는 전혀 영향을 주지 않는다 (deduction_map과 동일한
+#     "설명 전용, 점수에는 반영 안 함" 원칙을 따름).
 def _extract_budget_items(budget_detail):
-    """budget_detail(list 또는 phase 구조 dict)에서 {category, item, amount_krw} 평면 리스트 추출."""
+    """budget_detail(list 또는 phase 구조 dict)에서
+    {category, item, amount_krw, fund_source} 평면 리스트 추출.
+    fund_source: "government"(정부지원분) | "self"(자기부담분) | None(미지정, 기존 데이터 호환)."""
     items = []
     if isinstance(budget_detail, list):
         for b in budget_detail:
@@ -644,6 +772,7 @@ def _extract_budget_items(budget_detail):
                 "category": b.get("category"),
                 "item": b.get("item"),
                 "amount_krw": b.get("amount_krw"),
+                "fund_source": b.get("fund_source"),
             })
     elif isinstance(budget_detail, dict):
         for phase_key in sorted(k for k in budget_detail.keys() if k.startswith("phase_")):
@@ -655,6 +784,7 @@ def _extract_budget_items(budget_detail):
                     "category": it.get("category"),
                     "item": it.get("item"),
                     "amount_krw": it.get("amount_krw"),
+                    "fund_source": it.get("fund_source"),
                 })
     return items
 
@@ -667,26 +797,83 @@ def _budget_total(budget_detail, items=None):
     return sum(amounts) if amounts else None
 
 
+def _budget_source_breakdown(items):
+    """items(_extract_budget_items 결과)를 fund_source 기준으로 3분할해서 합계를 낸다.
+    반환: {"confirmed_government_krw", "confirmed_self_krw", "unresolved_krw", "unresolved_count"}
+    자동 판정에는 confirmed_government_krw만 쓴다 — unresolved는 게이트에 포함하지 않는다."""
+    gov = 0
+    self_amt = 0
+    unresolved = 0
+    unresolved_count = 0
+    for it in items:
+        amt = it.get("amount_krw")
+        if not isinstance(amt, (int, float)):
+            continue
+        src = it.get("fund_source")
+        if src == "government":
+            gov += amt
+        elif src == "self":
+            self_amt += amt
+        else:
+            unresolved += amt
+            unresolved_count += 1
+    return {
+        "confirmed_government_krw": gov,
+        "confirmed_self_krw": self_amt,
+        "unresolved_krw": unresolved,
+        "unresolved_count": unresolved_count,
+    }
+
+
 def check_budget_compatibility(budget_detail, budget_criteria):
     """
     사업자의 budget_detail과 공고 budget_criteria 간 정합성 점검.
-    1) 사업자 예산 총액이 공고 지원한도(max_grant_krw)를 초과하는지
+    1) fund_source="government"로 명시된 항목의 합계가 공고 지원한도(max_grant_krw)를
+       초과하는지 (v0.5.3부터: 총사업비가 아니라 "명시적으로 정부지원분으로 표시된 금액"만
+       비교 — fund_source 미지정 항목은 이 판정에서 제외, 대신 breakdown.unresolved_note로
+       별도 안내만 함)
     2) 사업자 예산 항목의 category가 공고의 excluded_categories(집행 불가 항목)에 해당하는지
-    반환: rejection_risks에 추가할 문자열 리스트.
+    반환: (risks: list[str], breakdown: dict|None) — breakdown은 judge_review에 총액/
+    정부지원분(확인)/자기부담분(확인)/미확인 항목 수와 안내문을 노출해서 사람이 어느
+    기준으로 판정됐는지, 그리고 무엇이 아직 확인 안 됐는지 볼 수 있게 함.
     """
     risks = []
     if not budget_detail or not budget_criteria:
-        return risks
+        return risks, None
 
     items = _extract_budget_items(budget_detail)
     total = _budget_total(budget_detail, items)
     max_grant = budget_criteria.get("max_grant_krw")
+    src = _budget_source_breakdown(items)
 
-    if total is not None and isinstance(max_grant, (int, float)) and total > max_grant:
+    breakdown = {
+        "total_krw": total,
+        "confirmed_government_krw": src["confirmed_government_krw"],
+        "confirmed_self_krw": src["confirmed_self_krw"],
+        "unresolved_krw": src["unresolved_krw"],
+        "unresolved_count": src["unresolved_count"],
+        "unresolved_note": None,
+    }
+
+    government_krw = src["confirmed_government_krw"]
+
+    if isinstance(max_grant, (int, float)) and government_krw > max_grant:
         risks.append(
-            f"사업자 자체 예산계획 총액({total:,}원)이 이 공고의 지원한도({max_grant:,}원)를 초과함 "
-            "-> 신청서에 이 지원금이 예산 전체를 커버하는 것처럼 기재되면 오해 소지 있음, "
-            "이 공고로 충당할 항목과 자기부담/타 재원으로 충당할 항목을 명확히 구분해서 기재 필요"
+            f"사업자 예산계획에서 fund_source='government'(정부지원분)로 명시된 항목 합계"
+            f"({government_krw:,}원)만으로도 이 공고의 지원한도({max_grant:,}원)를 초과함 "
+            f"-> 총사업비(전체 {total:,}원)가 아니라 정부지원분 단독 금액 기준으로도 초과이므로 "
+            "예산 재조정 또는 지원한도 재확인이 필요"
+        )
+    elif isinstance(max_grant, (int, float)) and src["unresolved_count"] > 0:
+        breakdown["unresolved_note"] = (
+            f"예산 항목 {src['unresolved_count']}건에 fund_source(정부지원분/자기부담분 구분)가 "
+            f"지정되지 않아 정부지원분 합계를 정확히 계산하지 못함(미구분 금액 "
+            f"{src['unresolved_krw']:,}원, 총사업비 {total:,}원 중 일부, 확인된 정부지원분 "
+            f"{government_krw:,}원/자기부담분 {src['confirmed_self_krw']:,}원). 총사업비가 지원한도"
+            f"({max_grant:,}원)를 넘더라도 자기부담분이 포함된 정상 구성일 수 있어 이 사실만으로 "
+            "자동으로 위험 처리하지 않음 -> 정부지원분 단독 금액이 지원한도 이내인지 사람이 "
+            "직접 확인 필요 (이 안내는 자동 판정(quality_gate/심사위원/감점전파)에 반영되지 않음, "
+            "참고 정보 전용)"
         )
 
     excluded_categories = budget_criteria.get("excluded_categories") or []
@@ -707,7 +894,7 @@ def check_budget_compatibility(budget_detail, budget_criteria):
                 + " -> 해당 항목은 이 공고 지원금으로 집행 불가하므로 신청서에서 제외하거나 "
                   "자기부담 재원으로 명시해야 함"
             )
-    return risks
+    return risks, breakdown
 
 
 def draft_application(profile, top_match):
@@ -796,11 +983,22 @@ def draft_application(profile, top_match):
         )
 
     # --- required_documents_checklist: documents_status(신/구 형태 모두)를 정규화해서 반영 ---
+    # v0.5.2: exact match뿐 아니라 정규화/동의어 테이블 기반 fuzzy match도 시도(match_document_status).
     documents_status = _normalize_documents_status(profile.get("documents_status"))
-    required_documents_checklist = [
-        {"document": d, "prepared": bool(documents_status.get(d, False))}
-        for d in a.get("required_documents", [])
-    ]
+    required_documents_checklist = []
+    document_match_notes = []
+    for d in a.get("required_documents", []):
+        prepared, match_type, matched_key, reason = match_document_status(d, documents_status)
+        required_documents_checklist.append({
+            "document": d,
+            "prepared": bool(prepared),
+            "match_type": match_type,
+            "matched_against": matched_key,
+        })
+        if match_type == "unmatched":
+            document_match_notes.append(f"'{d}': {reason}")
+        elif match_type in ("normalized", "synonym"):
+            document_match_notes.append(f"'{d}' -> '{matched_key}' ({reason})")
 
     draft = {
         "program_name": name,
@@ -820,6 +1018,7 @@ def draft_application(profile, top_match):
         "matched_scoring_rubric": rubric_str,
         "page_limit": a.get("submission_format", {}).get("page_limit"),
         "required_documents_checklist": required_documents_checklist,
+        "document_match_notes": document_match_notes,
     }
     return draft
 
@@ -973,13 +1172,22 @@ JUDGE_DEFINITIONS = [
         "key": "예산증빙",
         "name": "예산·증빙 심사위원",
         "key_question": "돈의 사용처와 산출물·견적이 연결되는가",
-        "rubric_keywords": ["예산", "자금"],
+        # "사업비"는 v0.5.4에서 추가 — 3번째 실제 공고(생활문화 혁신지원)의 심사배점 항목
+        # "사업비 비목별 집행계획"이 기존 "예산"/"자금" 키워드로는 매칭되지 않아 발견된
+        # 과소매칭. 추가 전 전체 공고(real_announcements.json/sample_announcements.json)
+        # scoring_rubric 텍스트를 스캔해 "사업비전"류 무관 단어에 우연히 포함되는 사례가
+        # 없음을 확인한 뒤 추가함(v0.4.0의 짧은 키워드 과다매칭 재발 방지 원칙 준수).
+        "rubric_keywords": ["예산", "자금", "사업비"],
     },
     {
         "key": "성과확장",
         "name": "성과·확장 심사위원",
         "key_question": "도입 성과를 측정할 수 있는가",
-        "rubric_keywords": ["성과", "확장", "고용", "사회적"],
+        # "기대효과"는 v0.5.4에서 추가 — 3번째 실제 공고의 심사배점 항목 "파급효과 - 사업수행
+        # 기대효과"가 기존 "성과"/"확장"/"고용"/"사회적" 키워드로는 매칭되지 않아 발견된
+        # 과소매칭(주의: "기대효과"는 "성과"를 부분포함하지 않는 별개 표현이라 "성과" 하나로는
+        # 못 잡음). 전체 공고 scoring_rubric 텍스트 스캔 후 무관 단어와의 충돌 없음을 확인.
+        "rubric_keywords": ["성과", "확장", "고용", "사회적", "기대효과"],
     },
     {
         "key": "발표QA",
@@ -1258,6 +1466,7 @@ def judge_mode_self_review(draft, top_match, profile):
                 "warning_count": 0,
             },
             "deduction_map": {"triggered_issues": [], "note": "매칭된 사업이 없어 감점 전파 분석 대상 자체가 없음"},
+            "budget_breakdown": None,
             "_unconfirmed_sections": [],
             "_unprepared_documents": [],
         }
@@ -1318,8 +1527,10 @@ def judge_mode_self_review(draft, top_match, profile):
     if top_match.get("disqualification_risks"):
         rejection_risks.append("결격 위험이 이미 감지되었음: " + "; ".join(top_match["disqualification_risks"]))
 
-    # v0.4.0: 예산 정합성 체크
-    budget_risks = check_budget_compatibility(profile.get("budget_detail"), a.get("budget_criteria", {}) or {})
+    # v0.4.0 / v0.5.3: 예산 정합성 체크 (정부지원분 vs 자기부담분 구분)
+    budget_risks, budget_breakdown = check_budget_compatibility(
+        profile.get("budget_detail"), a.get("budget_criteria", {}) or {}
+    )
     rejection_risks.extend(budget_risks)
 
     # v0.5.0: PSST 자동검수 -> 8인 가상 심사위원 -> 감점 전파 모델 (이 순서로 서로 입력이 됨)
@@ -1353,6 +1564,7 @@ def judge_mode_self_review(draft, top_match, profile):
         "psst_review": psst_review,
         "judge_panel_review": judge_panel_review,
         "deduction_map": deduction_map,
+        "budget_breakdown": budget_breakdown,
         "_unconfirmed_sections": unconfirmed_sections,
         "_unprepared_documents": unprepared,
     }

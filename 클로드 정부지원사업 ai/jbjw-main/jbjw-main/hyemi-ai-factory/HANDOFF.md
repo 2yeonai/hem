@@ -1,6 +1,122 @@
-# HANDOFF.md — 세션 인계문 (최신: 2026-07-04, 앱 전체 파이프라인(0~16단계) 자동화 완료)
+# HANDOFF.md — 세션 인계문 (최신: 2026-07-08, gov-support-skill 연동 어댑터 추가)
 
 새 세션은 CLAUDE.md → 이 파일 → 06_locks/LOCK_STATUS.md 순으로 읽는다.
+
+## gov-support-skill 연동: govskill_adapter.py (2026-07-08 세션)
+
+목적: 이 앱(jbjw/hyemi-ai-factory)의 데이터를 gov-support-matching-skill의
+`review_application(business_profile, announcement, ref_date)` 판정 로직
+(위험표현사전/PSST/8인 가상 심사위원/감점 전파 모델)에 통과시켜, 이 앱 자체의
+규칙 기반 판정 위에 그 4개 서브시스템 결과를 추가로 얻을 수 있게 함.
+
+**원칙**: `engines.py`/`draft_engine.py`/`present_engine.py`/`app.py`/`run_factory.py`
+등 기존 판정 로직·화면·파이프라인은 전혀 건드리지 않았다. 새 파일 1개
+(`08_factory_tools/govskill_adapter.py`)만 추가 — 데이터 형태 변환(번역)만
+한다. gov-support-skill 쪽 로직도 재작성하지 않고 그대로 재사용한다.
+
+### 1. 확정 아이디어 판정 기준
+
+`data["selected_idea_id"]`(문자열, ideas[] 중 하나의 id) + `data["approvals"]["idea_selected"]`
+(boolean)가 둘 다 있어야 확정으로 인정 — `input_schema.json`에 이미 공식
+문서화된 필드이며, `engines.lock_engine()`/`draft_engine.pick_idea()`가
+이미 쓰는 것과 동일 기준(새로 지어낸 규칙 아님). 확정 안 됐으면 어댑터는
+아무것도 호출하지 않고 `PENDING_APPROVAL`로 멈춘다.
+
+### 2. eligibility_keyword_safety_check() — 이번 세션 추가
+
+문제: notice의 자격/제외조건이 자유서술이라 gov-support-skill의 구조화된
+eligibility 필드로 옮길 수 없어 빈 채로 전달했었다. 그 결과 gov-support-skill
+쪽에서 정량 자격기준 체크(criteria)가 통째로 비어(`[]`) `_score_criteria([])`가
+기계적으로 1.0(만점)을 반환 — "확인해서 통과"가 아니라 "검사 자체가 없어서
+만점"인데 겉보기엔 구분이 안 되는 문제가 있었다.
+
+해결(완벽한 파싱이 아니라 안전장치): notice.eligibility + notice.exclusions +
+notice.raw_text를 합친 텍스트에서 핵심 키워드 4종("업력","매출","지역","체납")이
+최소 한 번이라도 언급됐는지만 확인(단순 부분 문자열 포함 여부, 자연어 이해 아님).
+하나라도 없으면 "확인 필요"로 명시 경고. **gov-support-skill의 base confidence
+계산 로직 자체는 전혀 바꾸지 않았다** — 경고는 어댑터 쪽 `translation_notes`와
+새 반환 필드 `eligibility_safety_check`에만 기록됨.
+
+검증: sample-demo 데이터로 실행 시 실제로 "매출","지역" 키워드가 원문에 없어
+`all_found: false`, "확인 필요" 경고가 정상적으로 뜨는 것을 확인함(base
+confidence는 여전히 1.0으로 계산되지만 경고가 붙어 있음).
+
+### 3. required_documents 매핑 안 하기로 한 결정 (이유 포함)
+
+`input_schema.json` 전체를 다시 훑었지만 "서류 준비 상태"를 나타내는 필드는
+uploads/attachments/documents_status 등 어떤 이름으로도 존재하지 않는다.
+가장 가까운 것은 `evidence.owned`/`evidence.planned`인데, 이는 "증빙 자료가
+실물로 있는지"의 범용 리스트이지 공고별 `required_documents` 항목 이름과
+1:1 대응하는 체크리스트가 아니다(예: "사업자등록증"은 있어도 "국세 납세증명서"
+같은 공고 고유 서류명과 이름이 맞는다는 보장이 없음 — 억지로 매칭하면 이름
+유사도 추측이 되어 새로운 판정 로직을 만드는 셈이 됨, 스코프 밖).
+
+**결정**: 매핑하지 않는다. `required_documents`는 빈 리스트로 두고, 그 결과
+gov-support-skill의 PSST-Support 판정과 서류 체크리스트가 항상 "0건 준비"로
+나온다는 사실을 `translation_notes`에 명확히 남긴다 — 이건 실제 미준비를
+뜻하는 게 아니라 "이 데이터가 아예 없다"는 뜻이며, 사람이 직접 서류 준비
+상태를 확인해야 한다.
+
+### 4. 보류 결정 (심각도 낮음, 손대지 않음)
+
+- **founded_date 근사**: applicant에 `biz_years`(연차 숫자)만 있고 개업일이
+  없어 오늘 날짜에서 biz_years년을 빼 근사 계산한다 — 일/월 단위 오차 가능.
+- **budget_detail.category 없음**: `budget_plan` 항목에 category 필드가
+  없어(item/purpose 텍스트만 있음) gov-support-skill의
+  `excluded_categories`(집행 불가 항목) 매칭이 항상 통과로 나온다. 단,
+  이 위험 자체는 이 앱의 `engines.budget_risk_checker`가 이미 별도
+  키워드 매칭(인건비/임차 등)으로 잡고 있어 완전히 놓치는 건 아니다.
+
+### 5. 테스트 결과 (전부 기존과 동일 — 회귀 없음)
+
+- 이 앱(jbjw) `08_factory_tools/test_engines.py`: **77/77 통과**
+  (참고: 사용자가 이전에 "57개"로 알고 있었으나 실제 파일 기준 77개가 맞음)
+- gov-support-matching-skill 회귀 5개 커맨드 전부 기존 기록값과 동일하게 통과:
+  `sample_input_ideal.json`→READY_FOR_APPROVAL/1.0,
+  `sample_input.json`→DRAFT/0.85, `sample_input_edge.json`→DRAFT/0.68,
+  `real_program_input.json`→DRAFT/0.0(매칭 0건),
+  `real_program_input_simulated.json`(2026-03-15 시뮬레이션)→DRAFT/0.35
+- 둘 다 기존 코드를 전혀 안 건드렸으니 당연한 결과지만, 매번 실제로 재실행해서
+  확인했음(추측으로 "통과"라고 보고하지 않음).
+
+### 6. git 백업 상태 (중요 — 다음 세션 필독)
+
+이 작업은 GitHub `2yeonai/jbjw` 저장소의 zip을 압축 해제한 폴더
+(`클로드 정부지원사업 ai/jbjw-main/jbjw-main/`, `.git` 없음)에서 진행됐다.
+이 세션 후반에 아래 방식으로 git 이력을 만들어 백업했다:
+
+1. 이 샌드박스에서 `git clone`/`curl`/codeload.github.com zip 다운로드가
+   전부 프록시 403으로 막혀 있어(네트워크 인프라 제약, 우회 시도 안 함),
+   GitHub의 `git/trees` API로 `main` 브랜치의 파일 트리(blob SHA 140개)만
+   가져왔다.
+2. 로컬 zip 압축해제 폴더의 모든 파일에 대해 `git hash-object`로 blob 해시를
+   계산해서 GitHub 트리의 SHA와 전부 대조 — **140/140 파일이 정확히 일치**,
+   불일치 0건, 누락 0건. 유일한 차이는 `govskill_adapter.py` 1개 파일 추가뿐
+   (이번 세션에 만든 파일이라 GitHub엔 당연히 없음). 압축 해제 과정에서 생긴
+   인코딩 깨짐이나 의도치 않은 변경은 없었다는 뜻.
+3. 이 검증을 바탕으로 로컬에 새 git 저장소를 만들어 baseline 커밋(GitHub main과
+   동일 내용, 단 실제 커밋 이력은 없음 — 트리 내용만 검증된 스냅샷) 후,
+   `govskill_adapter.py`를 추가하는 두 번째 커밋을 만들었다.
+
+**주의**: 이건 진짜 `git clone`이 아니다 — 실제 GitHub 커밋 히스토리(17개
+커밋)는 가져오지 못했고, "현재 main 브랜치 내용과 트리가 일치함"만 암호학적으로
+검증했다.
+
+**백업 파일**: 이 폴더(`jbjw-main/jbjw-main/`, 즉 이 저장소의 실제 루트) 바로
+아래에 `jbjw_backup.bundle`을 만들어뒀다 — 3개 커밋(baseline 스냅샷 →
+govskill_adapter.py 추가 → 이 HANDOFF.md 갱신) 전체가 들어있는 git bundle
+파일이며 임시 샌드박스가 아니라 사용자 로컬 폴더에 저장돼 세션이 끝나도
+남는다. 복원 방법(gov-support-matching-skill.bundle과 동일한 패턴):
+```bash
+git clone jbjw_backup.bundle my-jbjw-restore   # 새로 복원
+# 또는 기존 클론이 있으면: git pull jbjw_backup.bundle master
+```
+실제 GitHub(`2yeonai/jbjw`)에 반영하려면, 프록시 제약이 없는 환경(사용자의
+실제 PC 등)에서 `git clone https://github.com/2yeonai/jbjw`로 진짜 클론을
+받은 뒤, 그 클론 안에서 `git pull jbjw_backup.bundle master` (또는 그냥
+`govskill_adapter.py` 파일과 이 HANDOFF.md 갱신분만 복사)해서 반영하고
+`git push`하면 된다.
+
 
 ## 현재 상태 한 줄 요약
 

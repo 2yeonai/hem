@@ -34,3 +34,7 @@
 
 ---
 *버전: 0.1 · 마지막 수정: (날짜) · 다음 리뷰 트리거: (revision_trigger 참고)*
+
+## 관련 문서
+
+- [[클로드 ai 자동화/company_charter|company_charter]]

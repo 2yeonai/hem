@@ -43,3 +43,8 @@
 3. **tier 어휘 변환이 검증된 매핑이 아니다.** low_cost→haiku, mid→sonnet, high→opus로 옮겼지만, 이게 실제로 맞는 대응인지는 확인되지 않았다(ASSUMPTION). 특히 mid 단계 3개(자격점검/매칭/초안작성)를 전부 sonnet으로 뭉뚱그린 게 맞는지는 재검토가 필요하다.
 
 이 3가지는 스키마나 코드 어느 한쪽을 임의로 늘려서 억지로 봉합하지 않고 그대로 열어뒀습니다. 확인해서 알려주시면 반영하겠습니다.
+
+## 관련 문서
+
+- [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
+- [[클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업)]]
