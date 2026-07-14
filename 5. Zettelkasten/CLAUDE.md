@@ -194,3 +194,5 @@ tags: [policy, zettelkasten]
 ## Hub 파일 (TODO — 아직 미생성)
 
 `00_ZK_Hub.md` 사용법: `0. Docs/Hub-운영-가이드.md` 참고 — **단, 이 가이드 문서와 Hub 파일 둘 다 아직 만들어지지 않았습니다.** 노트가 늘어 전체 그래프/허브 뷰가 실제로 필요해지면 `0. Docs/CLAUDE.md`의 TODO 목록을 보고 만들 것.
+
+<!-- ok -->

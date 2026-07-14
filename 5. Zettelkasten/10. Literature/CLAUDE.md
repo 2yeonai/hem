@@ -148,3 +148,5 @@ SORT count(rows) DESC
 
 ### 월간 (매월 첫 주)
 * [ ] Literature → Permanent 후보 확인 (14일+ 경과)
+
+<!-- ok -->

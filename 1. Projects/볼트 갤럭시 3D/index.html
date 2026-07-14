@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vault Galaxy — 볼트 은하</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene"></canvas>
+    <div id="css2d-layer"></div>
+
+    <div id="hud" class="ui-layer">
+      <div id="crosshair">
+        <div class="ch-dot"></div>
+        <div class="ch-line ch-h"></div>
+        <div class="ch-line ch-v"></div>
+      </div>
+
+      <div id="hud-top-left">
+        <div id="fps-hint">비행 중 — WASD 이동 · 마우스로 방향 · R/F 상승·하강 · Space 하이퍼드라이브 · V 노트 다이브 · Z 젠 모드</div>
+      </div>
+
+      <div id="panel-controls" class="glass-panel">
+        <div class="panel-row">
+          <label>테마</label>
+          <select id="theme-select">
+            <option value="deepspace">딥 스페이스</option>
+            <option value="nebula">네뷸라</option>
+          </select>
+        </div>
+        <div class="panel-row">
+          <label>속도 <span id="speed-value"></span></label>
+          <input id="speed-slider" type="range" min="0.05" max="1" step="0.01" value="0.25" />
+        </div>
+        <div class="panel-row">
+          <label>퍼짐 정도 <span id="spacing-value"></span></label>
+          <input id="spacing-slider" type="range" min="20" max="220" step="1" value="90" />
+        </div>
+        <div class="panel-row toggles">
+          <label class="toggle"><input type="checkbox" id="toggle-hubs" checked /> 허브 노드 표시</label>
+          <label class="toggle"><input type="checkbox" id="toggle-attachments" /> 첨부파일 표시</label>
+        </div>
+        <div class="panel-row hint">클릭하면 마우스가 잠깁니다 · Esc: 패널 닫기 / 다이브 복귀</div>
+      </div>
+
+      <div id="node-label" class="node-label hidden"></div>
+
+      <div id="note-panel" class="glass-panel hidden">
+        <button id="note-panel-close">×</button>
+        <div id="note-panel-title"></div>
+        <div id="note-panel-meta"></div>
+        <div id="note-panel-body"></div>
+      </div>
+
+      <div id="loading" class="glass-panel">볼트 그래프를 불러오는 중…</div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

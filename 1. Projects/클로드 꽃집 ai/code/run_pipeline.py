@@ -1,0 +1,303 @@
+"""
+run_pipeline.py — 꽃집(온천꽃식물원) 14 stage 파이프라인 실행기
+
+12봇_kind분류표.yaml의 stages/depends_on을 읽어 실행 순서를 위상정렬(topological sort)로
+계산한다(stop_rule 1: "12봇 순서를 코드에 하드코딩 금지" — 순서는 yaml의 depends_on에서
+나온 것이지, 이 파일에 별도로 적어둔 리스트가 아니다).
+
+order_split_bot이 만든 order_segments 배열은 fan-out(병렬)이 아니라 순차 loop로 처리한다
+(order_split_bot.fan_out_resolution, 2026-07-07 사용자 결정 그대로) — correction_bot부터
+sms_ledger_bot까지를 segment 개수만큼 반복 호출한다. 지금 규칙기반 order_split_bot은
+"경계 확정"이 아니라 "여러 건일 가능성 감지"만 하므로(known limitation), order_segments는
+현재 항상 원소 1개짜리 배열이다 — 실제 LLM이 붙으면 여러 개로 늘어날 수 있고, 그때도
+이 실행기의 loop 구조는 그대로 재사용 가능하다.
+
+kind별 처리 방식:
+  - kind: local        → code/<stage_id>.py의 실제 함수를 호출한다(진짜 로직).
+  - kind: model 중 이미 구현된 것(order_classification_bot, order_split_bot)
+                        → 규칙기반 임시 구현을 실제로 호출한다(각 파일 docstring에
+                          known limitation이 이미 명시돼 있음).
+  - kind: model 중 미구현(correction_bot, order_draft_bot, ribbon_price_bot,
+    review_manager_bot) → "여기서 실제 LLM 호출 자리"라는 로그만 남기고, 값을 임의로
+    지어내지 않는다(프로젝트 원칙: 불확실한 값 임의 채우기 금지 — None/원문 그대로
+    pass-through).
+  - kind: human (human_reviewer) → "여기서 사람 승인 대기"라는 로그를 남기고, 파이프라인
+    전체가 끝까지 도는 것을 증명하려는 데모 목적으로만 자동 통과시킨다(실제 사람 승인이
+    아니라는 것을 로그에 명시).
+
+실행: python3 run_pipeline.py            # golden_set.yaml 기반 데모 6건 실행
+"""
+
+import sys
+from pathlib import Path
+
+import yaml
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+import collection_bot
+import transcription_bot
+import order_classification_bot as ocb
+import order_split_bot as osb
+import storage_bot
+import print_prep_bot
+import dispatch_bot
+import delivery_photo_bot
+import sms_ledger_bot
+
+KIND_TABLE_PATH = Path(__file__).parent.parent / "12봇_kind분류표.yaml"
+GOLDEN_SET_PATH = Path(__file__).parent.parent / "golden_set.yaml"
+
+# order_classification이 이 값 중 하나면 파이프라인을 여기서 종료한다
+# (12봇_kind분류표.yaml의 order_classification_bot.stop_condition 그대로)
+STOP_CLASSIFICATIONS = {"단순문의", "일반통화", "스팸무관"}
+
+
+def load_stage_order():
+    """12봇_kind분류표.yaml의 depends_on 그래프를 위상정렬해서 stage id 순서를 만든다."""
+    with open(KIND_TABLE_PATH, encoding="utf-8") as f:
+        table = yaml.safe_load(f)
+    stages = {s["id"]: s for s in table["stages"]}
+
+    order = []
+    visiting = set()
+
+    def visit(sid):
+        if sid in order or sid in visiting:
+            return
+        visiting.add(sid)
+        for dep in stages[sid].get("depends_on", []):
+            visit(dep)
+        visiting.discard(sid)
+        order.append(sid)
+
+    for sid in stages:
+        visit(sid)
+
+    return order, stages
+
+
+def _mock_model_stage(emit, stage_id, note):
+    emit("  [MOCK-model] " + stage_id + " -> 여기서 실제 LLM 호출 자리(" + note + "). "
+         "값을 임의로 채우지 않고 원문 그대로 pass-through.")
+
+
+def _mock_human_stage(emit, stage_id):
+    emit("  [MOCK-human] " + stage_id + " -> 여기서 사람 승인 대기. "
+         "데모 목적으로만 자동 '검수저장' 처리(실제 사람 승인 아님 - 알려진 한계).")
+
+
+def run_case(case, db_path, verbose=True):
+    """
+    case = {"label":..., "source_type":..., "raw_text"/"raw_audio"/"raw_image":...}
+    반환: {"stopped_at": stage_id 또는 None, "orders": [storage_bot 저장 레코드,...], "log":[...]}
+    """
+    log = []
+
+    def emit(msg):
+        log.append(msg)
+        if verbose:
+            print(msg)
+
+    emit("=== case: " + case.get("label", "?") + " ===")
+
+    ctx = collection_bot.collect(
+        source_type=case["source_type"],
+        raw_text=case.get("raw_text"),
+        raw_image=case.get("raw_image"),
+        raw_audio=case.get("raw_audio"),
+    )
+    emit("[collection_bot] source_type=" + ctx["source_type"])
+
+    tr = transcription_bot.transcribe(
+        raw_audio=ctx["raw_audio"], raw_image=ctx["raw_image"], raw_text=ctx["raw_text"]
+    )
+    ctx.update(tr)
+    text_for_classification = tr["stt_text"] or tr["ocr_text"] or ctx["raw_text"] or ""
+    emit("[transcription_bot] cleaned_text 길이=" + str(len(tr["cleaned_text"] or "")))
+
+    cls = ocb.classify_order(text_for_classification)
+    ctx["order_classification"] = cls["order_classification"]
+    emit("[order_classification_bot] " + cls["order_classification"] + " (conf=" + str(cls["confidence"]) + ")")
+
+    if cls["order_classification"] in STOP_CLASSIFICATIONS:
+        emit(
+            "[stop_condition] '" + cls["order_classification"]
+            + "'이므로 파이프라인 종료(yaml stop_condition 그대로 - 다음 stage로 안 넘어감)"
+        )
+        return {"stopped_at": "order_classification_bot", "orders": [], "log": log}
+
+    split = osb.split_order(text_for_classification)
+    ctx["order_segments"] = split["order_segments"]
+    ctx["split_status"] = split["split_status"]
+    ctx["bundle_id"] = split["bundle_id"]
+    emit(
+        "[order_split_bot] split_status=" + split["split_status"]
+        + ", segment 수=" + str(len(split["order_segments"]))
+        + " (규칙기반 버전은 '경계 확정'이 아니라 '가능성 감지'까지만 함 - 알려진 한계)"
+    )
+
+    saved_orders = []
+    for seg in split["order_segments"]:
+        bundle_seq = seg["bundle_sequence"]
+        emit(
+            "--- segment " + str(bundle_seq["index"]) + "/" + str(bundle_seq["total"])
+            + " 순차 처리 시작 (fan-out 아님, 순차 loop - 2026-07-07 결정) ---"
+        )
+
+        _mock_model_stage(emit, "correction_bot", "구어체/오인식 문맥 보정")
+        normalized_text = seg["segment_text"]  # mock: 실제 보정 없음, 원문 그대로 pass-through
+
+        _mock_model_stage(emit, "order_draft_bot", "normalized_text에서 정형 필드 구조화")
+        order_draft = None  # model 미구현 - 임의로 채우지 않음
+
+        _mock_model_stage(emit, "ribbon_price_bot", "리본 문구/상품/금액 정규화")
+        # model 미구현 - order_draft가 없으니 리본/금액도 임의로 채우지 않음
+
+        _mock_model_stage(emit, "review_manager_bot", "자동확정/사람에스컬레이션 분기 판단")
+
+        _mock_human_stage(emit, "human_reviewer")
+        confirmed_fields = order_draft or {"normalized_text": normalized_text}
+        manual_edits = {}
+        approval_action = "검수저장"
+
+        record = storage_bot.save_order(
+            confirmed_fields=confirmed_fields,
+            manual_edits=manual_edits,
+            approval_action=approval_action,
+            bundle_id=seg["bundle_id"],
+            bundle_sequence=seg["bundle_sequence"],
+            db_path=db_path,
+        )
+        emit(
+            "[storage_bot] order_id=" + record["order_id"]
+            + " 저장됨 (확인_필요_필드=" + str(record["확인_필요_필드"]) + ")"
+        )
+
+        printed = print_prep_bot.prepare_print(record)
+        emit("[print_prep_bot] order_print/ribbon_print/delivery_memo/driver_summary 생성됨")
+
+        dispatched = dispatch_bot.dispatch(record, printed["driver_summary"], printed["delivery_memo"])
+        emit("[dispatch_bot] dispatch_id=" + dispatched["dispatch_record"]["dispatch_id"])
+
+        photo = delivery_photo_bot.capture_delivery_photo(dispatched["dispatch_record"], photo_uri=None)
+        emit("[delivery_photo_bot] photo_status=" + photo["photo_status"])
+
+        ledger = sms_ledger_bot.send_and_ledger(
+            order=record,
+            delivery_photo=photo["delivery_photo"],
+            photo_status=photo["photo_status"],
+            bundle_id=seg["bundle_id"],
+            bundle_sequence=seg["bundle_sequence"],
+            db_path=db_path,
+        )
+        emit(
+            "[sms_ledger_bot] message_result=" + ledger["message_result"]["status"]
+            + ", bundle_status=" + ledger["bundle_status"]
+        )
+
+        saved_orders.append(record)
+        emit("--- segment " + str(bundle_seq["index"]) + "/" + str(bundle_seq["total"]) + " 완료 ---")
+
+    return {"stopped_at": None, "orders": saved_orders, "log": log}
+
+
+def main():
+    stage_order, stages = load_stage_order()
+    print("파이프라인 실행 순서(위상정렬, 총 " + str(len(stage_order)) + " stage): " + " -> ".join(stage_order))
+    kinds = {}
+    for sid in stage_order:
+        kinds.setdefault(stages[sid]["kind"], []).append(sid)
+    print(
+        "kind별: local=" + str(len(kinds.get("local", [])))
+        + " model=" + str(len(kinds.get("model", [])))
+        + " human=" + str(len(kinds.get("human", [])))
+    )
+    print("")
+
+    with open(GOLDEN_SET_PATH, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    entries = {e["id"]: e for e in data["golden_set"]}
+
+    # golden_set 6건 = 아래 5개 케이스. 005/006은 같은 source_call_id(call_007)를 공유하는
+    # 하나의 원문이라, test_order_classification_bot.py/test_order_split_bot.py와 동일한
+    # 관례로 "call_007 케이스 1건"으로 합쳐서 실행한다(중복 실행 아님 - 같은 원문이라서).
+    cases = [
+        {"label": "001 SMS 주문(백승흔/박혜미 난 10만원)", "source_type": "sms",
+         "raw_text": entries["001"]["raw_variants"][0]["text"]},
+        {"label": "002 안부 전화(non-order)", "source_type": "call",
+         "raw_text": entries["002"]["raw_text_excerpt"]},
+        {"label": "003 꽃 심으러 감(non-order, 키워드 함정)", "source_type": "call",
+         "raw_text": entries["003"]["raw_text_excerpt"]},
+        {"label": "004 행사 일정 문의(non-order)", "source_type": "call",
+         "raw_text": entries["004"]["raw_text_excerpt"]},
+        {"label": "005/006 call_007(부곡면장/북면장 승진축하 통화)", "source_type": "call",
+         "raw_text": entries["005"]["raw_text_full_call"]},
+    ]
+
+    db_path = Path(__file__).parent / "run_pipeline_demo.json"
+    if db_path.exists():
+        try:
+            db_path.unlink()
+        except PermissionError:
+            storage_bot._save(db_path, {"orders": {}, "workflow_events": []})
+
+    results = []
+    for case in cases:
+        r = run_case(case, db_path=db_path)
+        results.append((case["label"], r))
+        print("")
+
+    print("=" * 70)
+    print("실행 요약 (golden_set 6건 = 5 케이스 실행 - 005/006은 같은 call_007 원문 공유)")
+    for label, r in results:
+        if r["stopped_at"]:
+            print("- " + label + ": stop_condition에서 종료(" + r["stopped_at"] + ") -> 저장 없음(정상 동작)")
+        else:
+            print("- " + label + ": 끝까지 진행, 저장된 order 수=" + str(len(r["orders"])))
+
+    all_ok = True
+    # 최소한의 스모크 검증: order_status=order인 001/005/006류는 끝까지 갔는지,
+    # non_order인 002/004는 stop_condition에서 멈췄는지 확인.
+    # 003("꽃 심으러 가야 되는데...")은 test_order_classification_bot.py의
+    # KNOWN_LIMITATIONS과 동일한 케이스 - 규칙기반 판정봇은 문맥을 못 읽어
+    # "주문가능성있음"으로 오판정하고 그대로 끝까지 진행한다. 이건 이 실행기의
+    # 버그가 아니라 order_classification_bot.py 자체에 이미 문서화된 알려진
+    # 한계이므로, 예상 못한 실패(all_ok=False)가 아니라 "알려진 한계"로 별도 표시한다.
+    expectations = {
+        "001 SMS 주문(백승흔/박혜미 난 10만원)": "완료",
+        "002 안부 전화(non-order)": "중단",
+        "003 꽃 심으러 감(non-order, 키워드 함정)": "중단",
+        "004 행사 일정 문의(non-order)": "중단",
+        "005/006 call_007(부곡면장/북면장 승진축하 통화)": "완료",
+    }
+    known_limitation_labels = {"003 꽃 심으러 감(non-order, 키워드 함정)"}
+    for label, r in results:
+        actual = "중단" if r["stopped_at"] else "완료"
+        expected = expectations[label]
+        if actual != expected:
+            if label in known_limitation_labels:
+                print(
+                    "[KNOWN LIMITATION] " + label + ": 기대=" + expected + " 실제=" + actual
+                    + " (order_classification_bot 규칙기반 버전이 문맥을 못 읽어 생기는 예견된 실패"
+                    + " - test_order_classification_bot.py에도 동일하게 명시됨, LLM 붙이기 전까지 알려진 한계)"
+                )
+            else:
+                all_ok = False
+                print("[FAIL] " + label + ": 기대=" + expected + " 실제=" + actual)
+
+    print("")
+    print("전체 파이프라인 스모크 테스트: " + ("PASS" if all_ok else "FAIL") + " (알려진 한계 1건 제외)")
+
+    if db_path.exists():
+        try:
+            db_path.unlink()
+        except PermissionError:
+            storage_bot._save(db_path, {"orders": {}, "workflow_events": []})
+
+    return all_ok
+
+
+if __name__ == "__main__":
+    ok = main()
+    sys.exit(0 if ok else 1)

@@ -20,3 +20,5 @@ ingest(local) → summarize(model) → structure(model, 덱스펙+layout_type필
   구조적 실패로 반려(structure/draft-slides로)
 - "코드가 결정적 수행 가능+판단여지가 스펙으로 소거됐는가"가 local/model 분류 기준
 
+
+<!-- ok -->

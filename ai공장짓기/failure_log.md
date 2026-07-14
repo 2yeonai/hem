@@ -38,7 +38,7 @@ created: 2026-07-12
   fix: "ai공장짓기/runner/adapters/pest_adapter.py에서 run_방문알림봇 출력을 manifest 계약(object)대로 감싸는 래퍼 추가 — 방역 폴더는 수정 안 함(원칙)"
   remaining: "방역 폴더 다음 작업 때 근본 통일: 방역 run.py의 run_방문알림봇이 object를 쓰게 고치거나(권장), manifest 선언을 string으로 바꾸거나 둘 중 하나. 통일 후 어댑터 래퍼 제거"
   fixable_by: sonnet
-  files: ["클로드 방역 ai/manifest.yaml", "클로드 방역 ai/scripts/run.py", "ai공장짓기/runner/adapters/pest_adapter.py"]
+  files: ["1. Projects/클로드 방역 ai/manifest.yaml", "1. Projects/클로드 방역 ai/scripts/run.py", "ai공장짓기/runner/adapters/pest_adapter.py"]
 
 - id: err-2026-07-12-02
   status: fixed
@@ -64,11 +64,11 @@ created: 2026-07-12
   status: open
   symptom: "방역 manifest 정적검증 WARN 11건: (1) model stage 6개의 tier가 'sonnet'/'haiku' 등 모델명 — 플랫폼 규범(설계노트 1-2)은 티어명(low_cost/mid/high)만 허용, Fable 금지. 러너는 하위호환으로 해석해주지만 표기 통일 권장 (2) 방문알림봇·문서생성봇·리마인더봇의 교차 경로 읽기 5건 — entry_points/run_if 경로라 실제 문제 아님, 참고용"
   cause: "방역 manifest가 공통 스펙 확정(2026-07-08)보다 먼저(2026-07-07) 작성됨"
-  reproduce: "python3 ai공장짓기/runner/runner.py '클로드 방역 ai/manifest.yaml' --validate-only"
+  reproduce: "python3 ai공장짓기/runner/runner.py '1. Projects/클로드 방역 ai/manifest.yaml' --validate-only"
   fix: "(아직 안 함 — 방역 폴더 수정 금지 원칙, 설계노트 8번 순서상 '방역: 공통규칙만 반영' 단계에서 tier 표기만 티어명으로 일괄 치환하면 됨)"
   remaining: "방역 manifest tier 6곳 표기 치환 (sonnet→mid, haiku→low_cost). 구조 변경 아님"
   fixable_by: haiku
-  files: ["클로드 방역 ai/manifest.yaml"]
+  files: ["1. Projects/클로드 방역 ai/manifest.yaml"]
 ```
 
 ## 이번 세션에서 오류가 **안 난** 것 (예방책이 작동한 기록)
@@ -81,5 +81,7 @@ created: 2026-07-12
 - [[ai공장짓기/HANDOFF|HANDOFF]]
 - [[ai공장짓기/runner/README|범용 러너 사용법]]
 - [[2. Areas/Claude 세션로그/2026-07-12|2026-07-12]]
-- [[클로드 방역 ai/실행방법|실행방법]]
+- [[1. Projects/클로드 방역 ai/실행방법|실행방법]]
 - [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
+
+<!-- ok -->

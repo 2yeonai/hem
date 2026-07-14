@@ -112,9 +112,12 @@ You are operating autonomously. For reversible actions that follow from the orig
 
 ## 관련 문서
 
+- [[0. Docs/외부트렌드자료_평가_2026-07-13|외부트렌드자료_평가_2026-07-13]]
 - [[ai공장짓기/감사_로드맵_2026-07-09|감사_로드맵_2026-07-09]]
 - [[1. Projects/완전자동화_실행계획|완전자동화_실행계획]]
 - [[ai공장짓기/AI모델정책_전체버전|AI모델정책_전체버전]]
 - [[0. Docs/혜미_클로드_사용설명서|혜미_클로드_사용설명서]]
 - [[ai공장짓기/decision-log_skill-factory-architecture|decision-log_skill-factory-architecture]]
 - [[ai공장짓기/failure_log|failure_log]]
+
+<!-- ok -->

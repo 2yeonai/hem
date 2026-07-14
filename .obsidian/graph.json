@@ -2,21 +2,50 @@
   "collapse-filter": false,
   "search": "",
   "showTags": false,
-  "showAttachments": false,
-  "hideUnresolved": false,
+  "showAttachments": true,
+  "hideUnresolved": true,
   "showOrphans": true,
-  "collapse-color-groups": true,
-  "colorGroups": [],
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:\"3. Resources/정부지원사업_자료\"",
+      "color": {
+        "a": 1,
+        "rgb": 8246268
+      }
+    },
+    {
+      "query": "path:\"3. Resources/정부지원사업_자료/_원문\"",
+      "color": {
+        "a": 1,
+        "rgb": 3462041
+      }
+    },
+    {
+      "query": "path:\"ai공장짓기\"",
+      "color": {
+        "a": 1,
+        "rgb": 16498468
+      }
+    },
+    {
+      "query": "path:\"1. Projects/클로드 정부지원사업 ai/jbjw-main/jbjw-main/hyemi-ai-factory\"",
+      "color": {
+        "a": 1,
+        "rgb": 16020150
+      }
+    }
+  ],
   "collapse-display": false,
   "showArrow": false,
-  "textFadeMultiplier": 0,
-  "nodeSizeMultiplier": 1,
-  "lineSizeMultiplier": 1,
-  "collapse-forces": true,
-  "centerStrength": 0.518713248970312,
-  "repelStrength": 10,
-  "linkStrength": 1,
-  "linkDistance": 250,
-  "scale": 0.09895430218637075,
+  "textFadeMultiplier": 1.2,
+  "nodeSizeMultiplier": 2.2,
+  "lineSizeMultiplier": 0.3,
+  "collapse-forces": false,
+  "centerStrength": 0.05,
+  "repelStrength": 17,
+  "linkStrength": 0.2,
+  "linkDistance": 140,
+  "scale": 0.05932617187499999,
   "close": true
 }

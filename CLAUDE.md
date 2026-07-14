@@ -7,9 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is an **Obsidian vault** (`.obsidian/`), not a single codebase. It holds four independent, unrelated project folders, each a self-contained "AI 직원(employee) 스킬" for a different small business the user runs or is building for:
 
 - `클로드 ai 자동화/` — shared schema/charter definitions used by the other three skills (see below)
-- `클로드 꽃집 ai/` — flower shop automation (⚠️ see Gotchas — the folder root is mislabeled)
-- `클로드 방역 ai/` — pest-control ("방역&클린") operations automation — the most complete/current example of the pattern
-- `클로드 정부지원사업 ai/` — government small-business grant application assistant, plus an unrelated nested project (see below)
+- `1. Projects/클로드 꽃집 ai/` — flower shop automation (⚠️ see Gotchas — the folder root is mislabeled)
+- `1. Projects/클로드 방역 ai/` — pest-control ("방역&클린") operations automation — the most complete/current example of the pattern
+- `1. Projects/클로드 정부지원사업 ai/` — government small-business grant application assistant, plus an unrelated nested project (see below)
 
 There is no vault-wide build, lint, or test command — each skill folder is validated/run independently with its own Python scripts (see Commands).
 
@@ -46,7 +46,7 @@ Two schema versions exist for this contract:
 
 ## Commands
 
-Run from inside the relevant skill folder (paths below assume that; adjust `ai공장짓기/...` per the Gotchas note):
+Run from inside the relevant skill folder (paths below assume that; adjust `ai공장짓기/...` per the Gotchas note). **Since the 2026-07-13 reorg, skill folders live one level deeper** (`1. Projects/클로드 방역 ai/` etc.), so a relative reference to the shared `ai공장짓기/` scripts from inside a skill folder needs an extra `../../` (e.g. `python3 ../../ai공장짓기/scripts/validate_manifest.py manifest.yaml`), or just run from the vault root with the full path shown below:
 
 ```bash
 # Validate a manifest against the schema
@@ -75,11 +75,13 @@ git pull gov-support-matching-skill.bundle master
 
 ## Gotchas (read before trusting file layout or cross-references)
 
-- **`클로드 꽃집 ai/` root is not the flower shop skill.** Its root `SKILL.md`, `manifest.yaml`, `scripts/`, and `test/` are a copy of the **정부지원사업 매칭 스킬 (gov-support-matching-skill)** — same content as `클로드 정부지원사업 ai/`, apparently placed here by mistake in a past session. The actual flower-shop artifacts live alongside it without their own root manifest/SKILL.md: `golden_set.yaml`, `12봇_kind분류표.yaml` (the real 12-bot pipeline classification), `code/storage_bot.py`, `참고자료_행정구역_지명사전.yaml`. There's also a nested `gov-support-skill/` subfolder with yet another copy. Don't assume `클로드 꽃집 ai/SKILL.md` describes flower-shop behavior.
+- **`1. Projects/클로드 꽃집 ai/` root is not the flower shop skill.** Its root `SKILL.md`, `manifest.yaml`, `scripts/`, and `test/` are a copy of the **정부지원사업 매칭 스킬 (gov-support-matching-skill)** — same content as `1. Projects/클로드 정부지원사업 ai/`, apparently placed here by mistake in a past session. The actual flower-shop artifacts live alongside it without their own root manifest/SKILL.md: `golden_set.yaml`, `12봇_kind분류표.yaml` (the real 12-bot pipeline classification), `code/storage_bot.py`, `참고자료_행정구역_지명사전.yaml`. There's also a nested `gov-support-skill/` subfolder with yet another copy. Don't assume `1. Projects/클로드 꽃집 ai/SKILL.md` describes flower-shop behavior.
 - **(RESOLVED 2026-07-08) The shared v2 schema folder was missing but has been restored.** `ai공장짓기/` now exists at the vault root with `manifest.schema.v2.yaml`, `scripts/validate_manifest.py`, `scripts/verify_write.py`, its own `CLAUDE.md` (model policy), `HANDOFF.md`, and the decision log. Note: skill-folder files reference it as a sibling path (`ai공장짓기/...`), but it lives at the vault root — run validation commands from the vault root or adjust the relative path.
-- **`.stale-*` / `.truncated-*` files are not real content.** They're backups left by a documented Edit/Write bug where large-file edits get silently truncated mid-byte on this Windows/bash-mount setup (see `클로드 방역 ai/SKILL.md` "유지보수" section and `클로드 정부지원사업 ai/HANDOFF.md`). The workaround in use: rename the target to `file.stale-<timestamp>` before rewriting, then rewrite via bash heredoc and verify with `python3 -m py_compile` / `yaml.safe_load` rather than trusting the Edit/Write tool result on large files in these folders. This bug hit this very file on 2026-07-09 (root CLAUDE.md truncated mid-word after an Edit; restored via heredoc). Safe to ignore these files, but don't delete them without checking whether they're the only copy of something.
-- **`클로드 정부지원사업 ai/jbjw-main/jbjw-main/hyemi-ai-factory/` is a separate, unrelated project** (has its own `CLAUDE.md`, `pyproject.toml`, numbered docs folders `00_rules` … `10_handoff`). It's nested inside the gov-support folder but isn't part of the AI-factory skill pattern described above — read its own `CLAUDE.md` before working in it rather than applying anything from this file.
+- **`.stale-*` / `.truncated-*` files are not real content.** They're backups left by a documented Edit/Write bug where large-file edits get silently truncated mid-byte on this Windows/bash-mount setup (see `1. Projects/클로드 방역 ai/SKILL.md` "유지보수" section and `1. Projects/클로드 정부지원사업 ai/HANDOFF.md`). The workaround in use: rename the target to `file.stale-<timestamp>` before rewriting, then rewrite via bash heredoc and verify with `python3 -m py_compile` / `yaml.safe_load` rather than trusting the Edit/Write tool result on large files in these folders. This bug hit this very file on 2026-07-09 (root CLAUDE.md truncated mid-word after an Edit; restored via heredoc). Safe to ignore these files, but don't delete them without checking whether they're the only copy of something.
+- **`1. Projects/클로드 정부지원사업 ai/jbjw-main/jbjw-main/hyemi-ai-factory/` is a separate, unrelated project** (has its own `CLAUDE.md`, `pyproject.toml`, numbered docs folders `00_rules` … `10_handoff`). It's nested inside the gov-support folder but isn't part of the AI-factory skill pattern described above — read its own `CLAUDE.md` before working in it rather than applying anything from this file.
 - Nothing here calls a real LLM or STT API yet — every `run.py` is a mock stub. Don't report a skill as "working end-to-end" without checking `SKILL.md`'s "알려진 한계" (known limitations) section first.
+- **(2026-07-13) The four AI-skill folders were moved from the vault root into `1. Projects/`** (`1. Projects/클로드 방역 ai/`, `1. Projects/클로드 꽃집 ai/`, `1. Projects/클로드 정부지원사업 ai/`, `1. Projects/클로드 콘텐츠 ai/`) to align with the PARA structure below — `클로드 ai 자동화/` and `ai공장짓기/` (shared schema/hub) stayed at the vault root since they aren't a single business's project. All cross-file path references and wikilinks in the vault were updated in the same pass; if you find a stray un-updated `클로드 방역 ai/`-style reference (without the `1. Projects/` prefix) outside of `_inbox/` or git history, it was missed — fix it on sight rather than assuming the old path still works.
+- **(2026-07-13, C1) Sentinel truncation-prevention rule — 3-part, in force from now on.** ① Any brand-new md file or full-file rewrite must be written via bash heredoc (`cat > file <<'EOF' ... EOF`) followed by a `wc -c` byte-count sanity check — never trust a single large Edit/Write call for a full rewrite. ② Every md file's last non-empty line must be exactly `<!-- ok -->` (the sentinel). Immediately after any Edit/Write touches a file, run `python3 ai공장짓기/scripts/verify_write.py --sentinel-check <path>` — if it doesn't print `[PASS]`, the edit is not done yet. `python3 ai공장짓기/scripts/verify_write.py --sentinel-scan <root>` batch-checks a whole directory (used by the weekly synthesis task). ③ If truncation is found anyway, recovery is always by diff against `git HEAD` (or, when git is unavailable, the nearest pre-batch backup) — never by guessing what the missing tail said. All 535 existing vault md files were retroactively sentinel-tagged on 2026-07-13 (532 fixed, 3 already had it) via a standalone Python batch script (not Edit/Write), after taking a full tar backup of every md file to `outputs/backup_md_pre_sentinel.tar` as a rollback safety net — this substituted for `git commit` because `.git/index.lock` in this vault could not be removed in that session (environmental blocker, not resolved as of this writing; retry a normal `git commit` once the lock clears).
 
 ## Obsidian PARA + 5. Zettelkasten structure
 
@@ -100,7 +102,7 @@ Note: Dataview and Templater query examples appear throughout these docs, but as
 
 ## Working with 혜미 (owner) — communication & routing rules
 
-- **간단 명령어 사전 (2026-07-12 신설).** 혜미의 짧은 명령("마시땅 글 써줘", "PPT 만들어줘", "게시해줘", "이어서 해줘" 등)은 `0. Docs/명령어_사전.md`에 정의돼 있다 — 해당 명령을 받으면 사전대로 즉시 실행하고, 되돌릴 수 없는 일(게시/발송)만 승인 게이트를 거친다. 콘텐츠 계정 매핑: @maasittang=진주 맛집, @2yeon_sz=육아·아기코디, 네이버 블로그=eunoia9496 (상세: `클로드 콘텐츠 ai/channel_config.yaml`).
+- **간단 명령어 사전 (2026-07-12 신설).** 혜미의 짧은 명령("마시땅 글 써줘", "PPT 만들어줘", "게시해줘", "이어서 해줘" 등)은 `0. Docs/명령어_사전.md`에 정의돼 있다 — 해당 명령을 받으면 사전대로 즉시 실행하고, 되돌릴 수 없는 일(게시/발송)만 승인 게이트를 거친다. 콘텐츠 계정 매핑: @maasittang=진주 맛집, @2yeon_sz=육아·아기코디, 네이버 블로그=eunoia9496 (상세: `1. Projects/클로드 콘텐츠 ai/channel_config.yaml`).
 
 - **Non-developer communication.** 혜미 is not a developer. Explain every technical term in one plain-Korean line the first time it appears. Report in Korean. Lead with the outcome (first sentence = what happened / what she should do), details after.
 - **Request routing.** When she asks for a deliverable, check the vault first, then route:
@@ -111,3 +113,5 @@ Note: Dataview and Templater query examples appear throughout these docs, but as
 - **Update, don't duplicate.** If a note on the same topic/category already exists, update that note instead of creating a new file. Search by tags and filename first. Only create a new file for a genuinely new topic, and tell 혜미 the exact path when you do.
 - **Tags for findability.** Every new/updated note gets frontmatter tags (searchable in Obsidian as #태그). Core tags: #ai공장 #방역 #꽃집 #정부지원 #플랫폼 #지침 #세션로그 #프롬프트. In Obsidian she finds things via search `tag:#방역` or clicking a tag.
 - **Time & model estimates.** When proposing work, always state: which model tier, roughly how long, and what (if anything) only 혜미 can do. She decides faster with those three numbers.
+
+<!-- ok -->

@@ -63,3 +63,5 @@ SORT file.ctime ASC
 
 * [ ] Inbox 비우기 (7일 이상 메모 정리)
 * [ ] 승격 대상은 Literature/Permanent로, 가치 없는 메모는 삭제
+
+<!-- ok -->

@@ -1,0 +1,14 @@
+/* graph-styler :: cyber (auto-generated) */
+.graph-view-content {
+  background: radial-gradient(circle at 50% 42%, rgba(0,16,5,0.95) 0%, rgba(0,10,8,0.98) 48%, #000000 100%) !important;
+}
+.workspace-leaf-content[data-type="graph"],
+.workspace-leaf-content[data-type="localgraph"] { background: #000000; }
+.theme-dark .graph-view.color-circle { color: #16f0ff; }
+.theme-dark .graph-view.color-fill { color: #39ff14; }
+.theme-dark .graph-view.color-fill-tag { color: #ff2bd6; }
+.theme-dark .graph-view.color-fill-unresolved { color: #07140d; }
+.theme-dark .graph-view.color-fill-focused { color: #ffffff; }
+.theme-dark .graph-view.color-line { color: #0c5a3a; }
+.theme-dark .graph-view.color-text { color: #d8ffe8; }
+.graph-view-content canvas { filter: brightness(1.4) contrast(1.25) saturate(1.7); }

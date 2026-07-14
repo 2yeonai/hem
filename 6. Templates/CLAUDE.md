@@ -628,3 +628,5 @@ Hub 파일(`00_XXX_Hub.md`) 운영 규칙: `0. Docs/Hub-운영-가이드.md` 참
 ## Changelog
 - 2026-07-08: 볼트 정리 과정에서 발견된 이전 템플릿(`6. Templates-CLAUDE.md` 폴더, `owner: kamwoo`)을 번호 없는 `Templates/` 구조로 이전 — 개인 메타데이터 일반화, 경로 참조를 번호 없는 형식으로 통일, 실제로는 아직 만들어지지 않은 템플릿 파일들의 레지스트리 상태를 `approved`에서 `draft`로 정정, Hub/CHANGELOG 참조는 TODO로 명시
 - 2026-07-08: 공식 구조를 번호형(`6. Templates/` 등)으로 재확정 — 볼트 전체 폴더 경로 참조를 번호 있는 형식으로 갱신
+
+<!-- ok -->

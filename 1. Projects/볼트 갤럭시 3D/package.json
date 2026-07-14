@@ -1,0 +1,18 @@
+{
+  "name": "vault-galaxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build-graph": "node scripts/build-graph.mjs",
+    "dev": "npm run build-graph && vite",
+    "build": "npm run build-graph && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.165.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

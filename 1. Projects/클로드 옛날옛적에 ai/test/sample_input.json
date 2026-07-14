@@ -1,0 +1,18 @@
+{
+  "requested_at": "2026-07-14T20:00:00",
+  "input_channel": "manual",
+  "child_utterance_raw": "엄마, 나 토끼랑 곰돌이가 숲에서 보물찾기하는 이야기 만들어줘! 그리고 노래도 같이!",
+  "requested_options": {
+    "requested_characters": ["토끼", "곰돌이"],
+    "theme": "숲속 보물찾기 모험",
+    "child_name": "지우",
+    "child_age": 5,
+    "tone": "따뜻하고 신나는",
+    "ost_included": true
+  },
+  "review_decision": {
+    "pass": true,
+    "reviewer": "엄마(보호자)",
+    "reason": "내용 확인 완료, 문제 없음"
+  }
+}

@@ -350,3 +350,5 @@ tags: [archive/project]
 * 6개월 이상 오래된 4. Archive 항목 검토 (재활용 가능성)
 * `original_folder` 필드 누락 항목 보정
 * 태그 정리 (원본 태그 유지 확인)
+
+<!-- ok -->

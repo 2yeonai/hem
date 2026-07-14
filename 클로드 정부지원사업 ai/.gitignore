@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-*_prev.py
-*_prev.yaml
-*_prev.json
-*_prev.md
-*.truncated-*
-gov-support-skill/

@@ -173,3 +173,5 @@ WHERE contains(keywords, "검색어")
 
 ## Changelog
 - 2026-07-08: 볼트 정리 과정에서 발견된 이전 템플릿(`Docs-CLAUDE.md` 폴더, `0. Docs` 번호 표기, `owner: Kein`)을 번호 없는 `Docs/` 구조로 이전 — 개인 메타데이터 일반화, 경로 참조를 번호 없는 형식으로 통일, Hub 체계는 TODO로 명시
+
+<!-- ok -->

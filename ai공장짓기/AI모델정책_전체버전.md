@@ -163,3 +163,5 @@ Agent 툴에 model: "opus"/"fable"을 지정해 서브에이전트로 띄우는 
 - [[ai공장짓기/runner/README|README]]
 - [[ai공장짓기/failure_log|failure_log]]
 - [[0. Docs/혜미_클로드_사용설명서|혜미_클로드_사용설명서]]
+
+<!-- ok -->
