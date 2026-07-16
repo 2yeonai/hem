@@ -1,0 +1,10 @@
+# scripts/collector/config.yaml
+# 주의: 이 파일은 .gitignore에 등록되어 git에 커밋되지 않습니다.
+# bizinfo(기업마당) Open API 인증키(crtfcKey) 보관용 — 원문을 다른 md 문서에 적지 마세요.
+#
+# 검증 미완료 (2026-07-17): 이 키로 실제 API 호출을 시도했으나 이 세션의 샌드박스
+# 아웃바운드 네트워크가 프록시 allowlist에 의해 전면 차단되어(403 blocked-by-allowlist,
+# bizinfo뿐 아니라 google.com도 동일하게 막힘 — bizinfo 한정 문제 아님) 유효성을
+# 확인하지 못했습니다. 실제 실행 환경(스케줄 실행 시)에서 첫 실행 로그를 확인해
+# 인증 성공 여부를 판단하세요.
+bizinfo_api_key: "X9HC6x"

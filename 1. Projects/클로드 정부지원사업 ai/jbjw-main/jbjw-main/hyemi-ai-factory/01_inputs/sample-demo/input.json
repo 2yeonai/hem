@@ -1,0 +1,162 @@
+{
+  "project_name": "sample-demo",
+  "created_at": "2026-07-03",
+  "_notice_비고": "[샘플] 가상 공고 — 실제 공고 결과로 재사용 금지 (D-006). raw_text는 일부만 있는 상황을 재현.",
+  "notice": {
+    "title": "[샘플] 2026 소상공인 디지털 전환 지원사업",
+    "agency": "미확보",
+    "purpose": "소상공인의 반복 업무 디지털화를 통한 경영 효율 개선",
+    "raw_text": "[샘플 공고 발췌]\n사업목적: 소상공인의 반복 업무 디지털화를 통한 경영 효율 개선 및 디지털 전환 촉진\n신청자격: 공고일 기준 업력 1년 이상 소상공인(상시근로자 5인 미만)\n지원제외: 국세·지방세 체납자, 동일 사업 중복수혜자, 정책자금 지원제외 업종\n지원규모: 과제당 최대 2,000만원(자부담 20% 별도)\n(이하 페이지 유실 — 제출서류·평가기준 부분 미확보)",
+    "apply_deadline": "미확보",
+    "execution_period": "협약 후 6개월",
+    "eligibility": "업력 1년 이상 소상공인(상시근로자 5인 미만)",
+    "exclusions": "체납자, 동일 사업 중복수혜자, 지원제외 업종",
+    "budget": {
+      "max_amount": "2000만원",
+      "self_pay_ratio": "20%",
+      "allowed_items": [],
+      "excluded_items": []
+    },
+    "format": {
+      "form_type": "미확보",
+      "page_limit": "미확보",
+      "char_limit": "미확보"
+    },
+    "scoring": [
+      {
+        "item": "사업 필요성·현황 이해도",
+        "points": 20
+      },
+      {
+        "item": "실행계획·실현 가능성",
+        "points": 30
+      },
+      {
+        "item": "성과·효과",
+        "points": 20
+      },
+      {
+        "item": "예산 적정성",
+        "points": 15
+      },
+      {
+        "item": "신청자 역량",
+        "points": 15
+      }
+    ],
+    "presentation": {
+      "required": "미확보",
+      "present_minutes": "미확보",
+      "qna_minutes": "미확보"
+    },
+    "bonus_items": []
+  },
+  "applicant": {
+    "name": "[샘플] 지역 소상공인 혜미",
+    "biz_type": "개인사업자",
+    "biz_years": 3,
+    "industry": "수제 제품 온라인 판매",
+    "industry_code": "미확보",
+    "channels": [
+      "스마트스토어",
+      "인스타그램"
+    ],
+    "duplicate_grant_history": "미확인",
+    "tax_arrears": "없음",
+    "closed_biz_history": "없음",
+    "notes": "주문정리·라벨·배송안내 수작업"
+  },
+  "ideas": [
+    {
+      "id": "idea1",
+      "name": "주문·배송 업무 반자동화 도구",
+      "problem": "주문정리와 라벨 작성, 배송 안내에 주당 약 10시간이 들고 수기 입력으로 오배송·재작업이 발생",
+      "target": "신청자 사업장(1인 운영 온라인 판매점)",
+      "outputs": [
+        "라벨 PDF 생성 도구",
+        "배송 체크리스트",
+        "운영 매뉴얼"
+      ],
+      "budget_estimate": "1500만원 내외",
+      "evidence_owned": [
+        "주문서 엑셀 샘플",
+        "작업 과정 사진",
+        "판매 내역"
+      ],
+      "evidence_planned": [
+        "작업시간 실측 기록",
+        "개발 견적서"
+      ],
+      "risks": [
+        "단순 구매로 보일 위험",
+        "외주 의존으로 보일 위험"
+      ]
+    },
+    {
+      "id": "idea2",
+      "name": "후기 기반 콘텐츠 변환 시스템",
+      "problem": "마케팅 콘텐츠 제작 시간이 부족하다",
+      "target": "신청자 사업장",
+      "outputs": [
+        "카드뉴스 생성 도구"
+      ],
+      "budget_estimate": "미확보",
+      "evidence_owned": [],
+      "evidence_planned": [
+        "고객 후기 캡처"
+      ],
+      "risks": []
+    },
+    {
+      "id": "idea3",
+      "name": "AI 서류 공장 서비스로 대박 확장",
+      "problem": "다른 소상공인의 서류 부담을 완벽히 해결",
+      "target": "미확보",
+      "outputs": [],
+      "budget_estimate": "미확보",
+      "evidence_owned": [],
+      "evidence_planned": [],
+      "risks": []
+    }
+  ],
+  "evidence": {
+    "owned": [
+      "사업자등록증",
+      "주문서 엑셀 샘플",
+      "작업 과정 사진",
+      "판매 내역"
+    ],
+    "planned": [
+      "작업시간 실측 기록",
+      "개발 견적서",
+      "수요조사"
+    ]
+  },
+  "budget_plan": [
+    {
+      "item": "자동화 도구 개발·구축비",
+      "amount": "미확보",
+      "purpose": "주문·라벨·안내 반자동화 구축",
+      "output": "라벨 PDF 생성 도구"
+    },
+    {
+      "item": "라벨 프린터 장비 구매",
+      "amount": "80만원",
+      "purpose": "라벨 출력",
+      "output": ""
+    },
+    {
+      "item": "교육·정착비",
+      "amount": "미확보",
+      "purpose": "",
+      "output": ""
+    }
+  ],
+  "selected_idea_id": "idea1",
+  "approvals": {
+    "eligibility_confirmed": true,
+    "idea_selected": true,
+    "budget_confirmed": false,
+    "final_submission_approved": false
+  }
+}

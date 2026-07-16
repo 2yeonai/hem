@@ -1,0 +1,25 @@
+{
+  "spaces": [
+    {
+      "id": "0c0fbd03-b9f6-4df8-bda2-768863539f48",
+      "name": "ai공장짓기",
+      "folders": [
+        {
+          "path": "C:\\Users\\82106\\Claude\\Projects\\ai공장짓기"
+        },
+        {
+          "path": "C:\\Users\\82106\\Desktop\\클로드 정부지원사업 ai"
+        }
+      ],
+      "projects": [
+        {
+          "uuid": "019f361a-106e-7356-a075-7223aeb0f58d"
+        }
+      ],
+      "links": [],
+      "origin": "user",
+      "createdAt": 1783319309904,
+      "updatedAt": 1783321829396
+    }
+  ]
+}

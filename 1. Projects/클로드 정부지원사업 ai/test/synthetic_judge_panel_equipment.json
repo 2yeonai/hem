@@ -1,0 +1,28 @@
+{
+  "_purpose": "[합성 테스트-v0.5.0] 8인 가상 심사위원 중 예산·증빙 심사위원의 즉시경고(장비 구매성, 견적 부재) 실제 발동 여부 확인용. 예산 항목을 '장비 구매' 단일 항목(견적/집행근거 없음)으로만 구성하고, 나머지(문제/실행/증빙/성과)는 정상으로 채워 isolate.",
+  "business_profile": {
+    "biz_type": "법인",
+    "industry_code": "62010 (소프트웨어 개발 및 공급업)",
+    "founded_date": "2023-03-15",
+    "region": "서울특별시",
+    "annual_revenue_krw": 320000000,
+    "employees": 4,
+    "ceo_birth_date": "1987-05-20",
+    "certifications": ["벤처기업확인(2024)"],
+    "disqualification_flags": [],
+    "business_description": "본 사업은 중소 제조기업 대상 설비 이상탐지 SaaS로, 진동·전류 센서 데이터를 실시간 분석해 고장을 사전에 예측합니다. 기존 정기점검 방식 대비 현장 점검 시간을 평균 40분 단축하는 것이 핵심입니다.",
+    "team_experience": "대표이사는 제조 자동화 분야 8년 경력 후 2023년 창업했습니다.",
+    "budget_detail": [
+      { "item": "장비 구매", "category": "기계장치", "amount_krw": 5000000, "note": "견적서 없음 - 현장 실증용으로 우선 구입 예정" }
+    ],
+    "expected_outcomes": "사업 종료 시점 기준 베타 고객사 10개사 확보, 매출 1.5억원 창출을 목표로 합니다.",
+    "documents_status": {
+      "사업계획서 (지정양식)": true,
+      "사업자등록증 사본": true,
+      "중소기업(소상공인) 확인서": true,
+      "4대보험 가입자 명부": true,
+      "국세/지방세 완납증명서": true
+    }
+  },
+  "target_period": { "start_date": "2026-07-06", "end_date": "2026-09-30" }
+}

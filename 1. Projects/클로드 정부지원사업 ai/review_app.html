@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정부지원사업 신청서 검토 도우미</title>
+<script type="module">
+  import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.1.200/pdf.min.mjs";
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.1.200/pdf.worker.min.mjs";
+  window.__pdfjsLib = pdfjsLib;
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/6.0.1/tesseract.min.js"></script>
+<style>
+  :root {
+    --blue: #2563eb;
+    --blue-light: #eff6ff;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --gray: #6b7280;
+    --border: #e5e7eb;
+    --text: #1f2937;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    color: var(--text);
+    background: #f9fafb;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 80px; }
+  header.app-header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 20px 16px;
+    text-align: center;
+  }
+  header.app-header h1 { font-size: 22px; margin: 0 0 6px; }
+  header.app-header p { color: var(--gray); margin: 0; font-size: 14px; }
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 17px;
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; height: 24px;
+    background: var(--blue);
+    color: white;
+    border-radius: 50%;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .card .desc { color: var(--gray); font-size: 13px; margin: 0 0 16px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+  .field .hint { font-weight: 400; color: var(--gray); font-size: 12px; margin-left: 4px; }
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .checkbox-row input { width: auto; }
+  .checkbox-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  .checkbox-grid label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 400; }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  button.primary { background: var(--blue); color: white; border-color: var(--blue); }
+  button.primary:hover { background: #1d4ed8; }
+  button.big {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+  button.ghost { background: white; color: var(--blue); border-color: var(--blue); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .upload-box {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 12px;
+    background: #fafafa;
+  }
+  .upload-box input[type=file] { font-size: 13px; }
+  .extract-status { font-size: 12px; color: var(--gray); margin-top: 8px; min-height: 16px; }
+  .raw-text-toggle { font-size: 12px; color: var(--blue); cursor: pointer; text-decoration: underline; margin-top: 6px; display: inline-block; }
+  .raw-text-box { display: none; margin-top: 8px; }
+  .raw-text-box.open { display: block; }
+  .auto-filled { background: #fef9c3 !important; border-color: #fbbf24 !important; }
+  .repeat-rows .rrow { display: grid; grid-template-columns: 1fr 130px 150px 32px; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .repeat-rows .rrow.two-col { grid-template-columns: 1fr 100px 32px; }
+  .repeat-rows .rrow button.del { padding: 6px 8px; color: var(--red); border-color: var(--red); }
+  .add-row-btn { margin-top: 4px; }
+  .doc-checklist .doc-item {
+    display: grid;
+    grid-template-columns: 1fr 160px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-checklist .doc-item:last-child { border-bottom: none; }
+  #resultArea { display: none; }
+  .result-banner {
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .result-banner.pass { background: var(--green-light); border: 1px solid var(--green); }
+  .result-banner.draft { background: var(--amber-light); border: 1px solid var(--amber); }
+  .result-banner .lock-state { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .result-banner.pass .lock-state { color: var(--green); }
+  .result-banner.draft .lock-state { color: var(--amber); }
+  .result-banner .confidence { font-size: 14px; color: var(--gray); }
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 24px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--text);
+  }
+  .risk-item, .flag-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+  }
+  .risk-item.bad { background: var(--red-light); border-left: 3px solid var(--red); }
+  .risk-item.ok { background: var(--green-light); border-left: 3px solid var(--green); }
+  .judge-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .judge-table th, .judge-table td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .judge-table th { color: var(--gray); font-weight: 600; font-size: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .badge.pass { background: var(--green-light); color: var(--green); }
+  .badge.fail { background: var(--red-light); color: var(--red); }
+  .draft-section { margin-bottom: 14px; }
+  .draft-section h4 { font-size: 13px; margin: 0 0 4px; color: var(--blue); }
+  .draft-section p { font-size: 13.5px; margin: 0; white-space: pre-wrap; background: #fafafa; padding: 10px; border-radius: 8px; }
+  .psst-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .psst-card { border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13px; }
+  .psst-card .name { font-weight: 700; margin-bottom: 4px; }
+  .budget-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+  .budget-table th, .budget-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: right; }
+  .budget-table th:first-child, .budget-table td:first-child { text-align: left; }
+  .note-box { background: var(--blue-light); border: 1px solid var(--blue); border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-top: 10px; }
+  .disclaimer { font-size: 12px; color: var(--gray); text-align: center; margin-top: 30px; padding: 16px; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>📋 정부지원사업 신청서 검토 도우미</h1>
+  <p>공고문과 사업자 서류를 넣으면, 자격 조건 · 서류 · 예산 · 심사기준까지 한 번에 점검해줍니다</p>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ SECTION 1: 사업자 정보 ============ -->
+  <div class="card">
+    <h2><span class="step-num">1</span> 우리 사업체 정보 입력</h2>
+    <p class="desc">사업자등록증, 사업계획서 등 파일을 올리면 일부 항목을 자동으로 채워봅니다 (완벽하지 않으니 꼭 확인 후 수정하세요). 파일이 없으면 아래 항목을 직접 입력해도 됩니다.</p>
+
+    <div class="upload-box">
+      <input type="file" id="profileFiles" accept=".pdf,image/*" multiple>
+      <div>
+        <button type="button" id="profileExtractBtn" style="margin-top:10px;">🔍 파일에서 자동 인식 시도</button>
+      </div>
+      <div class="extract-status" id="profileExtractStatus"></div>
+      <span class="raw-text-toggle" id="profileRawToggle" style="display:none;">인식된 원문 텍스트 보기</span>
+      <div class="raw-text-box" id="profileRawBox"><textarea id="profileRawText" readonly rows="6"></textarea></div>
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>사업체 형태</label>
+        <select id="biz_type">
+          <option value="">확인 필요</option>
+          <option value="법인">법인</option>
+          <option value="개인">개인(개인사업자)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>업종코드 <span class="hint">(사업자등록증의 업종코드)</span></label>
+        <input type="text" id="industry_code" placeholder="예: 62010">
+      </div>
+      <div class="field">
+        <label>설립(개업)일</label>
+        <input type="date" id="founded_date">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>소재지(시/도)</label>
+        <select id="region">
+          <option value="">확인 필요</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>상시근로자수</label>
+        <input type="number" id="employees" min="0">
+      </div>
+      <div class="field">
+        <label>연매출(원)</label>
+        <input type="number" id="annual_revenue_krw" min="0">
+      </div>
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>대표자 생년월일</label>
+        <input type="date" id="ceo_birth_date">
+      </div>
+      <div class="field">
+        <label>대표자 성별</label>
+        <select id="gender">
+          <option value="">확인 필요</option>
+          <option value="여성">여성</option>
+          <option value="남성">남성</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>경력단절 여성 해당 여부</label>
+        <div class="checkbox-row" style="margin-top:9px;">
+          <input type="checkbox" id="career_interruption_status">
+          <label for="career_interruption_status" style="font-weight:400;">해당함</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>혹시 아래에 해당되는 사항이 있나요? <span class="hint">(해당 시 체크 — 공고의 지원제외 조건과 자동 대조합니다)</span></label>
+      <div class="checkbox-grid" id="disqFlags">
+        <label><input type="checkbox" value="체납"> 세금 체납</label>
+        <label><input type="checkbox" value="중복"> 유사사업 중복수혜</label>
+        <label><input type="checkbox" value="휴업"> 현재 휴업 중</label>
+        <label><input type="checkbox" value="폐업"> 최근 폐업 이력</label>
+        <label><input type="checkbox" value="수료"> 동일 프로그램 기수료</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>사업 아이템 / 사업 설명 <span class="hint">(무엇을, 누구에게, 어떤 문제를 해결하며 파는지)</span></label>
+      <textarea id="business_description" rows="4" placeholder="예: 우리 가게는 ○○ 문제를 겪는 △△ 고객을 대상으로, 하루 3시간 걸리던 작업을 20분으로 줄이는 ○○ 서비스를 판매합니다."></textarea>
+    </div>
+
+    <div class="field">
+      <label>대표자/팀 경력 <span class="hint">(관련 경력, 자격증, 이전 사업 경험 등)</span></label>
+      <textarea id="team_experience" rows="3"></textarea>
+    </div>
+
+    <div class="field">
+      <label>보유 인증/자격증 <span class="hint">(쉼표로 구분)</span></label>
+      <input type="text" id="certifications" placeholder="예: 벤처기업확인(2024), 여성기업확인서">
+    </div>
+
+    <div class="field">
+      <label>예산 계획 <span class="hint">(항목별 금액과, 정부지원금인지 자기부담금인지 표시)</span></label>
+      <div class="repeat-rows" id="budgetRows"></div>
+      <button type="button" class="add-row-btn" id="addBudgetRow">+ 예산 항목 추가</button>
+    </div>
+
+    <div class="field">
+      <label>기대효과 <span class="hint">(도입 후 매출/고용/시간절감 등 구체적 수치 목표)</span></label>
+      <textarea id="expected_outcomes" rows="3" placeholder="예: 사업 종료 후 6개월 내 신규 매출 3,000만원, 고용 1명 증가 목표"></textarea>
+    </div>
+  </div>
+
+  <!-- ============ SECTION 2: 공고문 정보 ============ -->
+  <div class="card">
+    <h2><span class="step-num">2</span> 지원사업 공고문 정보 입력</h2>
+    <p class="desc">공고문 파일(PDF/이미지)을 올리면 일부 항목을 자동으로 채워봅니다. 자동 인식은 완벽하지 않으니 원문과 대조해서 꼭 확인하세요.</p>
+
+    <div class="upload-box">
+      <input type="file" id="annFiles" accept=".pdf,image/*" multiple>
+      <div>
+        <button type="button" id="annExtractBtn" style="margin-top:10px;">🔍 파일에서 자동 인식 시도</button>
+      </div>
+      <div class="extract-status" id="annExtractStatus"></div>
+      <span class="raw-text-toggle" id="annRawToggle" style="display:none;">인식된 원문 텍스트 보기</span>
+      <div class="raw-text-box" id="annRawBox"><textarea id="annRawText" readonly rows="6"></textarea></div>
+    </div>
+
+    <div class="field">
+      <label>사업명</label>
+      <input type="text" id="program_name" placeholder="예: 2026년 소상공인 생활문화 혁신지원 사업">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>신청 마감일</label>
+        <input type="date" id="deadline">
+      </div>
+      <div class="field">
+        <label>지원대상 기업형태</label>
+        <select id="elig_biz_type">
+          <option value="any">제한 없음</option>
+          <option value="법인">법인만</option>
+          <option value="개인">개인사업자만</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>지원대상 업종코드 <span class="hint">(쉼표구분, 비우면 제한없음)</span></label>
+      <input type="text" id="elig_industry_codes" placeholder="예: 62010, 62020">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>업력 조건 - 최소(년)</label>
+        <input type="number" id="elig_min_years" min="0" step="0.5">
+      </div>
+      <div class="field">
+        <label>업력 조건 - 최대(년)</label>
+        <input type="number" id="elig_max_years" min="0" step="0.5">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>지역 제한 <span class="hint">(쉼표구분, 비우면 제한없음)</span></label>
+      <input type="text" id="elig_region" placeholder="예: 서울특별시, 경기도">
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>상시근로자수 상한</label>
+        <input type="number" id="elig_max_employees" min="0">
+      </div>
+      <div class="field">
+        <label>연매출 상한(원)</label>
+        <input type="number" id="elig_max_revenue" min="0">
+      </div>
+      <div class="field">
+        <label>대표자 연령 상한(만)</label>
+        <input type="number" id="elig_ceo_age_max" min="0">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>성별 제한</label>
+        <select id="elig_gender">
+          <option value="any">제한 없음</option>
+          <option value="여성">여성만</option>
+          <option value="남성">남성만</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>경력단절여성 요건</label>
+        <div class="checkbox-row" style="margin-top:9px;">
+          <input type="checkbox" id="elig_requires_career_interruption">
+          <label for="elig_requires_career_interruption" style="font-weight:400;">필수 요건임</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>지원 제외 조건 <span class="hint">(한 줄에 하나씩)</span></label>
+      <textarea id="exclusion_conditions" rows="3" placeholder="예: 세금 체납 기업&#10;동일 사업 중복 수혜 기업"></textarea>
+    </div>
+
+    <div class="field">
+      <label>필수 제출서류 <span class="hint">(한 줄에 하나씩 — 아래 3단계 체크리스트에 자동 반영됩니다)</span></label>
+      <textarea id="required_documents" rows="4" placeholder="예: 사업자등록증 사본&#10;중소기업(소상공인) 확인서"></textarea>
+      <button type="button" id="syncDocsBtn" style="margin-top:8px;">↓ 3단계 서류 체크리스트에 반영</button>
+    </div>
+
+    <div class="field">
+      <label>심사배점표 <span class="hint">(항목명과 배점)</span></label>
+      <div class="repeat-rows" id="rubricRows"></div>
+      <button type="button" class="add-row-btn" id="addRubricRow">+ 심사항목 추가</button>
+    </div>
+
+    <div class="row3">
+      <div class="field">
+        <label>지원한도(원)</label>
+        <input type="number" id="max_grant_krw" min="0">
+      </div>
+      <div class="field">
+        <label>자기부담비율 <span class="hint">(0~1, 예: 0.1)</span></label>
+        <input type="number" id="matching_fund_ratio" min="0" max="1" step="0.01">
+      </div>
+      <div class="field">
+        <label>제출 분량 제한(페이지)</label>
+        <input type="number" id="page_limit" min="0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>지원 제외 예산 카테고리 <span class="hint">(쉼표구분, 예: 장비구매, 인건비)</span></label>
+      <input type="text" id="excluded_categories">
+    </div>
+  </div>
+
+  <!-- ============ SECTION 3: 서류 준비 현황 ============ -->
+  <div class="card">
+    <h2><span class="step-num">3</span> 필수서류 준비 현황</h2>
+    <p class="desc">2단계에서 입력한 필수 제출서류 목록을 기준으로 준비 상태를 표시하세요. (2단계에서 "체크리스트에 반영" 버튼을 눌러야 아래 목록이 채워집니다)</p>
+    <div class="doc-checklist" id="docChecklist">
+      <p style="color:var(--gray); font-size:13px;">아직 반영된 서류가 없습니다.</p>
+    </div>
+  </div>
+
+  <!-- ============ SECTION 4: 검토 시작 ============ -->
+  <div class="card">
+    <h2><span class="step-num">4</span> 검토 시작하기</h2>
+    <p class="desc">입력한 내용을 바탕으로 자격 조건, 서류, 예산, 8인 심사위원 시뮬레이션까지 한 번에 검토합니다. 모든 계산은 이 기기 안에서만 이루어지며, 외부로 전송되지 않습니다.</p>
+    <button class="primary big" id="reviewBtn">📊 지금 검토하기</button>
+  </div>
+
+  <!-- ============ RESULT ============ -->
+  <div id="resultArea"></div>
+
+  <p class="disclaimer">이 도구는 참고용 자기검수 보조 도구입니다. 실제 제출 전 반드시 공고 원문과 담당 기관 안내를 다시 확인하세요.<br>모든 분석은 브라우저 안에서만 실행되며, 입력한 정보는 외부 서버로 전송되지 않습니다.</p>
+
+</div>
+
+<script>
+// ============================================================================
+// gov-support-matching-skill engine.js
+// scripts/run.py (v0.5.4)의 review_application() 경로를 JavaScript로 포팅.
+// 로직은 Python 원본과 1:1 대응되도록 최대한 그대로 옮겼다(임의 로직 추가 없음).
+// ============================================================================
+
+const CONFIDENCE_THRESHOLD = 0.85;
+
+const EXAGGERATION_WORDS = [
+  "최초", "유일", "국내 최고", "세계 최고", "압도적", "혁신적인", "완벽한",
+  "타의 추종을 불허", "독보적", "100% 보장", "무조건", "최고 수준",
+];
+
+const RUBRIC_SKIP_ITEMS = ["가점", "가산점"];
+
+const RUBRIC_SYNONYMS = {
+  "창업": ["창업", "사업"],
+  "아이템": ["아이템", "아이디어", "서비스", "제품", "솔루션"],
+  "사업화": ["사업화", "사업"],
+};
+
+const RUBRIC_STOPWORDS = new Set(["및", "등", "의", "그", "것", "수"]);
+
+const RISK_PHRASE_DICTIONARY = [
+  { phrase: "완벽히 해결", risk_type: "과장", replacement: "위험을 줄임 / 오류를 완화함" },
+  { phrase: "100% 자동화", risk_type: "과장·책임소재 불명", replacement: "대표자 검수 기반 반자동화" },
+  { phrase: "AI가 판단한다", risk_type: "책임위험", replacement: "AI가 분류 초안을 제안하고 사람이 확정한다" },
+  { phrase: "자동 발송", risk_type: "개인정보·운영사고", replacement: "발송 대기열 생성 후 담당자 승인 발송" },
+  { phrase: "외주 개발만 하면 된다", risk_type: "실행력 약화", replacement: "내부 운영 프로세스에 맞춘 구축·검증" },
+  { phrase: "단순 구독", risk_type: "구매성 위험", replacement: "업무 자동화를 위한 API 연계 및 산출물 생성" },
+  { phrase: "장비 구매", risk_type: "자산취득성 위험", replacement: "현장 실증을 위한 단기 장비 활용 [확인 필요]" },
+  { phrase: "플랫폼으로 대박 확장", risk_type: "범위 과다", replacement: "협약기간 내 MVP 구축 및 도입 검증" },
+  { phrase: "기존 문제를 다 없앤다", risk_type: "증빙 부재", replacement: "특정 병목 1~2개를 우선 개선한다" },
+];
+
+const DOCUMENT_NAME_SYNONYM_GROUPS = [
+  new Set(["사업자등록증", "사업자등록증사본", "사업자등록증명원", "사업자등록증명"]),
+  new Set(["중소기업확인서", "소상공인확인서"]),
+  new Set(["법인등기부등본", "법인등기사항전부증명서"]),
+  new Set(["부가가치과세표준증명", "부가가치세과세표준증명"]),
+];
+
+const JUDGE_DEFINITIONS = [
+  { key: "공고적합성", name: "공고적합성 심사위원", key_question: "이 아이템이 공고 목적과 직접 맞는가", rubric_keywords: ["적합", "목적", "부합"] },
+  { key: "자격규정", name: "자격·규정 심사위원", key_question: "자격·제외요건·중복수혜·체납·업종 배제가 해결됐는가", rubric_keywords: ["자격", "규정", "요건"] },
+  { key: "문제정의", name: "문제정의 심사위원", key_question: "문제를 수치와 현장맥락으로 입증했는가", rubric_keywords: ["필요성", "문제", "기술성"] },
+  { key: "AI필요성", name: "AI 필요성 심사위원", key_question: "왜 AI여야 하며 기존 수작업/일반툴과 무엇이 다른가", rubric_keywords: ["AI", "기술", "차별성", "혁신"] },
+  { key: "실행계획", name: "실행계획 심사위원", key_question: "6개월 내 범위가 현실적인가", rubric_keywords: ["실행", "계획", "사업화"] },
+  { key: "예산증빙", name: "예산·증빙 심사위원", key_question: "돈의 사용처와 산출물·견적이 연결되는가", rubric_keywords: ["예산", "자금", "사업비"] },
+  { key: "성과확장", name: "성과·확장 심사위원", key_question: "도입 성과를 측정할 수 있는가", rubric_keywords: ["성과", "확장", "고용", "사회적", "기대효과"] },
+  { key: "발표QA", name: "발표·Q&A 심사위원", key_question: "왜 지금, 왜 너, 왜 이 방식인지 방어 가능한가", rubric_keywords: [] },
+];
+
+const AI_EXAGGERATION_RISK_TYPES = new Set(["과장", "과장·책임소재 불명", "책임위험"]);
+
+const DEDUCTION_PROPAGATION_TABLE = {
+  "예산 근거 누락": {
+    direct: { criterion: "예산", amount: -5 },
+    propagated: [
+      { criterion: "실행", amount: -3 },
+      { criterion: "성과", amount: -2 },
+      { criterion: "발표", amount: -2 },
+    ],
+    interpretation: "\"돈을 왜 쓰는지\"를 못 막으면 실현성·성과·발표가 동시 약화",
+  },
+  "자격 증빙 미확보": {
+    direct: { criterion: "자격", amount: "BLOCK" },
+    propagated: [
+      { criterion: "실행", amount: -3 },
+      { criterion: "발표", amount: -3 },
+    ],
+    interpretation: "아예 제출금지 수준",
+  },
+  "작업시간 실측 없음": {
+    direct: { criterion: "필요성", amount: -4 },
+    propagated: [
+      { criterion: "성과", amount: -2 },
+      { criterion: "발표", amount: -1 },
+    ],
+    interpretation: "문제 크기와 개선폭을 둘 다 증명 못함",
+  },
+  "AI 필요성 불명확": {
+    direct: { criterion: "AI활용", amount: -4 },
+    propagated: [
+      { criterion: "공고적합성", amount: -2 },
+      { criterion: "발표", amount: -2 },
+    ],
+    interpretation: "왜 AI여야 하는지 방어 불가",
+  },
+  "산출물 미정의": {
+    direct: { criterion: "실행", amount: -4 },
+    propagated: [
+      { criterion: "성과", amount: -3 },
+      { criterion: "예산", amount: -2 },
+    ],
+    interpretation: "협약기간 안에 남는 것이 없음",
+  },
+};
+
+const MEASURE_UNIT_RE = /\d[\d,.]*\s*(만|억)?\s*(분|시간|일|주|개월|년|건|회|명|개|배|원|%|퍼센트)/;
+
+// ---------------------------------------------------------------------------
+// 공용 헬퍼
+// ---------------------------------------------------------------------------
+function scanRiskPhrases(text) {
+  text = text || "";
+  return RISK_PHRASE_DICTIONARY.filter((entry) => text.includes(entry.phrase));
+}
+
+function riskPhraseFlagText(entry) {
+  return `위험표현 발견: '${entry.phrase}' (유형: ${entry.risk_type}) -> 대체문구 제안: ${entry.replacement}`;
+}
+
+function parseDateStr(s) {
+  if (!s) return null;
+  // "YYYY-MM-DD" 형식만 허용 (Python strptime과 동일한 엄격도)
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return null;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  return d;
+}
+
+function yearsSince(d, ref) {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const days = (ref.getTime() - d.getTime()) / msPerDay;
+  return days / 365.25;
+}
+
+function join(items, sep) {
+  sep = sep === undefined ? ", " : sep;
+  return (items || []).filter((i) => i).map(String).join(sep);
+}
+
+function fmtKrw(n) {
+  return typeof n === "number" ? n.toLocaleString("en-US") + "원" : "금액 미상";
+}
+
+// Python f-string에 숫자/None을 그대로 넣었을 때의 문자열 표현을 재현한다.
+// (정수값 float은 "1.0"처럼 소수점이 남고, None은 "None"으로 찍힘 — run.py 원본과
+//  동일한 사용자 노출 문구를 만들기 위해 필요함. 반환 JSON의 실제 숫자값 자체는
+//  영향 없음 — 오직 reasons/문구 등 사람이 읽는 텍스트 조립에만 사용)
+function pyRepr(v) {
+  if (v === null || v === undefined) return "None";
+  if (typeof v === "number") return Number.isInteger(v) ? v.toFixed(1) : String(v);
+  return String(v);
+}
+
+// Python dict.get(key, default)의 동작을 재현한다: 키가 아예 없을 때만 default를
+// 쓰고, 키가 있는데 값이 None(null)이면 default로 바꾸지 않고 null을 그대로 반환
+// (호출부에서 pyRepr로 감싸면 원본처럼 "None" 문자열이 그대로 노출됨 — run.py의
+// 알려진 사소한 표시 버그이지만 포팅 대상이므로 임의로 고치지 않고 그대로 재현)
+function pyGet(obj, key, defaultVal) {
+  return Object.prototype.hasOwnProperty.call(obj || {}, key) ? obj[key] : defaultVal;
+}
+
+// pyRepr과 달리 정수를 ".0"으로 바꾸지 않는다 — JSON에는 int/float 구분이 없어
+// employees(정수 스키마 필드) 같은 값까지 float 취급하면 안 되므로, None만
+// "None"으로 바꾸고 그 외에는 JS의 기본 문자열 변환(Python str(int)와 동일)을 쓴다.
+function pyNoneOnly(v) {
+  return v === null || v === undefined ? "None" : String(v);
+}
+
+// ---------------------------------------------------------------------------
+// STEP 2: 신청자격 체크 및 지원제외·결격 위험 점검
+// ---------------------------------------------------------------------------
+function checkEligibilityAndDisqualification(profile, announcement, refDate) {
+  const elig = announcement.eligibility || {};
+  const criteria = []; // [name, result(true|false|null)]
+
+  const bizTypes = elig.biz_type;
+  if (bizTypes && bizTypes !== "any") {
+    const val = profile.biz_type;
+    if (val === null || val === undefined) criteria.push(["기업형태", null]);
+    else criteria.push(["기업형태", bizTypes.includes(val)]);
+  }
+
+  const industryCodes = elig.industry_codes;
+  if (industryCodes && industryCodes !== "any") {
+    const val = profile.industry_code;
+    if (val === null || val === undefined) criteria.push(["업종코드", null]);
+    else criteria.push(["업종코드", industryCodes.includes(val)]);
+  }
+
+  const founded = parseDateStr(profile.founded_date);
+  const minY = elig.min_years_since_founding;
+  const maxY = elig.max_years_since_founding;
+  if (minY !== undefined && minY !== null || (maxY !== undefined && maxY !== null)) {
+    if (!founded) {
+      criteria.push(["업력", null]);
+    } else {
+      const years = yearsSince(founded, refDate);
+      let ok = true;
+      if (minY !== undefined && minY !== null) ok = ok && years >= minY;
+      if (maxY !== undefined && maxY !== null) ok = ok && years <= maxY;
+      criteria.push([`업력(${years.toFixed(1)}년)`, ok]);
+    }
+  }
+
+  const region = elig.region;
+  if (region && region !== "any") {
+    const val = profile.region;
+    if (val === null || val === undefined) criteria.push(["지역", null]);
+    else criteria.push(["지역", region.includes(val)]);
+  }
+
+  const maxEmp = elig.max_employees;
+  const minEmp = elig.min_employees;
+  if ((maxEmp !== undefined && maxEmp !== null) || (minEmp !== undefined && minEmp !== null)) {
+    const emp = profile.employees;
+    if (emp === null || emp === undefined) {
+      criteria.push(["상시근로자수", null]);
+    } else {
+      let ok = true;
+      if (maxEmp !== undefined && maxEmp !== null) ok = ok && emp <= maxEmp;
+      if (minEmp !== undefined && minEmp !== null) ok = ok && emp >= minEmp;
+      criteria.push(["상시근로자수", ok]);
+    }
+  }
+
+  const maxRev = elig.max_annual_revenue_krw;
+  if (maxRev !== undefined && maxRev !== null) {
+    const rev = profile.annual_revenue_krw;
+    if (rev === null || rev === undefined) criteria.push(["매출액 기준", null]);
+    else criteria.push(["매출액 기준", rev <= maxRev]);
+  }
+
+  const ceoAgeMax = elig.ceo_age_max;
+  if (ceoAgeMax !== undefined && ceoAgeMax !== null) {
+    const ceoBirth = parseDateStr(profile.ceo_birth_date);
+    if (!ceoBirth) {
+      criteria.push(["대표자연령", null]);
+    } else {
+      const age = Math.floor(yearsSince(ceoBirth, refDate));
+      criteria.push([`대표자연령(${age}세)`, age <= ceoAgeMax]);
+    }
+  }
+
+  const requiredGender = elig.required_gender;
+  if (requiredGender && requiredGender !== "any") {
+    const val = profile.gender;
+    if (val === null || val === undefined) criteria.push(["성별", null]);
+    else criteria.push(["성별", val === requiredGender]);
+  }
+
+  if (elig.requires_career_interruption) {
+    const val = profile.career_interruption_status;
+    if (val === null || val === undefined) criteria.push(["경력단절 여부", null]);
+    else criteria.push(["경력단절 여부", Boolean(val)]);
+  }
+
+  const disqualificationRisks = [];
+  const flags = profile.disqualification_flags || [];
+  const exclusions = announcement.exclusion_conditions || [];
+  for (const flag of flags) {
+    for (const exclusion of exclusions) {
+      if (exclusion.includes(flag) || flag.includes(exclusion)) {
+        disqualificationRisks.push(`자기신고 항목 '${flag}' 이(가) 지원제외 조건 '${exclusion}'에 해당할 위험`);
+      }
+    }
+  }
+
+  const unverifiable = exclusions.filter((e) => ["체납", "중복", "휴업", "폐업", "수료"].some((k) => e.includes(k)));
+
+  return { criteria, disqualificationRisks, unverifiable };
+}
+
+function scoreCriteria(criteria) {
+  if (!criteria.length) return { score: 1.0, unresolved: [] };
+  let total = 0;
+  const unresolved = [];
+  for (const [name, result] of criteria) {
+    if (result === true) total += 1.0;
+    else if (result === false) total += 0.0;
+    else {
+      total += 0.5;
+      unresolved.push(name);
+    }
+  }
+  return { score: total / criteria.length, unresolved };
+}
+
+// ---------------------------------------------------------------------------
+// 문서명 fuzzy 매칭 (v0.5.2)
+// ---------------------------------------------------------------------------
+function normalizeWhitespace(name) {
+  if (!name) return "";
+  return name.replace(/\s+/g, "");
+}
+
+function normalizeDocNameForSynonym(name) {
+  if (!name) return "";
+  let s = name.replace(/[(（][^)）]*[)）]/g, "");
+  s = s.replace(/[[［][^\]］]*[\]］]/g, "");
+  s = s.replace(/\s+/g, "");
+  return s;
+}
+
+function docSynonymGroupId(normalizedName) {
+  for (let idx = 0; idx < DOCUMENT_NAME_SYNONYM_GROUPS.length; idx++) {
+    if (DOCUMENT_NAME_SYNONYM_GROUPS[idx].has(normalizedName)) return idx;
+  }
+  return null;
+}
+
+function matchDocumentStatus(requiredName, documentsStatus) {
+  if (Object.prototype.hasOwnProperty.call(documentsStatus, requiredName)) {
+    return { prepared: documentsStatus[requiredName], matchType: "exact", matchedKey: requiredName, reason: "원문 완전일치" };
+  }
+
+  const wsRequired = normalizeWhitespace(requiredName);
+  for (const key of Object.keys(documentsStatus)) {
+    if (normalizeWhitespace(key) === wsRequired) {
+      return { prepared: documentsStatus[key], matchType: "normalized", matchedKey: key, reason: `정규화(공백 제거) 후 완전일치: '${key}'` };
+    }
+  }
+
+  const synRequired = normalizeDocNameForSynonym(requiredName);
+  const requiredGroup = docSynonymGroupId(synRequired);
+  if (requiredGroup !== null) {
+    for (const key of Object.keys(documentsStatus)) {
+      if (docSynonymGroupId(normalizeDocNameForSynonym(key)) === requiredGroup) {
+        return { prepared: documentsStatus[key], matchType: "synonym", matchedKey: key, reason: `동의어 테이블 매칭(그룹 ${requiredGroup}): '${key}'` };
+      }
+    }
+  }
+
+  return {
+    prepared: false,
+    matchType: "unmatched",
+    matchedKey: null,
+    reason: "매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 (동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)",
+  };
+}
+
+function statusToBool(status, defaultVal) {
+  const s = (status || "").trim();
+  if (["준비됨", "파일 보유"].some((kw) => s.includes(kw))) return true;
+  if (["확인 필요", "미보유"].some((kw) => s.includes(kw))) return false;
+  return defaultVal;
+}
+
+function normalizeDocumentsStatus(value) {
+  if (!value || typeof value !== "object") return {};
+
+  if ("prepared_documents" in value || "not_prepared_or_needs_check" in value) {
+    const flat = {};
+    for (const entry of value.prepared_documents || []) {
+      if (entry.document_name) flat[entry.document_name] = statusToBool(entry.status || "", true);
+    }
+    for (const entry of value.not_prepared_or_needs_check || []) {
+      if (entry.document_name) flat[entry.document_name] = statusToBool(entry.status || "", false);
+    }
+    return flat;
+  }
+
+  const flat = {};
+  for (const [k, v] of Object.entries(value)) {
+    if (typeof v === "boolean") flat[k] = v;
+    else if (typeof v === "string") flat[k] = statusToBool(v, false);
+    else flat[k] = Boolean(v);
+  }
+  return flat;
+}
+
+// ---------------------------------------------------------------------------
+// 예산 정합성 (v0.4.0 / v0.5.3)
+// ---------------------------------------------------------------------------
+function extractBudgetItems(budgetDetail) {
+  const items = [];
+  if (Array.isArray(budgetDetail)) {
+    for (const b of budgetDetail) {
+      items.push({ category: b.category, item: b.item, amount_krw: b.amount_krw, fund_source: b.fund_source });
+    }
+  } else if (budgetDetail && typeof budgetDetail === "object") {
+    const phaseKeys = Object.keys(budgetDetail).filter((k) => k.startsWith("phase_")).sort();
+    for (const pk of phaseKeys) {
+      const phase = budgetDetail[pk];
+      if (!phase || typeof phase !== "object") continue;
+      for (const it of phase.items || []) {
+        items.push({ category: it.category, item: it.item, amount_krw: it.amount_krw, fund_source: it.fund_source });
+      }
+    }
+  }
+  return items;
+}
+
+function budgetTotal(budgetDetail, items) {
+  if (budgetDetail && typeof budgetDetail === "object" && !Array.isArray(budgetDetail) && typeof budgetDetail.total_krw === "number") {
+    return budgetDetail.total_krw;
+  }
+  items = items || extractBudgetItems(budgetDetail);
+  const amounts = items.map((i) => i.amount_krw).filter((a) => typeof a === "number");
+  return amounts.length ? amounts.reduce((a, b) => a + b, 0) : null;
+}
+
+function budgetSourceBreakdown(items) {
+  let gov = 0, selfAmt = 0, unresolved = 0, unresolvedCount = 0;
+  for (const it of items) {
+    const amt = it.amount_krw;
+    if (typeof amt !== "number") continue;
+    if (it.fund_source === "government") gov += amt;
+    else if (it.fund_source === "self") selfAmt += amt;
+    else { unresolved += amt; unresolvedCount += 1; }
+  }
+  return { confirmed_government_krw: gov, confirmed_self_krw: selfAmt, unresolved_krw: unresolved, unresolved_count: unresolvedCount };
+}
+
+function checkBudgetCompatibility(budgetDetail, budgetCriteria) {
+  const risks = [];
+  if (!budgetDetail || !budgetCriteria) return { risks, breakdown: null };
+
+  const items = extractBudgetItems(budgetDetail);
+  const total = budgetTotal(budgetDetail, items);
+  const maxGrant = budgetCriteria.max_grant_krw;
+  const src = budgetSourceBreakdown(items);
+
+  const breakdown = {
+    total_krw: total,
+    confirmed_government_krw: src.confirmed_government_krw,
+    confirmed_self_krw: src.confirmed_self_krw,
+    unresolved_krw: src.unresolved_krw,
+    unresolved_count: src.unresolved_count,
+    unresolved_note: null,
+  };
+
+  const governmentKrw = src.confirmed_government_krw;
+
+  if (typeof maxGrant === "number" && governmentKrw > maxGrant) {
+    risks.push(
+      `사업자 예산계획에서 fund_source='government'(정부지원분)로 명시된 항목 합계(${governmentKrw.toLocaleString("en-US")}원)만으로도 이 공고의 지원한도(${maxGrant.toLocaleString("en-US")}원)를 초과함 -> 총사업비(전체 ${(total || 0).toLocaleString("en-US")}원)가 아니라 정부지원분 단독 금액 기준으로도 초과이므로 예산 재조정 또는 지원한도 재확인이 필요`
+    );
+  } else if (typeof maxGrant === "number" && src.unresolved_count > 0) {
+    breakdown.unresolved_note =
+      `예산 항목 ${src.unresolved_count}건에 fund_source(정부지원분/자기부담분 구분)가 지정되지 않아 정부지원분 합계를 정확히 계산하지 못함(미구분 금액 ${src.unresolved_krw.toLocaleString("en-US")}원, 총사업비 ${(total || 0).toLocaleString("en-US")}원 중 일부, 확인된 정부지원분 ${governmentKrw.toLocaleString("en-US")}원/자기부담분 ${src.confirmed_self_krw.toLocaleString("en-US")}원). 총사업비가 지원한도(${maxGrant.toLocaleString("en-US")}원)를 넘더라도 자기부담분이 포함된 정상 구성일 수 있어 이 사실만으로 자동으로 위험 처리하지 않음 -> 정부지원분 단독 금액이 지원한도 이내인지 사람이 직접 확인 필요 (이 안내는 자동 판정(quality_gate/심사위원/감점전파)에 반영되지 않음, 참고 정보 전용)`;
+  }
+
+  const excludedCategories = budgetCriteria.excluded_categories || [];
+  if (excludedCategories.length) {
+    const conflicting = items.filter((it) => it.category && excludedCategories.some((ec) => it.category.includes(ec)));
+    if (conflicting.length) {
+      const descParts = conflicting.map((it) => `${it.category}-${it.item || "?"}(${fmtKrw(it.amount_krw)})`);
+      risks.push(
+        `사업자 예산계획에 이 공고가 지원 제외한다고 명시한 항목 카테고리가 포함됨: ${descParts.join("; ")} -> 해당 항목은 이 공고 지원금으로 집행 불가하므로 신청서에서 제외하거나 자기부담 재원으로 명시해야 함`
+      );
+    }
+  }
+
+  return { risks, breakdown };
+}
+
+// ---------------------------------------------------------------------------
+// STEP 4: 신청서 초안 작성 (draft formatting)
+//   웹앱에서는 항상 "구조화된 객체" 형태로 입력을 받으므로 Python의 oneOf(string|dict)
+//   포맷터 중 dict 경로만 포팅한다 — 실제 입력 스키마를 우리가 통제하기 때문.
+// ---------------------------------------------------------------------------
+function formatBusinessDescription(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  const parts = [];
+  if (value.brand_name) parts.push(`브랜드명: ${value.brand_name}` + (value.brand_meaning ? ` (${value.brand_meaning})` : ""));
+  if (value.business_item) parts.push(`사업 아이템: ${value.business_item}`);
+  if (value.description) parts.push(value.description);
+  if (value.target_customer) parts.push(`타겟 고객: ${value.target_customer}`);
+  if (value.core_problem) parts.push(`핵심 문제의식: ${value.core_problem}`);
+  const solution = value.solution_structure;
+  if (solution && typeof solution === "object") {
+    if (solution.program_steps && solution.program_steps.length) parts.push("프로그램 구성: " + solution.program_steps.join(" -> "));
+    if (solution.measurement_items && solution.measurement_items.length) parts.push("측정/관리 항목: " + join(solution.measurement_items));
+    if (solution.differentiation && solution.differentiation.length) parts.push("차별점: " + join(solution.differentiation, "; "));
+    if (solution.non_medical_boundary) parts.push(solution.non_medical_boundary);
+  }
+  if (value.initial_channels && value.initial_channels.length) parts.push("초기 고객 확보 채널: " + join(value.initial_channels));
+  return parts.join(" ");
+}
+
+function formatTeamExperience(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  const parts = [];
+  const founder = value.founder;
+  if (founder && typeof founder === "object") {
+    if (founder.role || founder.experience_summary) parts.push(`대표자(${founder.role || "대표"}): ${founder.experience_summary || ""}`.trim());
+    if (founder.certifications_and_training && founder.certifications_and_training.length) parts.push("보유 자격/교육: " + join(founder.certifications_and_training, "; "));
+    if (founder.work_experience && founder.work_experience.length) parts.push("실무 경력: " + join(founder.work_experience, "; "));
+    if (founder.execution_strength && founder.execution_strength.length) parts.push("실행 역량: " + join(founder.execution_strength, "; "));
+  }
+  const planned = value.planned_team || [];
+  if (planned.length) {
+    const lines = planned.map((p) => `${p.role || ""}(${p.status || ""}): ${p.responsibility || ""}`);
+    parts.push("채용/확보 예정 인력: " + join(lines, " / "));
+  }
+  const partners = value.partners_or_advisors || [];
+  if (partners.length) {
+    const lines = partners.map((p) => `${p.role || ""}(${p.status || ""}): ${p.purpose || ""}`);
+    parts.push("파트너/자문: " + join(lines, " / "));
+  }
+  return parts.join(" ");
+}
+
+function formatBudgetDetail(value) {
+  if (!value) return "";
+  if (Array.isArray(value)) {
+    const lines = value.map((b) => {
+      const item = b.item || "항목명 미상";
+      const amountStr = fmtKrw(b.amount_krw);
+      let line = `${item} ${amountStr}`;
+      if (b.note) line += `(${b.note})`;
+      return line;
+    });
+    return join(lines);
+  }
+  if (typeof value === "object") {
+    const parts = [];
+    if (value.budget_principle) parts.push(value.budget_principle);
+    const phaseKeys = Object.keys(value).filter((k) => k.startsWith("phase_")).sort();
+    for (const pk of phaseKeys) {
+      const phase = value[pk];
+      if (!phase || typeof phase !== "object") continue;
+      const title = phase.title || pk;
+      const items = phase.items || [];
+      const itemLines = items.map((it) => `${it.category || ""}-${it.item || ""} ${fmtKrw(it.amount_krw)}`);
+      const subtotalStr = typeof phase.subtotal_krw === "number" ? ` (소계 ${phase.subtotal_krw.toLocaleString("en-US")}원)` : "";
+      parts.push(`${title}${subtotalStr}: ` + join(itemLines, "; "));
+    }
+    if (typeof value.total_krw === "number") parts.push(`총 예산 ${value.total_krw.toLocaleString("en-US")}원`);
+    return parts.join(" ");
+  }
+  return String(value);
+}
+
+function formatExpectedOutcomes(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  const parts = [];
+  if (value.business_outputs && value.business_outputs.length) parts.push("산출물: " + join(value.business_outputs));
+  if (value.market_validation_goals && value.market_validation_goals.length) parts.push("시장검증 목표: " + join(value.market_validation_goals));
+  const rev = value.revenue_goals;
+  if (rev && typeof rev === "object") {
+    const bits = [];
+    if (rev.main_product) bits.push(`주력상품 ${rev.main_product}`);
+    if (rev.package_price_krw) bits.push(`단가 ${Number(rev.package_price_krw).toLocaleString("en-US")}원`);
+    if (rev.initial_customer_goal) bits.push(`목표고객 ${rev.initial_customer_goal}`);
+    if (rev.estimated_revenue_krw) bits.push(`예상매출 ${rev.estimated_revenue_krw}원`);
+    if (rev.calculation) bits.push(`산출근거: ${rev.calculation}`);
+    if (bits.length) parts.push("매출 목표: " + join(bits));
+  }
+  if (value.social_value && value.social_value.length) parts.push("사회적 가치: " + join(value.social_value, "; "));
+  if (value.long_term_outcomes && value.long_term_outcomes.length) parts.push("장기 성과: " + join(value.long_term_outcomes));
+  return parts.join(" ");
+}
+
+function draftApplication(profile, topMatch) {
+  if (!topMatch) return null;
+
+  // 주의(run.py 원본과 동일한 동작 재현): review_application()에 넘긴 ref_date는
+  // 자격심사(check_eligibility_and_disqualification)에만 쓰이고, 초안 문구의
+  // "업력"/"대표자 연령" 계산은 원본 draft_application()이 항상 실제 오늘 날짜
+  // (today())를 다시 호출해서 쓴다 — 두 값이 다를 수 있는 것은 포팅 버그가 아니라
+  // 원본 소스의 기존 동작이므로 그대로 재현한다.
+  const now = new Date();
+
+  const a = topMatch._raw;
+  const name = a.program_name;
+  const rubric = a.scoring_rubric || [];
+  const rubricStr = rubric.length ? rubric.map((r) => `${r.item}(${r.weight}점)`).join(", ") : "확인 필요(심사표 미확보)";
+
+  let years = null;
+  const founded = parseDateStr(profile.founded_date);
+  if (founded) years = Math.round(yearsSince(founded, now) * 10) / 10;
+
+  const budget = a.budget_criteria || {};
+  const maxGrant = budget.max_grant_krw;
+  const matchingRatio = budget.matching_fund_ratio;
+
+  const businessDescription = formatBusinessDescription(profile.business_description);
+  const teamExperience = formatTeamExperience(profile.team_experience);
+  const budgetDetailStr = formatBudgetDetail(profile.budget_detail);
+  const expectedOutcomes = formatExpectedOutcomes(profile.expected_outcomes);
+
+  let section2;
+  if (businessDescription) {
+    section2 = businessDescription;
+  } else {
+    section2 = "[확인 필요] 이 섹션은 실제 기술/사업 아이템에 대한 구체적 정보가 business_profile.business_description에 없어 채워지지 않았습니다. 실제 신청 전 대표자가 구체적 기술 내용, 문제의식, 차별점을 입력해야 합니다.";
+  }
+
+  let section3;
+  if (businessDescription || budgetDetailStr) {
+    const parts = [];
+    if (maxGrant) parts.push(`예산 상한 ${Number(maxGrant).toLocaleString("en-US")}원(자기부담률 ${pyRepr(matchingRatio)}) 기준 내에서 사업화를 추진합니다.`);
+    if (businessDescription) parts.push(`사업 아이템: ${businessDescription}`);
+    if (budgetDetailStr) parts.push(`예산 집행 계획: ${budgetDetailStr}`);
+    section3 = parts.join(" ");
+  } else {
+    section3 = "[확인 필요] business_profile.business_description과 budget_detail이 모두 없어 구체적 실행 계획(마일스톤, 일정, 담당인력)을 작성하지 못했습니다.";
+  }
+
+  let ceoAgeStr = null;
+  if (profile.ceo_birth_date) {
+    const b = parseDateStr(profile.ceo_birth_date);
+    if (b) ceoAgeStr = "만 " + Math.trunc(yearsSince(b, now)) + "세";
+  }
+  const certList = profile.certifications || [];
+  const certStr = Array.isArray(certList) ? join(certList) : String(certList || "");
+  let section4;
+  if (teamExperience) {
+    section4 = `대표자는 ${ceoAgeStr || "[확인 필요]"}이며, 보유 인증: ${certStr || "없음"}. ${teamExperience}`;
+  } else {
+    section4 = `대표자는 ${ceoAgeStr || "[확인 필요]"}이며, 보유 인증: ${certStr || "없음"}. [확인 필요] business_profile.team_experience가 없어 팀원 이력/역할은 작성되지 않았습니다.`;
+  }
+
+  let section5;
+  if (budgetDetailStr) {
+    section5 = `세부 예산 항목: ${budgetDetailStr}.`;
+  } else {
+    section5 = "[확인 필요] business_profile.budget_detail이 없어 세부 예산 항목(인건비/재료비/외주비 등) 배분을 작성하지 못했습니다.";
+  }
+
+  let section6;
+  if (expectedOutcomes) {
+    section6 = expectedOutcomes;
+  } else {
+    section6 = "[확인 필요] business_profile.expected_outcomes가 없어 매출/고용 증대 등 정량적 기대효과와 산출 근거를 작성하지 못했습니다.";
+  }
+
+  const documentsStatus = normalizeDocumentsStatus(profile.documents_status);
+  const requiredDocumentsChecklist = [];
+  const documentMatchNotes = [];
+  for (const d of a.required_documents || []) {
+    const { prepared, matchType, matchedKey, reason } = matchDocumentStatus(d, documentsStatus);
+    requiredDocumentsChecklist.push({ document: d, prepared: Boolean(prepared), match_type: matchType, matched_against: matchedKey });
+    if (matchType === "unmatched") documentMatchNotes.push(`'${d}': ${reason}`);
+    else if (matchType === "normalized" || matchType === "synonym") documentMatchNotes.push(`'${d}' -> '${matchedKey}' (${reason})`);
+  }
+
+  return {
+    program_name: name,
+    sections: {
+      "1_사업개요": `신청기업은 ${pyNoneOnly(pyGet(profile, "industry_code", "[업종 확인 필요]"))} 분야에서 ${years !== null ? years : "[확인 필요]"}년간 사업을 영위해온 ${pyNoneOnly(pyGet(profile, "biz_type", "[기업형태 확인 필요]"))}입니다. 소재지는 ${pyNoneOnly(pyGet(profile, "region", "[확인 필요]"))}이며, 상시근로자 ${pyNoneOnly(pyGet(profile, "employees", "[확인 필요]"))}명 규모입니다.`,
+      "2_신청동기_및_필요성": section2,
+      "3_사업화_계획": section3,
+      "4_팀_역량": section4,
+      "5_예산_계획": section5,
+      "6_기대효과": section6,
+    },
+    matched_scoring_rubric: rubricStr,
+    page_limit: (a.submission_format || {}).page_limit ?? null,
+    required_documents_checklist: requiredDocumentsChecklist,
+    document_match_notes: documentMatchNotes,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// PSST 자동검수
+// ---------------------------------------------------------------------------
+function hasMeasuredValue(text) {
+  return MEASURE_UNIT_RE.test(text || "");
+}
+
+function assessPsst(profile, draft) {
+  if (draft === null) {
+    const na = { result: "not_applicable", reason: "매칭된 사업이 없어 신청서 초안 자체가 없음 -> PSST 검수 대상 아님" };
+    return { problem: na, solution: na, support: na, traction: na };
+  }
+
+  const sections = draft.sections;
+  const section2 = sections["2_신청동기_및_필요성"] || "";
+  const section3 = sections["3_사업화_계획"] || "";
+  const section6 = sections["6_기대효과"] || "";
+
+  let problem;
+  if (section2.includes("[확인 필요]")) {
+    problem = { result: "fail", reason: "business_description이 없어 고객/현장 문제 서술 자체가 없음 (감성서사조차 없음)" };
+  } else if (!hasMeasuredValue(section2)) {
+    problem = { result: "fail", reason: "문제 서술은 있으나 시간/비용/오류 등 측정값(숫자+단위)이 발견되지 않음 -> 감성서사만 있고 측정값이 없는 상태로 판단" };
+  } else {
+    problem = { result: "pass", reason: "문제 서술에서 측정값(숫자+단위)을 확인함" };
+  }
+
+  const budgetDetailPresent = Boolean(profile.budget_detail);
+  let solution;
+  if (section3.includes("[확인 필요]")) {
+    solution = { result: "fail", reason: "business_description/budget_detail이 모두 없어 문제-기능 대응 관계를 확인할 근거 자체가 없음" };
+  } else if (!budgetDetailPresent) {
+    solution = { result: "fail", reason: "budget_detail(실행 계획/예산)이 없어 기능이 실제 실행 항목으로 연결되는지 확인 불가 -> 기능 나열만 있고 문제 대응 맵이 없는 상태로 판단" };
+  } else {
+    solution = { result: "pass", reason: "business_description과 budget_detail(실행 항목)이 함께 확인되어 문제-실행 연결 근거가 있음" };
+  }
+
+  const checklist = draft.required_documents_checklist || [];
+  const preparedCount = checklist.filter((d) => d.prepared).length;
+  let support;
+  if (!checklist.length) {
+    support = { result: "fail", reason: "required_documents_checklist 자체가 없어(공고 필수서류 미확보) 증빙 연결 여부를 확인할 수 없음" };
+  } else if (preparedCount === 0) {
+    support = { result: "fail", reason: `필수서류 ${checklist.length}건 중 준비완료로 확인된 서류가 0건 -> 사진·견적·실측·기존 데이터 등 증빙이 연결되지 않은 상태로 판단` };
+  } else {
+    support = { result: "pass", reason: `필수서류 ${checklist.length}건 중 ${preparedCount}건이 준비완료로 확인되어 증빙 연결 근거가 있음` };
+  }
+
+  let traction;
+  if (section6.includes("[확인 필요]")) {
+    traction = { result: "fail", reason: "expected_outcomes가 없어 기간 내 성과 측정 계획 자체가 없음" };
+  } else if (!hasMeasuredValue(section6)) {
+    traction = { result: "fail", reason: "기대효과 서술은 있으나 산출물/측정식/기준선을 나타내는 숫자+단위가 발견되지 않음" };
+  } else {
+    traction = { result: "pass", reason: "기대효과 서술에서 측정 가능한 목표 수치를 확인함" };
+  }
+
+  return { problem, solution, support, traction };
+}
+
+// ---------------------------------------------------------------------------
+// 8인 가상 심사위원
+// ---------------------------------------------------------------------------
+function runJudgePanel(draft, topMatch, psstReview, riskPhraseHits, budgetRisks) {
+  if (draft === null || topMatch === null) {
+    return { panel: [], immediate_warnings: ["매칭된 사업이 없어 심사위원 패널 평가 대상 자체가 없음"], warning_count: 0 };
+  }
+
+  const riskTypes = new Set(riskPhraseHits.map((h) => h.risk_type));
+  const unresolved = topMatch._unresolved_criteria || [];
+  const unprepared = (draft.required_documents_checklist || []).filter((d) => !d.prepared).map((d) => d.document);
+  const disqualificationRisks = topMatch.disqualification_risks || [];
+
+  function pf(passOk, passReason, failReason) {
+    return passOk ? [5, false, passReason] : [1, true, failReason];
+  }
+
+  const judgeScores = {};
+
+  judgeScores["공고적합성"] = pf(
+    !riskTypes.has("범위 과다"),
+    "공고 목적과 무관한 과도한 확장 서술 없음",
+    "위험표현 사전에서 '범위 과다'(예: 플랫폼으로 대박 확장) 유형 표현이 발견됨 -> 공고 목적과 무관한 확장 아이디어 혼입 위험"
+  );
+
+  judgeScores["자격규정"] = pf(
+    unresolved.length === 0 && unprepared.length === 0 && disqualificationRisks.length === 0,
+    "자격기준 미확정 항목, 미준비 서류, 결격 위험 모두 없음",
+    `자격기준 미확정 ${unresolved.length}건 / 미준비서류 ${unprepared.length}건 / 결격위험 ${disqualificationRisks.length}건 -> 서류 미확보 또는 확인 필요 방치 상태`
+  );
+
+  judgeScores["문제정의"] = pf(
+    psstReview.problem.result === "pass",
+    "문제정의(PSST-Problem) 검수 통과: 측정값 기반 문제 서술 확인",
+    "문제정의(PSST-Problem) 검수 미통과: " + psstReview.problem.reason
+  );
+
+  judgeScores["AI필요성"] = pf(
+    !Array.from(riskTypes).some((rt) => AI_EXAGGERATION_RISK_TYPES.has(rt)),
+    "'AI가 다 해준다'류 과장 표현 없음",
+    "위험표현 사전에서 과장/책임소재 불명 유형 표현이 발견됨 -> AI 필요성 서술이 과장으로 방어력 약화 위험"
+  );
+
+  judgeScores["실행계획"] = pf(
+    psstReview.solution.result === "pass",
+    "실행계획(PSST-Solution) 검수 통과: 실행 항목(budget_detail)과 연결 확인",
+    "실행계획(PSST-Solution) 검수 미통과: " + psstReview.solution.reason
+  );
+
+  judgeScores["예산증빙"] = pf(
+    budgetRisks.length === 0 && !riskTypes.has("자산취득성 위험"),
+    "예산 정합성 문제 및 장비구매성 위험표현 없음",
+    `예산 정합성 위험 ${budgetRisks.length}건 또는 '자산취득성 위험'(장비 구매) 표현 발견 -> 견적/집행근거 부족 위험`
+  );
+
+  judgeScores["성과확장"] = pf(
+    psstReview.traction.result === "pass",
+    "성과확장(PSST-Traction) 검수 통과: 측정 가능한 목표치 확인",
+    "성과확장(PSST-Traction) 검수 미통과: " + psstReview.traction.reason
+  );
+
+  const qaFail = psstReview.problem.result !== "pass" || psstReview.solution.result !== "pass";
+  judgeScores["발표QA"] = pf(
+    !qaFail,
+    "문제정의·실행계획 근거가 모두 확인되어 핵심 WHY 방어 근거 있음",
+    "문제정의 또는 실행계획(PSST) 근거 부족 -> 왜 지금/왜 이 방식인지 방어 불가 위험"
+  );
+
+  const panel = [];
+  const immediateWarnings = [];
+  for (const jd of JUDGE_DEFINITIONS) {
+    const [score, warning, reason] = judgeScores[jd.key];
+    let mapped = [];
+    if (jd.rubric_keywords.length) {
+      const rubric = topMatch._raw.scoring_rubric || [];
+      mapped = rubric.filter((item) => jd.rubric_keywords.some((kw) => item.item.includes(kw))).map((item) => `${item.item}(${item.weight}점)`);
+    }
+    panel.push({ judge: jd.name, key_question: jd.key_question, score, warning, reason, mapped_rubric_items: mapped });
+    if (warning) immediateWarnings.push(`${jd.name}: ${reason}`);
+  }
+
+  return { panel, immediate_warnings: immediateWarnings, warning_count: immediateWarnings.length };
+}
+
+// ---------------------------------------------------------------------------
+// 감점 전파 모델
+// ---------------------------------------------------------------------------
+function buildDeductionMap(profile, draft, psstReview, judgePanelReview, budgetRisks, unpreparedCount) {
+  if (draft === null) {
+    return { triggered_issues: [], note: "매칭된 사업이 없어 감점 전파 분석 대상 자체가 없음" };
+  }
+
+  const triggeredNames = [];
+
+  if (!profile.budget_detail || budgetRisks.length) triggeredNames.push("예산 근거 누락");
+  if (unpreparedCount > 0) triggeredNames.push("자격 증빙 미확보");
+  if (psstReview.problem.result === "fail") triggeredNames.push("작업시간 실측 없음");
+
+  const aiWarning = (judgePanelReview.panel || []).some((p) => p.judge === "AI 필요성 심사위원" && p.warning);
+  if (aiWarning) triggeredNames.push("AI 필요성 불명확");
+
+  if (psstReview.traction.result === "fail") triggeredNames.push("산출물 미정의");
+
+  const triggeredIssues = triggeredNames.map((name) => {
+    const entry = DEDUCTION_PROPAGATION_TABLE[name];
+    return { issue: name, direct_deduction: entry.direct, propagated_deductions: entry.propagated, interpretation: entry.interpretation };
+  });
+
+  return {
+    triggered_issues: triggeredIssues,
+    note: triggeredIssues.length
+      ? "감점전파는 quality_gate_result.overall_confidence를 다시 깎지 않는다. 이 이슈가 어느 항목까지 번지는지 설명하는 용도로만 사용한다."
+      : "감점전파 대상 이슈 없음 (예산/자격/문제정의/AI필요성/산출물 관련 트리거 모두 미해당)",
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 심사위원 모드 자기검수
+// ---------------------------------------------------------------------------
+function rubricCovered(itemText, fullText) {
+  if (RUBRIC_SKIP_ITEMS.some((skip) => itemText.includes(skip))) return null;
+
+  const tokens = itemText.split(/[\s·,()]+/).filter((t) => t && !RUBRIC_STOPWORDS.has(t));
+  if (!tokens.length) return true;
+
+  for (const t of tokens) {
+    let synonymHit = false;
+    for (const [base, syns] of Object.entries(RUBRIC_SYNONYMS)) {
+      if (t.includes(base)) {
+        synonymHit = true;
+        const variants = new Set([...syns, base]);
+        if (Array.from(variants).some((v) => fullText.includes(v))) return true;
+      }
+    }
+    if (!synonymHit && fullText.includes(t)) return true;
+  }
+  return false;
+}
+
+function judgeModeSelfReview(draft, topMatch, profile) {
+  const rejectionRisks = [];
+  let exaggerationFlags = [];
+  const unsupportedClaims = [];
+
+  if (draft === null) {
+    const naPsst = { result: "not_applicable", reason: "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님" };
+    return {
+      rejection_risks: ["매칭된 사업이 없어 초안 자체가 존재하지 않음 -> 심사 대상 아님"],
+      exaggeration_flags: [],
+      unsupported_claims: [],
+      overall_pass_recommendation: false,
+      psst_review: { problem: naPsst, solution: naPsst, support: naPsst, traction: naPsst },
+      judge_panel_review: { panel: [], immediate_warnings: ["매칭된 사업이 없어 심사위원 패널 평가 대상 자체가 없음"], warning_count: 0 },
+      deduction_map: { triggered_issues: [], note: "매칭된 사업이 없어 감점 전파 분석 대상 자체가 없음" },
+      budget_breakdown: null,
+      _unconfirmed_sections: [],
+      _unprepared_documents: [],
+    };
+  }
+
+  const a = topMatch._raw;
+  const fullText = Object.values(draft.sections).join(" ");
+
+  for (const word of EXAGGERATION_WORDS) {
+    if (fullText.includes(word)) exaggerationFlags.push(`과장 표현 '${word}' 사용 -> 근거 데이터 없이 사용 시 심사위원 신뢰도 감점 위험`);
+  }
+
+  const riskPhraseHits = scanRiskPhrases(fullText);
+  for (const hit of riskPhraseHits) exaggerationFlags.push(riskPhraseFlagText(hit));
+
+  if (!exaggerationFlags.length) exaggerationFlags.push("검토 완료: 명백한 과장 표현 없음 (단, 실제 제출 전 재검수 권장)");
+
+  const unconfirmedSections = Object.entries(draft.sections).filter(([, v]) => v.includes("[확인 필요]")).map(([k]) => k);
+  if (unconfirmedSections.length) {
+    unsupportedClaims.push(`다음 섹션은 구체적 근거 없이 템플릿으로만 채워짐 -> 제출 전 반드시 실제 데이터로 대체: ${unconfirmedSections.join(", ")}`);
+  } else {
+    unsupportedClaims.push("검토 완료: 템플릿 잔여 문구 없음 (모든 섹션이 실제 입력값으로 채워짐)");
+  }
+
+  const pageLimit = draft.page_limit;
+  if (pageLimit === null || pageLimit === undefined) {
+    rejectionRisks.push("페이지 제한 정보가 없어 분량 초과 여부를 검증할 수 없음 -> 원문 재확인 필요");
+  }
+
+  const rubric = a.scoring_rubric || [];
+  if (rubric.length) {
+    for (const r of rubric) {
+      const covered = rubricCovered(r.item, fullText);
+      if (covered === false) {
+        rejectionRisks.push(`심사배점 항목 '${r.item}'(${r.weight}점)이 초안에서 명확히 다뤄지지 않음 -> 배점 손실 위험`);
+      }
+    }
+  } else {
+    rejectionRisks.push("심사표(배점기준)를 원문에서 확보하지 못해 배점 대응 여부를 검증할 수 없음");
+  }
+
+  const unresolved = topMatch._unresolved_criteria || [];
+  if (unresolved.length) {
+    rejectionRisks.push(`다음 자격기준이 미확정 상태로 접수 시 서류심사에서 부적격 판정 위험: ${unresolved.join(", ")}`);
+  }
+
+  const unprepared = (draft.required_documents_checklist || []).filter((d) => !d.prepared).map((d) => d.document);
+  if (unprepared.length) {
+    rejectionRisks.push(`필수서류 ${unprepared.length}건이 아직 '준비완료'로 체크되지 않음: ${unprepared.join(", ")}`);
+  }
+
+  if (topMatch.disqualification_risks && topMatch.disqualification_risks.length) {
+    rejectionRisks.push("결격 위험이 이미 감지되었음: " + topMatch.disqualification_risks.join("; "));
+  }
+
+  const { risks: budgetRisks, breakdown: budgetBreakdown } = checkBudgetCompatibility(profile.budget_detail, a.budget_criteria || {});
+  rejectionRisks.push(...budgetRisks);
+
+  const psstReview = assessPsst(profile, draft);
+  const judgePanelReview = runJudgePanel(draft, topMatch, psstReview, riskPhraseHits, budgetRisks);
+  const deductionMap = buildDeductionMap(profile, draft, psstReview, judgePanelReview, budgetRisks, unprepared.length);
+
+  if (!rejectionRisks.length) {
+    rejectionRisks.push(
+      "검토 완료: 구조적/형식적 감점 요인 없음 (자격기준, 필수서류, 심사배점 커버리지, 페이지제한, 예산 정합성 모두 충족). 단, 이는 형식 요건 충족 여부만 확인한 것이며 내용의 설득력·기술적 타당성은 사람이 최종 검토해야 함"
+    );
+  }
+
+  const psstAllPass = Object.values(psstReview).every((v) => v.result === "pass");
+  const judgePanelClean = (judgePanelReview.warning_count || 0) === 0;
+
+  const overallPassRecommendation =
+    unprepared.length === 0 &&
+    unconfirmedSections.length === 0 &&
+    !(topMatch.disqualification_risks && topMatch.disqualification_risks.length) &&
+    pageLimit !== null && pageLimit !== undefined &&
+    psstAllPass &&
+    judgePanelClean;
+
+  return {
+    rejection_risks: rejectionRisks,
+    exaggeration_flags: exaggerationFlags,
+    unsupported_claims: unsupportedClaims,
+    overall_pass_recommendation: overallPassRecommendation,
+    psst_review: psstReview,
+    judge_panel_review: judgePanelReview,
+    deduction_map: deductionMap,
+    budget_breakdown: budgetBreakdown,
+    _unconfirmed_sections: unconfirmedSections,
+    _unprepared_documents: unprepared,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// QUALITY GATE
+// ---------------------------------------------------------------------------
+function applyQualityGate(matchedPrograms, judgeReview, draft) {
+  if (!matchedPrograms.length) {
+    return {
+      overall_confidence: 0.0,
+      confidence_threshold: CONFIDENCE_THRESHOLD,
+      confidence_passed: false,
+      judge_pass_recommendation: false,
+      lock_state: "DRAFT",
+      routed_to: "human_review",
+      reasons: ["매칭된 지원사업 없음 -> quality_gate/심사위원 검수 대상 자체가 없음"],
+    };
+  }
+
+  const top = matchedPrograms[0];
+  const baseConfidence = top.eligibility_confidence;
+
+  const realRisks = judgeReview.rejection_risks.filter((r) => !r.startsWith("검토 완료:"));
+  const penalty = 0.05 * Math.min(realRisks.length, 3);
+  const overallConfidence = Math.max(0, Math.round((baseConfidence - penalty) * 1000) / 1000);
+  const confidencePassed = overallConfidence >= CONFIDENCE_THRESHOLD;
+  const judgePassed = judgeReview.overall_pass_recommendation;
+
+  const reasons = [];
+
+  if (confidencePassed) {
+    reasons.push(`[통과] quality_gate(숫자 기준): overall_confidence(${pyRepr(overallConfidence)}) >= confidence_threshold(${pyRepr(CONFIDENCE_THRESHOLD)}) (base=${pyRepr(baseConfidence)}, 감점위험 ${realRisks.length}건 반영)`);
+  } else {
+    reasons.push(`[미통과] quality_gate(숫자 기준): overall_confidence(${pyRepr(overallConfidence)}) < confidence_threshold(${pyRepr(CONFIDENCE_THRESHOLD)}) (base=${pyRepr(baseConfidence)}, 감점위험 ${realRisks.length}건 반영)`);
+  }
+
+  if (judgePassed) {
+    reasons.push("[통과] 심사위원 모드(질적 기준): overall_pass_recommendation=true");
+  } else {
+    const detail = [];
+    const unconfirmed = judgeReview._unconfirmed_sections || [];
+    if (unconfirmed.length) detail.push(`'[확인 필요]' 표시가 남은 섹션 ${unconfirmed.length}개: ${unconfirmed.join(", ")}`);
+    const unprepared = judgeReview._unprepared_documents || [];
+    if (unprepared.length) detail.push(`필수서류 미준비 ${unprepared.length}건: ${unprepared.join(", ")}`);
+    if (top.disqualification_risks && top.disqualification_risks.length) detail.push("결격 위험 감지됨: " + top.disqualification_risks.join("; "));
+    const otherRisks = realRisks.filter((r) => !r.includes("'[확인 필요]'") && !r.includes("필수서류") && !r.includes("결격 위험"));
+    if (otherRisks.length) detail.push(`기타 감점 위험 ${otherRisks.length}건: ` + otherRisks.join(" | "));
+    const psstReview = judgeReview.psst_review || {};
+    const psstFails = Object.entries(psstReview).filter(([, v]) => v.result === "fail").map(([k]) => k);
+    if (psstFails.length) detail.push(`PSST 미통과 구간 ${psstFails.length}개: ${psstFails.join(", ")}`);
+    const judgePanelReview = judgeReview.judge_panel_review || {};
+    if ((judgePanelReview.warning_count || 0) > 0) {
+      detail.push(`8인 심사위원 즉시경고 ${judgePanelReview.warning_count}건: ` + (judgePanelReview.immediate_warnings || []).join(" | "));
+    }
+    reasons.push("[미통과] 심사위원 모드(질적 기준): overall_pass_recommendation=false - " + (detail.length ? detail.join("; ") : "구체 사유 확인 안됨(로직 점검 필요)"));
+  }
+
+  const lockState = confidencePassed && judgePassed ? "READY_FOR_APPROVAL" : "DRAFT";
+  const routedTo = lockState === "READY_FOR_APPROVAL" ? "auto_complete" : "human_review";
+
+  if (lockState === "DRAFT") {
+    reasons.push("최종 판정: quality_gate 통과 여부와 심사위원 overall_pass_recommendation을 모두 만족해야 READY_FOR_APPROVAL로 전환됨. 하나 이상 미충족이므로 DRAFT 유지, human_review로 라우팅.");
+  } else {
+    reasons.push("최종 판정: 숫자 기준과 질적 기준을 모두 만족하여 READY_FOR_APPROVAL로 전환됨.");
+  }
+
+  return {
+    overall_confidence: overallConfidence,
+    confidence_threshold: CONFIDENCE_THRESHOLD,
+    confidence_passed: confidencePassed,
+    judge_pass_recommendation: judgePassed,
+    lock_state: lockState,
+    routed_to: routedTo,
+    reasons,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 통합 진입점 (review_application 포팅)
+// ---------------------------------------------------------------------------
+function reviewApplication(businessProfile, announcement, refDate) {
+  refDate = refDate || new Date();
+
+  const { criteria, disqualificationRisks } = checkEligibilityAndDisqualification(businessProfile, announcement, refDate);
+  const { score, unresolved } = scoreCriteria(criteria);
+
+  const topMatch = {
+    program_name: announcement.program_name,
+    eligibility_confidence: Math.round(score * 100) / 100,
+    required_documents: announcement.required_documents || [],
+    deadline: announcement.deadline,
+    disqualification_risks: disqualificationRisks,
+    _raw: announcement,
+    _unresolved_criteria: unresolved,
+  };
+
+  const draft = draftApplication(businessProfile, topMatch);
+  const judgeReview = judgeModeSelfReview(draft, topMatch, businessProfile);
+  const qualityGateResult = applyQualityGate([topMatch], judgeReview, draft);
+
+  const judgeReviewPublic = {};
+  for (const [k, v] of Object.entries(judgeReview)) {
+    if (!k.startsWith("_")) judgeReviewPublic[k] = v;
+  }
+
+  return {
+    eligibility_criteria: criteria,
+    draft_application: draft,
+    judge_review: judgeReviewPublic,
+    quality_gate_result: qualityGateResult,
+    lock_state: qualityGateResult.lock_state,
+  };
+}
+
+// Node(테스트)/브라우저(실제 앱) 양쪽에서 쓸 수 있도록 export
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { reviewApplication, JUDGE_DEFINITIONS, RISK_PHRASE_DICTIONARY };
+}
+</script>
+<script>
+/* ============================================================================
+   앱 로직: 파일 업로드/OCR 자동인식, 폼 관리, 검토 실행, 결과 렌더링
+   (engine.js의 reviewApplication 등은 위쪽 <script>에서 이미 전역으로 로드됨)
+   ============================================================================ */
+
+// ---------------------------------------------------------------------------
+// 지역 목록
+// ---------------------------------------------------------------------------
+const REGIONS = [
+  "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
+  "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도",
+  "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도",
+  "경상남도", "제주특별자치도",
+];
+const REGION_SHORT_MAP = {
+  "서울": "서울특별시", "부산": "부산광역시", "대구": "대구광역시", "인천": "인천광역시",
+  "광주": "광주광역시", "대전": "대전광역시", "울산": "울산광역시", "세종": "세종특별자치시",
+  "경기": "경기도", "강원": "강원특별자치도", "충북": "충청북도", "충남": "충청남도",
+  "전북": "전북특별자치도", "전남": "전라남도", "경북": "경상북도", "경남": "경상남도",
+  "제주": "제주특별자치도",
+};
+
+(function populateRegionSelects() {
+  document.addEventListener("DOMContentLoaded", () => {
+    ["region", "elig_region_unused"].forEach(() => {}); // no-op placeholder
+    const regionSelect = document.getElementById("region");
+    REGIONS.forEach((r) => {
+      const opt = document.createElement("option");
+      opt.value = r;
+      opt.textContent = r;
+      regionSelect.appendChild(opt);
+    });
+  });
+})();
+
+// ---------------------------------------------------------------------------
+// 금액/날짜 등 정규식 기반 추정(best-effort) 헬퍼
+// ---------------------------------------------------------------------------
+function parseKrwAmount(str) {
+  if (!str) return null;
+  let s = String(str).replace(/[,\s]/g, "");
+  let total = 0;
+  let matched = false;
+  const eok = /(\d+(?:\.\d+)?)억/.exec(s);
+  if (eok) {
+    total += parseFloat(eok[1]) * 100000000;
+    matched = true;
+    s = s.replace(eok[0], "");
+  }
+  const man = /(\d+(?:\.\d+)?)만/.exec(s);
+  if (man) {
+    total += parseFloat(man[1]) * 10000;
+    matched = true;
+    s = s.replace(man[0], "");
+  }
+  if (!matched) {
+    const won = /(\d+(?:\.\d+)?)\s*원/.exec(s);
+    if (won) {
+      total = parseFloat(won[1]);
+      matched = true;
+    }
+  } else {
+    const rest = /(\d+(?:\.\d+)?)원/.exec(s);
+    if (rest) total += parseFloat(rest[1]);
+  }
+  return matched ? Math.round(total) : null;
+}
+
+function findDatesInText(text) {
+  const results = [];
+  const re1 = /(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/g;
+  const re2 = /(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/g;
+  let m;
+  while ((m = re1.exec(text))) {
+    results.push({ iso: `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`, index: m.index });
+  }
+  while ((m = re2.exec(text))) {
+    results.push({ iso: `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`, index: m.index });
+  }
+  return results.sort((a, b) => a.index - b.index);
+}
+
+function guessNearKeyword(text, keywords, windowSize) {
+  windowSize = windowSize || 60;
+  for (const kw of keywords) {
+    const idx = text.indexOf(kw);
+    if (idx !== -1) {
+      return text.slice(idx, Math.min(text.length, idx + kw.length + windowSize));
+    }
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// 공고문 텍스트 -> 필드 추정
+// ---------------------------------------------------------------------------
+function guessAnnouncementFields(text) {
+  const g = {};
+  if (!text) return g;
+
+  // 사업명: "OOO 사업" / "OOO 지원사업" 패턴을 가진 첫 줄
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (const line of lines.slice(0, 15)) {
+    if (/(사업|지원|프로그램|과제)/.test(line) && line.length >= 6 && line.length <= 60) {
+      g.program_name = line;
+      break;
+    }
+  }
+
+  // 마감일: "마감"/"접수기간"/"까지" 근처의 날짜, 없으면 텍스트 내 마지막 날짜
+  const deadlineCtx = guessNearKeyword(text, ["접수마감", "신청마감", "마감일", "접수기간", "신청기간"], 40);
+  const datesInCtx = deadlineCtx ? findDatesInText(deadlineCtx) : [];
+  const allDates = findDatesInText(text);
+  if (datesInCtx.length) g.deadline = datesInCtx[datesInCtx.length - 1].iso;
+  else if (allDates.length) g.deadline = allDates[allDates.length - 1].iso;
+
+  // 업력 조건: "업력 N년 이내/미만"
+  let m = /업력\s*(\d+(?:\.\d+)?)\s*년\s*(이내|미만|이하)/.exec(text);
+  if (m) g.max_years_since_founding = parseFloat(m[1]);
+  m = /창업\s*후\s*(\d+(?:\.\d+)?)\s*년/.exec(text);
+  if (m && g.max_years_since_founding === undefined) g.max_years_since_founding = parseFloat(m[1]);
+
+  // 상시근로자 상한: "상시근로자 N인 미만/이하"
+  m = /상시\s*근로자\s*(?:수)?\s*(\d+)\s*인?\s*(미만|이하)/.exec(text);
+  if (m) g.max_employees = parseInt(m[1], 10) - (m[2] === "미만" ? 1 : 0);
+
+  // 대표자 연령 상한: "만 N세 이하"
+  m = /만\s*(\d+)\s*세\s*(이하|미만)/.exec(text);
+  if (m) g.ceo_age_max = parseInt(m[1], 10);
+
+  // 지역 제한
+  const foundRegions = REGIONS.filter((r) => text.includes(r) || text.includes(r.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")));
+  if (foundRegions.length && foundRegions.length <= 3) g.region = foundRegions;
+
+  // 지원한도
+  const grantCtx = guessNearKeyword(text, ["지원한도", "지원금액", "최대 지원", "사업화자금 최대"], 30);
+  if (grantCtx) {
+    const amt = parseKrwAmount(grantCtx);
+    if (amt) g.max_grant_krw = amt;
+  }
+
+  // 자기부담비율
+  m = /자(?:기|부담금?)\s*부담\s*(?:비율)?\s*(\d+(?:\.\d+)?)\s*%/.exec(text);
+  if (m) g.matching_fund_ratio = Math.round((parseFloat(m[1]) / 100) * 100) / 100;
+
+  // 페이지 제한
+  m = /(\d+)\s*(?:page|페이지|쪽)\s*(?:이내|내외|이하)/i.exec(text);
+  if (m) g.page_limit = parseInt(m[1], 10);
+
+  // 필수서류: "제출서류"/"구비서류" 헤딩 이후 목록
+  const docHeadingIdx = text.search(/(제출\s*서류|구비\s*서류|첨부\s*서류)/);
+  if (docHeadingIdx !== -1) {
+    const chunk = text.slice(docHeadingIdx, docHeadingIdx + 800);
+    const docLines = chunk
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .filter((l) => !/^(제출|구비|첨부)\s*서류/.test(l))
+      .filter((l) => !l.startsWith("□")) // □는 이 표에서 새 상위 섹션을 뜻하므로 서류 항목에서 제외
+      .map((l) => l.replace(/^[-•·]\s*/, "").replace(/^\d+\.\s*/, ""))
+      .filter((l) => l.length >= 3 && l.length <= 40);
+    if (docLines.length) g.required_documents = docLines.slice(0, 15);
+  }
+
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// 사업자 서류 텍스트 -> 필드 추정
+// ---------------------------------------------------------------------------
+function guessProfileFields(text) {
+  const g = {};
+  if (!text) return g;
+
+  if (/법인사업자|법인등록번호/.test(text)) g.biz_type = "법인";
+  else if (/개인사업자/.test(text)) g.biz_type = "개인";
+
+  const foundedCtx = guessNearKeyword(text, ["개업연월일", "개업일자", "설립일", "사업자등록일"], 30);
+  const foundedDates = foundedCtx ? findDatesInText(foundedCtx) : [];
+  if (foundedDates.length) g.founded_date = foundedDates[0].iso;
+
+  const birthCtx = guessNearKeyword(text, ["생년월일"], 30);
+  const birthDates = birthCtx ? findDatesInText(birthCtx) : [];
+  if (birthDates.length) g.ceo_birth_date = birthDates[0].iso;
+
+  const foundRegion = REGIONS.find((r) => text.includes(r) || text.includes(r.replace(/(특별시|광역시|특별자치시|특별자치도|도)$/, "")));
+  if (foundRegion) g.region = foundRegion;
+  else {
+    for (const [short, full] of Object.entries(REGION_SHORT_MAP)) {
+      if (text.includes(short)) { g.region = full; break; }
+    }
+  }
+
+  let m = /상시\s*근로자\s*(?:수)?[:\s]*([0-9,]+)\s*명/.exec(text);
+  if (m) g.employees = parseInt(m[1].replace(/,/g, ""), 10);
+
+  m = /업종\s*코드[:\s]*([0-9]{4,6})/.exec(text);
+  if (m) g.industry_code = m[1];
+
+  const revCtx = guessNearKeyword(text, ["매출액", "연매출"], 30);
+  if (revCtx) {
+    const amt = parseKrwAmount(revCtx);
+    if (amt) g.annual_revenue_krw = amt;
+  }
+
+  return g;
+}
+
+// ---------------------------------------------------------------------------
+// 파일 -> 텍스트 추출 (PDF: pdf.js / 이미지: Tesseract.js)
+// ---------------------------------------------------------------------------
+async function waitForPdfjs() {
+  let tries = 0;
+  while (!window.__pdfjsLib && tries < 100) {
+    await new Promise((r) => setTimeout(r, 100));
+    tries++;
+  }
+  return window.__pdfjsLib;
+}
+
+async function extractTextFromPdf(file, onProgress) {
+  const pdfjsLib = await waitForPdfjs();
+  if (!pdfjsLib) throw new Error("pdf.js 로드 실패(인터넷 연결을 확인하세요)");
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let fullText = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    if (onProgress) onProgress(`PDF ${i}/${pdf.numPages} 페이지 텍스트 추출 중...`);
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map((it) => it.str).join(" ");
+    fullText += pageText + "\n";
+  }
+  // 텍스트 레이어가 거의 없는 스캔 PDF면(이미지로만 구성) 첫 페이지를 렌더링해 OCR로 보완
+  if (fullText.trim().length < 30) {
+    if (onProgress) onProgress("텍스트 레이어가 없는 스캔본으로 보여 OCR을 시도합니다...");
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 2.0 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const ocrText = await ocrCanvas(canvas, onProgress);
+    fullText += "\n" + ocrText;
+  }
+  return fullText;
+}
+
+async function ocrCanvas(canvasOrImage, onProgress) {
+  if (!window.Tesseract) throw new Error("Tesseract.js 로드 실패(인터넷 연결을 확인하세요)");
+  const result = await window.Tesseract.recognize(canvasOrImage, "kor+eng", {
+    logger: (msg) => {
+      if (onProgress && msg.status && typeof msg.progress === "number") {
+        onProgress(`OCR 진행 중 (${msg.status}) ${Math.round(msg.progress * 100)}%`);
+      }
+    },
+  });
+  return result.data.text;
+}
+
+async function extractTextFromImage(file, onProgress) {
+  return ocrCanvas(file, onProgress);
+}
+
+async function extractTextFromFile(file, onProgress) {
+  if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+    return extractTextFromPdf(file, onProgress);
+  }
+  return extractTextFromImage(file, onProgress);
+}
+
+async function extractTextFromFiles(fileList, onProgress) {
+  let combined = "";
+  const files = Array.from(fileList);
+  for (let i = 0; i < files.length; i++) {
+    if (onProgress) onProgress(`파일 ${i + 1}/${files.length} (${files[i].name}) 처리 중...`);
+    try {
+      const t = await extractTextFromFile(files[i], onProgress);
+      combined += `\n----- [${files[i].name}] -----\n` + t;
+    } catch (e) {
+      combined += `\n----- [${files[i].name}] 인식 실패: ${e.message} -----\n`;
+    }
+  }
+  return combined;
+}
+
+// ---------------------------------------------------------------------------
+// 폼에 추정값 채우기 (자동채움 표시, 사용자가 이미 입력한 값은 덮어쓰지 않음)
+// ---------------------------------------------------------------------------
+function fillIfEmpty(id, value) {
+  if (value === undefined || value === null || value === "") return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.value) return; // 이미 사용자가 입력한 값이 있으면 건드리지 않음
+  el.value = value;
+  el.classList.add("auto-filled");
+}
+
+function checkIfMatch(id, expectedValue) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (el.checked) return;
+  el.checked = Boolean(expectedValue);
+  if (expectedValue) el.classList.add("auto-filled");
+}
+
+function applyAnnouncementGuesses(g) {
+  fillIfEmpty("program_name", g.program_name);
+  fillIfEmpty("deadline", g.deadline);
+  if (g.max_years_since_founding !== undefined) fillIfEmpty("elig_max_years", g.max_years_since_founding);
+  if (g.max_employees !== undefined) fillIfEmpty("elig_max_employees", g.max_employees);
+  if (g.ceo_age_max !== undefined) fillIfEmpty("elig_ceo_age_max", g.ceo_age_max);
+  if (g.region) fillIfEmpty("elig_region", g.region.join(", "));
+  if (g.max_grant_krw) fillIfEmpty("max_grant_krw", g.max_grant_krw);
+  if (g.matching_fund_ratio !== undefined) fillIfEmpty("matching_fund_ratio", g.matching_fund_ratio);
+  if (g.page_limit) fillIfEmpty("page_limit", g.page_limit);
+  if (g.required_documents && g.required_documents.length) {
+    const el = document.getElementById("required_documents");
+    if (el && !el.value.trim()) {
+      el.value = g.required_documents.join("\n");
+      el.classList.add("auto-filled");
+    }
+  }
+}
+
+function applyProfileGuesses(g) {
+  fillIfEmpty("biz_type", g.biz_type);
+  fillIfEmpty("industry_code", g.industry_code);
+  fillIfEmpty("founded_date", g.founded_date);
+  fillIfEmpty("region", g.region);
+  fillIfEmpty("employees", g.employees);
+  fillIfEmpty("annual_revenue_krw", g.annual_revenue_krw);
+  fillIfEmpty("ceo_birth_date", g.ceo_birth_date);
+}
+
+// ---------------------------------------------------------------------------
+// 반복 행(예산/심사배점) 관리
+// ---------------------------------------------------------------------------
+function addBudgetRow(item, amount, fundSource) {
+  const container = document.getElementById("budgetRows");
+  const row = document.createElement("div");
+  row.className = "rrow";
+  row.innerHTML = `
+    <input type="text" placeholder="예산 항목명 (예: 재료비)" class="b-item" value="${item ? escapeAttr(item) : ""}">
+    <input type="number" placeholder="금액(원)" class="b-amount" value="${amount || ""}">
+    <select class="b-source">
+      <option value="">미정(확인 필요)</option>
+      <option value="government">정부지원분</option>
+      <option value="self">자기부담분</option>
+    </select>
+    <button type="button" class="del">✕</button>
+  `;
+  if (fundSource) row.querySelector(".b-source").value = fundSource;
+  row.querySelector(".del").addEventListener("click", () => row.remove());
+  container.appendChild(row);
+}
+
+function addRubricRow(item, weight) {
+  const container = document.getElementById("rubricRows");
+  const row = document.createElement("div");
+  row.className = "rrow two-col";
+  row.innerHTML = `
+    <input type="text" placeholder="심사항목명 (예: 사업성 및 시장성)" class="r-item" value="${item ? escapeAttr(item) : ""}">
+    <input type="number" placeholder="배점" class="r-weight" value="${weight || ""}">
+    <button type="button" class="del">✕</button>
+  `;
+  row.querySelector(".del").addEventListener("click", () => row.remove());
+  container.appendChild(row);
+}
+
+function escapeAttr(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+function escapeHtml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ---------------------------------------------------------------------------
+// 서류 체크리스트 동기화
+// ---------------------------------------------------------------------------
+function syncDocChecklist() {
+  const raw = document.getElementById("required_documents").value;
+  const docs = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const container = document.getElementById("docChecklist");
+  if (!docs.length) {
+    container.innerHTML = '<p style="color:var(--gray); font-size:13px;">아직 반영된 서류가 없습니다.</p>';
+    return;
+  }
+  const existing = {};
+  container.querySelectorAll(".doc-item").forEach((row) => {
+    const name = row.getAttribute("data-doc");
+    const sel = row.querySelector("select");
+    if (name && sel) existing[name] = sel.value;
+  });
+  container.innerHTML = "";
+  docs.forEach((doc) => {
+    const row = document.createElement("div");
+    row.className = "doc-item";
+    row.setAttribute("data-doc", doc);
+    row.innerHTML = `
+      <span>${escapeHtml(doc)}</span>
+      <select>
+        <option value="확인 필요">확인 필요 / 미보유</option>
+        <option value="준비됨">준비됨</option>
+      </select>
+    `;
+    if (existing[doc]) row.querySelector("select").value = existing[doc];
+    container.appendChild(row);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 폼 -> businessProfile / announcement 객체 조립
+// ---------------------------------------------------------------------------
+function csvOrAny(text) {
+  if (!text || !text.trim()) return "any";
+  return text.split(",").map((s) => s.trim()).filter(Boolean);
+}
+function singleOrAny(selectVal) {
+  if (!selectVal || selectVal === "any") return "any";
+  return [selectVal];
+}
+function numOrNull(id) {
+  const v = document.getElementById(id).value;
+  return v === "" ? null : Number(v);
+}
+function strOrNull(id) {
+  const v = document.getElementById(id).value.trim();
+  return v === "" ? null : v;
+}
+
+function buildBusinessProfile() {
+  const budgetItems = [];
+  document.querySelectorAll("#budgetRows .rrow").forEach((row) => {
+    const item = row.querySelector(".b-item").value.trim();
+    const amount = row.querySelector(".b-amount").value;
+    const source = row.querySelector(".b-source").value;
+    if (!item && !amount) return;
+    const entry = { item: item || "항목명 미상" };
+    if (amount !== "") entry.amount_krw = Number(amount);
+    if (source) entry.fund_source = source;
+    budgetItems.push(entry);
+  });
+
+  const documentsStatus = {};
+  document.querySelectorAll("#docChecklist .doc-item").forEach((row) => {
+    const name = row.getAttribute("data-doc");
+    const val = row.querySelector("select").value;
+    documentsStatus[name] = val === "준비됨";
+  });
+
+  const disqFlags = Array.from(document.querySelectorAll("#disqFlags input:checked")).map((el) => el.value);
+
+  const certifications = strOrNull("certifications");
+
+  return {
+    biz_type: strOrNull("biz_type"),
+    industry_code: strOrNull("industry_code"),
+    founded_date: strOrNull("founded_date"),
+    region: strOrNull("region"),
+    employees: numOrNull("employees"),
+    annual_revenue_krw: numOrNull("annual_revenue_krw"),
+    ceo_birth_date: strOrNull("ceo_birth_date"),
+    gender: strOrNull("gender"),
+    career_interruption_status: document.getElementById("career_interruption_status").checked,
+    disqualification_flags: disqFlags,
+    business_description: strOrNull("business_description"),
+    team_experience: strOrNull("team_experience"),
+    certifications: certifications ? certifications.split(",").map((s) => s.trim()).filter(Boolean) : [],
+    budget_detail: budgetItems.length ? budgetItems : null,
+    expected_outcomes: strOrNull("expected_outcomes"),
+    documents_status: documentsStatus,
+  };
+}
+
+function buildAnnouncement() {
+  const rubric = [];
+  document.querySelectorAll("#rubricRows .rrow").forEach((row) => {
+    const item = row.querySelector(".r-item").value.trim();
+    const weight = row.querySelector(".r-weight").value;
+    if (!item) return;
+    rubric.push({ item, weight: weight === "" ? 0 : Number(weight) });
+  });
+
+  const requiredDocs = document.getElementById("required_documents").value
+    .split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+
+  const exclusionConditions = document.getElementById("exclusion_conditions").value
+    .split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+
+  return {
+    program_name: strOrNull("program_name") || "이름 미상 공고",
+    deadline: strOrNull("deadline"),
+    eligibility: {
+      biz_type: singleOrAny(document.getElementById("elig_biz_type").value),
+      industry_codes: csvOrAny(document.getElementById("elig_industry_codes").value),
+      min_years_since_founding: numOrNull("elig_min_years"),
+      max_years_since_founding: numOrNull("elig_max_years"),
+      region: csvOrAny(document.getElementById("elig_region").value),
+      max_employees: numOrNull("elig_max_employees"),
+      min_employees: null,
+      max_annual_revenue_krw: numOrNull("elig_max_revenue"),
+      ceo_age_max: numOrNull("elig_ceo_age_max"),
+      required_gender: document.getElementById("elig_gender").value || "any",
+      requires_career_interruption: document.getElementById("elig_requires_career_interruption").checked,
+    },
+    exclusion_conditions: exclusionConditions,
+    required_documents: requiredDocs,
+    scoring_rubric: rubric,
+    budget_criteria: {
+      max_grant_krw: numOrNull("max_grant_krw"),
+      matching_fund_ratio: numOrNull("matching_fund_ratio"),
+      excluded_categories: csvOrAny(document.getElementById("excluded_categories").value) === "any" ? [] : csvOrAny(document.getElementById("excluded_categories").value),
+    },
+    submission_format: {
+      page_limit: numOrNull("page_limit"),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 결과 렌더링
+// ---------------------------------------------------------------------------
+function judgeBadge(pass) {
+  return pass ? '<span class="badge pass">통과</span>' : '<span class="badge fail">경고</span>';
+}
+
+function renderResults(result) {
+  const area = document.getElementById("resultArea");
+  const qg = result.quality_gate_result;
+  const jr = result.judge_review;
+  const draft = result.draft_application;
+
+  const bannerClass = result.lock_state === "READY_FOR_APPROVAL" ? "pass" : "draft";
+  const bannerLabel = result.lock_state === "READY_FOR_APPROVAL"
+    ? "✅ 제출 준비 완료 단계로 판단됨"
+    : "📝 아직 초안 단계 — 보완이 필요합니다";
+
+  let html = "";
+
+  html += `<div class="result-banner ${bannerClass}">
+    <div class="lock-state">${bannerLabel}</div>
+    <div class="confidence">종합 확신도 ${(qg.overall_confidence * 100).toFixed(0)}% (기준: ${(qg.confidence_threshold * 100).toFixed(0)}% 이상)</div>
+  </div>`;
+
+  html += `<div class="section-title">판정 이유</div>`;
+  qg.reasons.forEach((r) => {
+    const bad = r.startsWith("[미통과]");
+    html += `<div class="risk-item ${bad ? "bad" : "ok"}">${escapeHtml(r)}</div>`;
+  });
+
+  html += `<div class="section-title">PSST 자가진단 (문제·해결·근거·성과)</div>`;
+  html += `<div class="psst-grid">`;
+  const psstLabels = { problem: "문제(Problem)", solution: "해결(Solution)", support: "근거(Support)", traction: "성과(Traction)" };
+  for (const key of ["problem", "solution", "support", "traction"]) {
+    const p = jr.psst_review[key];
+    const pass = p.result === "pass";
+    html += `<div class="psst-card">
+      <div class="name">${psstLabels[key]} ${judgeBadge(pass)}</div>
+      <div>${escapeHtml(p.reason)}</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  html += `<div class="section-title">8인 심사위원 시뮬레이션 (경고 ${jr.judge_panel_review.warning_count}건)</div>`;
+  html += `<table class="judge-table"><thead><tr><th>심사위원</th><th>핵심 질문</th><th>판정</th><th>사유</th></tr></thead><tbody>`;
+  jr.judge_panel_review.panel.forEach((p) => {
+    html += `<tr>
+      <td>${escapeHtml(p.judge)}</td>
+      <td>${escapeHtml(p.key_question)}</td>
+      <td>${judgeBadge(!p.warning)}</td>
+      <td>${escapeHtml(p.reason)}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+
+  html += `<div class="section-title">거절 위험 요인</div>`;
+  jr.rejection_risks.forEach((r) => {
+    const ok = r.startsWith("검토 완료:");
+    html += `<div class="risk-item ${ok ? "ok" : "bad"}">${escapeHtml(r)}</div>`;
+  });
+
+  html += `<div class="section-title">과장 표현 점검</div>`;
+  jr.exaggeration_flags.forEach((r) => {
+    const ok = r.startsWith("검토 완료:");
+    html += `<div class="risk-item ${ok ? "ok" : "bad"}">${escapeHtml(r)}</div>`;
+  });
+
+  if (jr.budget_breakdown) {
+    const b = jr.budget_breakdown;
+    html += `<div class="section-title">예산 구성 (정부지원분 / 자기부담분)</div>`;
+    html += `<table class="budget-table"><tbody>
+      <tr><th>총 사업비</th><td>${b.total_krw != null ? b.total_krw.toLocaleString("en-US") + "원" : "미상"}</td></tr>
+      <tr><th>정부지원분(확인됨)</th><td>${b.confirmed_government_krw.toLocaleString("en-US")}원</td></tr>
+      <tr><th>자기부담분(확인됨)</th><td>${b.confirmed_self_krw.toLocaleString("en-US")}원</td></tr>
+      <tr><th>구분 미확인 금액</th><td>${b.unresolved_krw.toLocaleString("en-US")}원 (${b.unresolved_count}건)</td></tr>
+    </tbody></table>`;
+    if (b.unresolved_note) html += `<div class="note-box">ℹ️ ${escapeHtml(b.unresolved_note)}</div>`;
+  }
+
+  if (jr.deduction_map && jr.deduction_map.triggered_issues.length) {
+    html += `<div class="section-title">감점 전파 분석</div>`;
+    jr.deduction_map.triggered_issues.forEach((ti) => {
+      html += `<div class="risk-item bad"><b>${escapeHtml(ti.issue)}</b> — ${escapeHtml(ti.interpretation)}</div>`;
+    });
+    html += `<div class="note-box">${escapeHtml(jr.deduction_map.note)}</div>`;
+  }
+
+  if (draft) {
+    html += `<div class="section-title">신청서 초안 (자동 생성 — 반드시 다듬어서 사용하세요)</div>`;
+    const sectionLabels = {
+      "1_사업개요": "1. 사업개요",
+      "2_신청동기_및_필요성": "2. 신청동기 및 필요성",
+      "3_사업화_계획": "3. 사업화 계획",
+      "4_팀_역량": "4. 팀 역량",
+      "5_예산_계획": "5. 예산 계획",
+      "6_기대효과": "6. 기대효과",
+    };
+    Object.entries(draft.sections).forEach(([key, text]) => {
+      html += `<div class="draft-section"><h4>${sectionLabels[key] || key}</h4><p>${escapeHtml(text)}</p></div>`;
+    });
+
+    if (draft.document_match_notes && draft.document_match_notes.length) {
+      html += `<div class="note-box">서류명 자동 매칭 참고: ${draft.document_match_notes.map(escapeHtml).join(" / ")}</div>`;
+    }
+  }
+
+  area.innerHTML = html;
+  area.style.display = "block";
+  area.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ---------------------------------------------------------------------------
+// 이벤트 바인딩
+// ---------------------------------------------------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+  addBudgetRow();
+  addRubricRow();
+
+  document.getElementById("addBudgetRow").addEventListener("click", () => addBudgetRow());
+  document.getElementById("addRubricRow").addEventListener("click", () => addRubricRow());
+  document.getElementById("syncDocsBtn").addEventListener("click", syncDocChecklist);
+
+  document.getElementById("profileExtractBtn").addEventListener("click", async () => {
+    const files = document.getElementById("profileFiles").files;
+    if (!files.length) { alert("먼저 파일을 선택하세요."); return; }
+    const statusEl = document.getElementById("profileExtractStatus");
+    const btn = document.getElementById("profileExtractBtn");
+    btn.disabled = true;
+    try {
+      const text = await extractTextFromFiles(files, (msg) => { statusEl.textContent = msg; });
+      document.getElementById("profileRawText").value = text;
+      document.getElementById("profileRawToggle").style.display = "inline-block";
+      const guesses = guessProfileFields(text);
+      applyProfileGuesses(guesses);
+      statusEl.textContent = "인식 완료 — 자동으로 채운 항목(노란색)을 꼭 확인해주세요.";
+    } catch (e) {
+      statusEl.textContent = "인식 중 오류: " + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("annExtractBtn").addEventListener("click", async () => {
+    const files = document.getElementById("annFiles").files;
+    if (!files.length) { alert("먼저 파일을 선택하세요."); return; }
+    const statusEl = document.getElementById("annExtractStatus");
+    const btn = document.getElementById("annExtractBtn");
+    btn.disabled = true;
+    try {
+      const text = await extractTextFromFiles(files, (msg) => { statusEl.textContent = msg; });
+      document.getElementById("annRawText").value = text;
+      document.getElementById("annRawToggle").style.display = "inline-block";
+      const guesses = guessAnnouncementFields(text);
+      applyAnnouncementGuesses(guesses);
+      statusEl.textContent = "인식 완료 — 자동으로 채운 항목(노란색)을 꼭 확인해주세요.";
+    } catch (e) {
+      statusEl.textContent = "인식 중 오류: " + e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("profileRawToggle").addEventListener("click", () => {
+    document.getElementById("profileRawBox").classList.toggle("open");
+  });
+  document.getElementById("annRawToggle").addEventListener("click", () => {
+    document.getElementById("annRawBox").classList.toggle("open");
+  });
+
+  document.getElementById("reviewBtn").addEventListener("click", () => {
+    try {
+      const profile = buildBusinessProfile();
+      const announcement = buildAnnouncement();
+      const result = reviewApplication(profile, announcement, new Date());
+      renderResults(result);
+    } catch (e) {
+      alert("검토 중 오류가 발생했습니다: " + e.message + "\n입력값을 다시 확인해주세요.");
+      console.error(e);
+    }
+  });
+});
+</script>
+</body>
+</html>

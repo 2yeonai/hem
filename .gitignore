@@ -66,4 +66,14 @@ yarn-error.log*
 # Claude Code 로컬 전용 설정/캐시 (기기별, 공유 안 함)
 .claude/
 
-# Claude Code
+# Claude Code 세션/플러그인 캐시 부산물 (vault 콘텐츠 아님, 실수로 생성됨 - .audit-key 등 민감 데이터 포함 가능)
+# 2026-07-13 리오르그로 "1. Projects/" 하위로 이동됨 - 경로 갱신
+1. Projects/*/66ae7e14-bf57-4b90-8273-697998213497/
+1. Projects/*/833bf976-d4ba-4cef-b499-90407a612c9e/
+1. Projects/*/rpm/
+1. Projects/*/skills-plugin/
+
+# Python 가상환경/캐시 (실수로 vault 안에 생성됨, 용량 큼 - 절대 커밋하지 않음)
+.venv/
+__pycache__/
+*.pyc

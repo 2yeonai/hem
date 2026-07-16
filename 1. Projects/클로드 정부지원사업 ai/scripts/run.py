@@ -101,7 +101,9 @@ v0.5.2 변경사항 (문서명 fuzzy 매칭):
      읽는다. 실제 공고를 테스트하려면 두 번째 CLI 인자로 별도 announcements JSON 경로를 지정한다.
 """
 
+import glob
 import json
+import subprocess
 import sys
 import os
 import re
@@ -196,10 +198,55 @@ def log_failure(step, input_summary, error, confidence_at_failure=None):
 # ---------------------------------------------------------------------------
 # STEP 1: 공고문 수집 및 핵심 기준 추출
 # ---------------------------------------------------------------------------
+INBOX_DIR = SCRIPT_DIR / "inbox"
+
+
+def _find_latest_candidates_file(inbox_dir=None):
+    """scripts/inbox/candidates_*.json 중 파일명(=날짜) 기준 최신 파일 경로. 없으면 None."""
+    inbox_dir = inbox_dir or INBOX_DIR
+    matches = sorted(glob.glob(str(Path(inbox_dir) / "candidates_*.json")))
+    return Path(matches[-1]) if matches else None
+
+
+def _load_reviewed_candidates(candidates_path):
+    """candidate 카드 중 reviewed: true인 것만 반환. §18 판정1(2026-07-16, decision-log)
+    — 검수 게이트를 우회하지 않는 것이 최우선: reviewed가 true가 아닌 카드(false/누락 포함)는
+    이 함수가 절대 읽지 않는다(추측으로 통과시키지 않음)."""
+    with open(candidates_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+    all_candidates = payload.get("candidates", [])
+    return [c for c in all_candidates if c.get("reviewed") is True]
+
+
 def collect_and_extract_announcements(target_period, announcements_path=None):
-    path = announcements_path or (SCRIPT_DIR / "sample_announcements.json")
-    with open(path, "r", encoding="utf-8") as f:
-        raw = json.load(f)
+    """
+    §18 판정1(decision-log_skill-factory-architecture.md, 2026-07-16): 수집기(promote_candidates.py)
+    산출물과 매칭 파이프라인을 연결한다. 반환 시그니처(announcements: list, needs_confirmation: list)는
+    SKILL.md 유지보수 항목에 명시된 계약이라 절대 바꾸지 않는다 — 아래는 raw 소스만 바뀐다.
+
+    소스 선택 우선순위:
+      1) announcements_path가 명시적으로 전달된 경우 — 기존 동작 그대로(정적 파일을 그 경로에서
+         읽음). 회귀테스트/외부 호출측이 특정 공고 세트를 고정해서 쓰는 기존 계약을 깨지 않기 위해,
+         명시적 경로 지정 시에는 candidate 자동 조회를 하지 않는다(호출측이 이미 소스를 확정한 것).
+      2) announcements_path가 없는 기본 호출(운영 경로)일 때만: scripts/inbox/candidates_*.json 중
+         최신 파일을 찾고, 그 안에 reviewed:true인 카드가 1건이라도 있으면 그 카드들을 사용한다.
+      3) candidates 파일 자체가 없거나, 있어도 reviewed:true 카드가 하나도 없으면 —
+         기존 정적 파일(scripts/sample_announcements.json)로 폴백한다.
+    검수 게이트(§14 Q4)를 우회하지 않는다: reviewed:false/미기재 카드는 _load_reviewed_candidates()가
+    아예 읽지 않으므로 이 함수에도 절대 도달하지 않는다.
+    """
+    raw = None
+    if announcements_path is None:
+        latest_candidates_path = _find_latest_candidates_file()
+        if latest_candidates_path is not None:
+            reviewed_cards = _load_reviewed_candidates(latest_candidates_path)
+            if reviewed_cards:
+                raw = reviewed_cards
+
+    if raw is None:
+        path = announcements_path or (SCRIPT_DIR / "sample_announcements.json")
+        with open(path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
 
     extracted = []
     needs_confirmation = []
@@ -209,7 +256,7 @@ def collect_and_extract_announcements(target_period, announcements_path=None):
             missing_fields.append("required_documents")
         if not a.get("scoring_rubric"):
             missing_fields.append("scoring_rubric")
-        if a.get("submission_format", {}).get("page_limit") is None:
+        if (a.get("submission_format") or {}).get("page_limit") is None:
             missing_fields.append("page_limit")
 
         if a.get("source_note"):
@@ -943,6 +990,36 @@ def check_budget_compatibility(budget_detail, budget_criteria):
     return risks, breakdown
 
 
+# ---------------------------------------------------------------------------
+# decision-log §18 판정 3: "소제목 : 내용" 불릿 포맷
+#   출처: 강사방법론/작성_포맷_규칙.md — 실제 합격 사업계획서 3건에서 공통 확인된 표준 서식.
+#   "○ 소제목(3~10자) : 내용(1~3문장, 수치·근거 포함)" 불릿을 draft 섹션 텍스트의 기본형으로 쓴다.
+#   원 예시 파일(pdf/hwp)의 실제 문장은 베끼지 않는다 — 이 스킬의 기존 템플릿 문장 구조만
+#   불릿 형식으로 재배치한다(텍스트 내용 자체는 v0.5.x와 동일, 표현 형태만 변경).
+# ---------------------------------------------------------------------------
+def _bullet(subtitle, content):
+    """"○ 소제목 : 내용" 한 줄을 만든다. content가 비어있으면 None(호출측에서 걸러냄)."""
+    if not content:
+        return None
+    return f"○ {subtitle} : {content}"
+
+
+def _bullets_to_text(bullets):
+    """(subtitle, content) 튜플 리스트 또는 이미 만들어진 bullet 문자열 리스트 -> 줄바꿈으로 이어붙인 텍스트.
+    None 항목은 제외한다."""
+    lines = []
+    for b in bullets:
+        if b is None:
+            continue
+        if isinstance(b, tuple):
+            line = _bullet(b[0], b[1])
+            if line:
+                lines.append(line)
+        else:
+            lines.append(b)
+    return "\n".join(lines)
+
+
 def draft_application(profile, top_match):
     if not top_match:
         return None
@@ -968,28 +1045,33 @@ def draft_application(profile, top_match):
 
     # --- 2_신청동기_및_필요성 ---
     if business_description:
-        section2 = business_description
+        section2 = _bullets_to_text([("신청 동기", business_description)])
     else:
-        section2 = (
+        section2 = _bullet(
+            "확인 필요",
             "[확인 필요] 이 섹션은 실제 기술/사업 아이템에 대한 구체적 정보가 "
             "business_profile.business_description에 없어 채워지지 않았습니다. "
-            "실제 신청 전 대표자가 구체적 기술 내용, 문제의식, 차별점을 입력해야 합니다."
+            "실제 신청 전 대표자가 구체적 기술 내용, 문제의식, 차별점을 입력해야 합니다.",
         )
 
     # --- 3_사업화_계획: business_description(실행 맥락) + budget_detail(예산 기반 실행계획) 결합 ---
     if business_description or budget_detail_str:
-        parts = []
+        bullets3 = []
         if max_grant:
-            parts.append(f"예산 상한 {max_grant:,}원(자기부담률 {matching_ratio}) 기준 내에서 사업화를 추진합니다.")
+            bullets3.append((
+                "예산 상한",
+                f"{max_grant:,}원(자기부담률 {matching_ratio}) 기준 내에서 사업화를 추진합니다.",
+            ))
         if business_description:
-            parts.append(f"사업 아이템: {business_description}")
+            bullets3.append(("사업 아이템", business_description))
         if budget_detail_str:
-            parts.append(f"예산 집행 계획: {budget_detail_str}")
-        section3 = " ".join(parts)
+            bullets3.append(("예산 집행계획", budget_detail_str))
+        section3 = _bullets_to_text(bullets3)
     else:
-        section3 = (
+        section3 = _bullet(
+            "확인 필요",
             "[확인 필요] business_profile.business_description과 budget_detail이 모두 없어 "
-            "구체적 실행 계획(마일스톤, 일정, 담당인력)을 작성하지 못했습니다."
+            "구체적 실행 계획(마일스톤, 일정, 담당인력)을 작성하지 못했습니다.",
         )
 
     # --- 4_팀_역량 ---
@@ -998,34 +1080,37 @@ def draft_application(profile, top_match):
         ceo_age_str = "만 " + str(int(_years_since(parse_date(profile["ceo_birth_date"]), today()))) + "세"
     cert_list = profile.get("certifications", [])
     cert_str = _join(cert_list) if isinstance(cert_list, list) else str(cert_list or "")
+    bullets4 = [(
+        "대표자 정보",
+        f"대표자는 {ceo_age_str or '[확인 필요]'}이며, 보유 인증: {cert_str or '없음'}.",
+    )]
     if team_experience:
-        section4 = (
-            f"대표자는 {ceo_age_str or '[확인 필요]'}이며, 보유 인증: "
-            f"{cert_str or '없음'}. {team_experience}"
-        )
+        bullets4.append(("팀 역량", team_experience))
     else:
-        section4 = (
-            f"대표자는 {ceo_age_str or '[확인 필요]'}이며, 보유 인증: "
-            f"{cert_str or '없음'}. "
-            "[확인 필요] business_profile.team_experience가 없어 팀원 이력/역할은 작성되지 않았습니다."
-        )
+        bullets4.append((
+            "확인 필요",
+            "[확인 필요] business_profile.team_experience가 없어 팀원 이력/역할은 작성되지 않았습니다.",
+        ))
+    section4 = _bullets_to_text(bullets4)
 
     # --- 5_예산_계획 ---
     if budget_detail_str:
-        section5 = f"세부 예산 항목: {budget_detail_str}."
+        section5 = _bullets_to_text([("세부 예산", f"{budget_detail_str}.")])
     else:
-        section5 = (
+        section5 = _bullet(
+            "확인 필요",
             "[확인 필요] business_profile.budget_detail이 없어 세부 예산 항목(인건비/재료비/외주비 등) "
-            "배분을 작성하지 못했습니다."
+            "배분을 작성하지 못했습니다.",
         )
 
     # --- 6_기대효과 ---
     if expected_outcomes:
-        section6 = expected_outcomes
+        section6 = _bullets_to_text([("기대효과", expected_outcomes)])
     else:
-        section6 = (
+        section6 = _bullet(
+            "확인 필요",
             "[확인 필요] business_profile.expected_outcomes가 없어 매출/고용 증대 등 "
-            "정량적 기대효과와 산출 근거를 작성하지 못했습니다."
+            "정량적 기대효과와 산출 근거를 작성하지 못했습니다.",
         )
 
     # --- required_documents_checklist: documents_status(신/구 형태 모두)를 정규화해서 반영 ---
@@ -1049,12 +1134,19 @@ def draft_application(profile, top_match):
     draft = {
         "program_name": name,
         "sections": {
-            "1_사업개요": (
-                f"신청기업은 {profile.get('industry_code', '[업종 확인 필요]')} 분야에서 "
-                f"{years if years is not None else '[확인 필요]'}년간 사업을 영위해온 "
-                f"{profile.get('biz_type', '[기업형태 확인 필요]')}입니다. "
-                f"소재지는 {profile.get('region', '[확인 필요]')}이며, 상시근로자 {profile.get('employees', '[확인 필요]')}명 규모입니다."
-            ),
+            "1_사업개요": _bullets_to_text([
+                (
+                    "업력 및 형태",
+                    f"신청기업은 {profile.get('industry_code', '[업종 확인 필요]')} 분야에서 "
+                    f"{years if years is not None else '[확인 필요]'}년간 사업을 영위해온 "
+                    f"{profile.get('biz_type', '[기업형태 확인 필요]')}입니다.",
+                ),
+                (
+                    "소재지 규모",
+                    f"소재지는 {profile.get('region', '[확인 필요]')}이며, "
+                    f"상시근로자 {profile.get('employees', '[확인 필요]')}명 규모입니다.",
+                ),
+            ]),
             "2_신청동기_및_필요성": section2,
             "3_사업화_계획": section3,
             "4_팀_역량": section4,
@@ -1248,6 +1340,167 @@ JUDGE_DEFINITIONS = [
 _AI_EXAGGERATION_RISK_TYPES = {"과장", "과장·책임소재 불명", "책임위험"}
 
 
+# ---------------------------------------------------------------------------
+# decision-log §18 판정 2: 홍재우 9번째 심사위원
+#   출처: 강사방법론/홍재우_페르소나카드.md 판단기준 20개(v2, #1~14 코칭원문 + #15~24 강의기반).
+#   확정 규칙(강사방법론_추출.md, 페르소나카드 "판정 충돌 규칙"): 8인과 홍재우가 갈리면
+#   홍재우 기준. 이번 구현은 판단기준 20개 전부가 아니라 텍스트 스캔으로 근거 있게 판별
+#   가능한 핵심 5개만 휴리스틱으로 코드화한다(추측 구현 금지 원칙 — 나머지는 TODO로 남김).
+#
+#   구현한 5개:
+#     #3  문제->해결->AI 순서   : "AI"가 문제 정의 키워드보다 먼저 등장하는지 스캔
+#     #5  차별화 실체 없음      : 표면적 차별화 키워드(디자인/예쁨류) 스캔 -> 발견 시 부적격 후보
+#     #15 구체성 > 독창성       : 모호 표현 사전 스캔 (2종 이상이면 위반)
+#     #16 완료형 서술           : 미래형/추측형 표현 사전 스캔
+#     #19 경제성 최우선         : 수익모델/매출 관련 키워드 언급 여부
+#
+#   TODO(미구현 — 텍스트 스캔만으로 근거 있게 판별 불가능하거나, 판정로직 확장스펙에 이미
+#   있는 별도 서브시스템과 겹쳐 이 레이어에서 새로 만들 근거가 부족한 항목들. 확신 없는 판단
+#   기준은 코드화하지 않는다는 지시에 따라 스캔 구현을 보류함):
+#     #1  레드오션 감지         : "이미 성숙한 시장"인지는 외부 시장 데이터 없이는 텍스트만으로
+#                                판별 불가 (업종 분류/경쟁사 DB 연동 필요)
+#     #2  문제 주어 재정의      : "우리 고객이 겪는 문제" vs "기존 업체 서비스가 문제" 구분은
+#                                주어 파싱(구문 분석) 필요 — 키워드 스캔으로는 오탐 위험 큼
+#     #4  경쟁자 전수조사       : 실제 경쟁사 리스트가 업로드돼야 확인 가능한 항목, 텍스트 스캔 대상 아님
+#     #6  기술성=특허/구조/테스트: 특허출원 내역 등 증빙 문서 실물 확인이 필요 (#20과 동일 계열)
+#     #7  MVP 협약기간 현실성   : 협약기간 대비 기능 범위의 "현실성"은 숫자 비교가 아니라 판단 영역
+#     #8  MVP 핵심 4종 기준     : mo,on 한정 지정 항목이라 범용 스캔 규칙으로 일반화하지 않음
+#     #9  양대 고객군 편익 분리 : 이미 draft 구조(지불고객/최종사용자) 자체가 분리 서술을 강제하지
+#                                않아, 스캔만으로 "섞였는지"를 신뢰성 있게 판별하기 어려움
+#     #10 지불명분=운영비절감   : #19(경제성)과 근접하나 "운영비/고객불만 절감"이라는 인과 서술은
+#                                키워드 유무만으로 판별하면 오탐 위험 큼
+#     #11 위험표현 우회         : 이미 RISK_PHRASE_DICTIONARY(위 STEP1)가 유사 기능을 담당 — 중복 구현 안 함
+#     #12 개인정보 최소수집     : 문구 유무 스캔은 가능하나 이번 스코프 5개 안에 들지 않아 보류
+#     #13 효과 정량 검증        : assess_psst()의 traction 판정과 이미 겹침 — 중복 구현 안 함
+#     #14 신뢰지표 완결성       : 등급제/방어장치 존재 여부는 구조 판별이 필요해 스캔만으로 부족
+#     #17 정량화 우선           : assess_psst() 전반의 측정값 스캔(_has_measured_value)과 겹침
+#     #18 형식보다 문장         : 작업 2(포맷 반영)에서 구조적으로 이미 해결(불릿 형식 자체가 이 원칙)
+#     #20 증빙 문서 결정력      : 특허/인증/협약서 등 실제 첨부파일 존재 여부는 draft 텍스트만으론 확인 불가
+#     #21 협약기간 실현가능성   : #7과 동일 계열, 판단 영역
+#     #22 AI 산출물 각색 필수   : 사람의 재작성 행위 자체를 스캔으로 검증할 수 없음
+#     #23 자가판단 포기 금지    : 신청 여부 결정은 사람 영역, 텍스트 스캔 대상 아님
+#     #24 예산은 비중만         : 예산 "비율 요건 충족 여부"는 check_budget_compatibility()가
+#                                이미 담당 — 중복 구현 안 함
+#
+#   판정어 매핑(부적격/보류/문제의식 좋음/일단 합격(조건부)/잘 보완됨)은 페르소나카드에
+#   임계값이 명시돼 있지 않아, 이번 구현에서 "위반 개수" 기반으로 설계한 휴리스틱이다
+#   (#5 위반은 카드 원문이 "실체 없으면 부적격"이라 명시해 단독으로 부적격 확정, 그 외는
+#   위반 0/1/2/3+개수로 잘 보완됨/일단 합격(조건부)/문제의식 좋음/보류 순으로 대응) —
+#   이 임계값 자체는 Sonnet이 설계한 것이므로 추정치임을 명시해둔다.
+# ---------------------------------------------------------------------------
+_HONG_VAGUE_DIFFERENTIATION_PHRASES = [
+    "예쁜 디자인", "예쁘게", "귀여운 디자인", "트렌디한 디자인",
+    "감성적인 디자인", "보기 좋은 디자인", "디자인이 좋아서",
+]
+
+_HONG_VAGUE_EXPRESSIONS = [
+    "다양한", "차별화된", "혁신적인", "효율적으로", "최적화된", "다각도로", "폭넓게", "체계적으로",
+]
+
+_HONG_FUTURE_TENSE_PHRASES = [
+    "일지도 모릅니다", "할 예정입니다", "할 계획입니다", "될 것입니다",
+    "하려고 합니다", "할 것으로 기대", "할 수 있을 것",
+]
+
+_HONG_REVENUE_KEYWORDS = [
+    "매출", "수익모델", "판매가", "단가", "구독료", "결제", "가격", "수익",
+]
+
+_HONG_PROBLEM_KEYWORDS = ["문제", "불편", "애로", "한계", "어려움"]
+
+
+def _hong_jaewoo_verdict(violations):
+    """위반 목록 -> 판정어 5종. #5(차별화 실체 없음)은 카드 원문대로 단독 부적격.
+    그 외는 위반 개수 기반(이 임계값은 Sonnet 설계 추정치, 페르소나카드에 명시된 값 아님)."""
+    if "차별화 실체 없음" in violations:
+        return "부적격"
+    n = len(violations)
+    if n == 0:
+        return "잘 보완됨"
+    if n == 1:
+        return "일단 합격(조건부)"
+    if n == 2:
+        return "문제의식 좋음"
+    return "보류"
+
+
+def _run_hong_jaewoo_review(draft, top_match, psst_review):
+    """
+    9번째 심사위원(홍재우) 리뷰. 위 핵심 5개 판단기준만 텍스트 스캔으로 구현.
+    draft가 없으면(매칭 프로그램 없음) 검수 대상 아님으로 처리.
+    """
+    if draft is None:
+        return {
+            "verdict": "해당없음",
+            "violations": [],
+            "reasons": ["매칭된 사업이 없어 초안 자체가 없음 -> 홍재우 검수 대상 아님"],
+        }
+
+    full_text = " ".join(draft["sections"].values())
+    violations = []
+    reasons = []
+
+    # #5 차별화 실체 없음 -> 부적격 후보
+    if any(p in full_text for p in _HONG_VAGUE_DIFFERENTIATION_PHRASES):
+        violations.append("차별화 실체 없음")
+        reasons.append(
+            "홍재우 #5(차별화 실체): 표면적 차별화 표현(디자인/예쁨류)만 발견되고 구조적·기술적 "
+            "차별성 근거가 텍스트에서 확인되지 않음 -> 페르소나카드 원문상 실체 없으면 부적격"
+        )
+
+    # #15 구체성 > 독창성 (모호 표현 다수)
+    vague_hits = [w for w in _HONG_VAGUE_EXPRESSIONS if w in full_text]
+    if len(vague_hits) >= 2:
+        violations.append("구체성 부족(모호 표현 다수)")
+        reasons.append(
+            f"홍재우 #15(구체성>독창성): 모호 표현 {len(vague_hits)}종 발견({', '.join(vague_hits)}) "
+            "-> 서술이 구체적 수치/근거 대신 뭉뚱그려짐"
+        )
+
+    # #16 완료형 서술 (미래형/추측형 감지)
+    future_hits = [p for p in _HONG_FUTURE_TENSE_PHRASES if p in full_text]
+    if future_hits:
+        violations.append("미래형/추측형 서술")
+        reasons.append(
+            f"홍재우 #16(완료형 서술): 미래형/추측형 표현 발견({', '.join(future_hits)}) "
+            "-> 이미 준비/실행 중인 것처럼 완료형으로 재작성 필요"
+        )
+
+    # #19 경제성 최우선 (수익모델 언급 여부)
+    if not any(k in full_text for k in _HONG_REVENUE_KEYWORDS):
+        violations.append("수익모델 언급 없음")
+        reasons.append(
+            "홍재우 #19(경제성 최우선): 매출/단가/수익모델 등 경제성 관련 언급이 텍스트에서 "
+            "전혀 확인되지 않음 -> 공익 서사에만 머무를 위험"
+        )
+
+    # #3 문제->해결->AI 순서
+    ai_idx = full_text.find("AI")
+    problem_positions = [i for i in (full_text.find(k) for k in _HONG_PROBLEM_KEYWORDS) if i != -1]
+    problem_idx = min(problem_positions) if problem_positions else -1
+    if ai_idx != -1 and (problem_idx == -1 or ai_idx < problem_idx):
+        violations.append("문제 정의보다 AI 먼저 등장")
+        reasons.append(
+            "홍재우 #3(문제->해결->AI 순서): 'AI'가 문제 정의 키워드보다 먼저 등장하거나 문제 정의 "
+            "자체가 텍스트에서 확인되지 않음 -> AI를 앞세우지 말고 기존 서비스 문제부터 재정의할 것"
+        )
+
+    verdict = _hong_jaewoo_verdict(violations)
+    if not violations:
+        reasons.append("핵심 판단기준 5종(#3/#5/#15/#16/#19) 위반 없음")
+
+    return {"verdict": verdict, "violations": violations, "reasons": reasons}
+
+
+_HONG_SCORE_BY_VERDICT = {
+    "부적격": 1,
+    "보류": 1,
+    "문제의식 좋음": 3,
+    "일단 합격(조건부)": 4,
+    "잘 보완됨": 5,
+}
+
+
 def run_judge_panel(draft, top_match, psst_review, risk_phrase_hits, budget_risks):
     """
     8인 가상 심사위원 평가. 각 심사위원은 이미 계산된 구조적 신호(자격 미확정/미준비서류/
@@ -1259,6 +1512,8 @@ def run_judge_panel(draft, top_match, psst_review, risk_phrase_hits, budget_risk
             "panel": [],
             "immediate_warnings": ["매칭된 사업이 없어 심사위원 패널 평가 대상 자체가 없음"],
             "warning_count": 0,
+            "hong_jaewoo_verdict": "해당없음",
+            "hong_jaewoo_violations": [],
         }
 
     risk_types = {h["risk_type"] for h in risk_phrase_hits}
@@ -1345,10 +1600,31 @@ def run_judge_panel(draft, top_match, psst_review, risk_phrase_hits, budget_risk
         if warning:
             immediate_warnings.append(f"{jd['name']}: {reason}")
 
+    # decision-log §18 판정 2: 9번째 심사위원(홍재우) — 8인과 별개 레이어로 패널에 추가.
+    # 확정 규칙(페르소나카드): 홍재우가 부적격/보류를 내면 8인 결과와 무관하게 강제 실격
+    # (이 강제 로직은 run_judge_panel이 아니라 judge_mode_self_review에서 처리 — 거기서
+    # overall_pass_recommendation을 최종 계산하기 때문).
+    hong = _run_hong_jaewoo_review(draft, top_match, psst_review)
+    hong_warning = hong["verdict"] in ("부적격", "보류")
+    panel.append({
+        "judge": "홍재우 (9번째 심사위원)",
+        "key_question": "이 아이템이 애초에 붙을 그릇인가 (서사 설득력·차별화 실체)",
+        "score": _HONG_SCORE_BY_VERDICT.get(hong["verdict"], 1),
+        "warning": hong_warning,
+        "reason": "; ".join(hong["reasons"]) if hong["reasons"] else "특이사항 없음",
+        "mapped_rubric_items": [],
+        "verdict": hong["verdict"],
+        "violations": hong["violations"],
+    })
+    if hong_warning:
+        immediate_warnings.append(f"홍재우 (9번째 심사위원): {hong['verdict']} — " + "; ".join(hong["reasons"]))
+
     return {
         "panel": panel,
         "immediate_warnings": immediate_warnings,
         "warning_count": len(immediate_warnings),
+        "hong_jaewoo_verdict": hong["verdict"],
+        "hong_jaewoo_violations": hong["violations"],
     }
 
 
@@ -1586,6 +1862,14 @@ def judge_mode_self_review(draft, top_match, profile):
         profile, draft, psst_review, judge_panel_review, budget_risks, len(unprepared)
     )
 
+    # decision-log §18 판정 2 확정 규칙: 홍재우가 부적격/보류를 내면 8인 결과와 무관하게
+    # overall_pass_recommendation을 강제로 false로 만들고 사유를 명시한다.
+    hong_verdict = judge_panel_review.get("hong_jaewoo_verdict")
+    hong_forces_fail = hong_verdict in ("부적격", "보류")
+    if hong_forces_fail:
+        hong_reasons = "; ".join(judge_panel_review.get("hong_jaewoo_violations", [])) or "근거는 judge_panel_review.panel의 홍재우 항목 참고"
+        rejection_risks.append(f"홍재우: {hong_verdict} — {hong_reasons}")
+
     if not rejection_risks:
         rejection_risks.append("검토 완료: 구조적/형식적 감점 요인 없음 (자격기준, 필수서류, 심사배점 커버리지, 페이지제한, 예산 정합성 모두 충족). "
                                 "단, 이는 형식 요건 충족 여부만 확인한 것이며 내용의 설득력·기술적 타당성은 사람이 최종 검토해야 함")
@@ -1601,6 +1885,12 @@ def judge_mode_self_review(draft, top_match, profile):
         and psst_all_pass
         and judge_panel_clean
     )
+
+    # 강제 오버라이드: 홍재우 부적격/보류는 위 AND 결합 결과와 무관하게 항상 false로 덮어쓴다
+    # (judge_panel_clean 경로로 이미 대개 false가 되지만, "8인 결과와 무관하게 강제"라는
+    # 확정 규칙을 명시적으로 보장하기 위해 별도로 한 번 더 강제한다).
+    if hong_forces_fail:
+        overall_pass_recommendation = False
 
     return {
         "rejection_risks": rejection_risks,
@@ -2238,19 +2528,171 @@ def evaluate_presentation_run_if(requirements):
     return False, "발표평가 없음(서류만으로 선정) — stage 3~8 스킵"
 
 
+def _pdftotext_extract(path):
+    """pdftotext -layout <path> - 를 호출해 텍스트를 반환. 실패 시 예외를 그대로 올린다
+    (호출측이 render_error로 잡아서 정직하게 보고)."""
+    result = subprocess.run(
+        ["pdftotext", "-layout", str(path), "-"],
+        capture_output=True, timeout=30,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"pdftotext 실패(returncode={result.returncode}, path={path}): "
+            f"{result.stderr.decode('utf-8', errors='replace')[:300]}"
+        )
+    return result.stdout.decode("utf-8", errors="replace")
+
+
+def _load_submitted_application_text(ref_path):
+    """submitted_application_ref(사람이 지정한 실제 제출확정본 경로) -> 원문 텍스트.
+    ROOT_DIR 기준 상대경로도 허용한다. .pdf는 pdftotext, 그 외는 그대로 읽는다.
+    파일이 없으면 즉시 예외 — 추측으로 대체 텍스트를 만들지 않는다."""
+    p = Path(ref_path)
+    if not p.is_absolute():
+        p = ROOT_DIR / ref_path
+    if not p.exists():
+        raise FileNotFoundError(f"submitted_application_ref 파일을 찾을 수 없음: {p}")
+    if p.suffix.lower() == ".pdf":
+        return _pdftotext_extract(p)
+    return p.read_text(encoding="utf-8", errors="replace")
+
+
+# §18 판정4: PPT는 승인된 submitted_application_ref의 내용만 재구성한다(신규 창작 금지).
+# 아래 앵커는 이 스킬 폴더의 실제 제출/합격 사업계획서(gov-support-skill/ 소상공인 생활문화
+# 혁신지원 등)에서 공통으로 확인된 "구분/내용" 표의 좌측 항목명이다 — 임의 추정이 아니라
+# pdftotext -layout 실측(합격)소상공인_생활문화_혁신지원_참여소상공인사업계획서.pdf 등)으로
+# 확인한 표기. 다른 서식은 이 앵커가 매칭 안 될 수 있고, 그 경우 fallback_equal_split으로
+# 전환한다(구조 인식 실패를 성공으로 위장하지 않는다).
+PSST_SECTION_ANCHORS = [
+    ("제품·서비스 소개", r"제품\s*\(?\s*서비스\s*\)?\s*소개"),
+    ("사업 개요 및 필요성", r"사업\s*개요\s*및\s*필요성"),
+    ("사업 목표 및 추진방안", r"사업\s*목표\s*및\s*추진방안"),
+    ("추진전략", r"추진전략"),
+    ("사업비 집행계획", r"사업비[\s\S]{0,20}?집행계획"),
+    ("수행역량(참여인력)", r"참여인력[\s\S]{0,10}?현황\s*및\s*경험"),
+]
+
+
+def _split_submitted_text_into_slides(text, max_content_chars=450):
+    """submitted_application_ref 원문을 슬라이드 콘텐츠 단위로 분할한다.
+    PSST_SECTION_ANCHORS가 2개 이상 매칭되면 그 구간별로 원문을 그대로 자른다(요약은
+    길이 절단(truncate)뿐, 문장 재작성 없음). 2개 미만이면 구조 인식 실패로 보고
+    fallback_equal_split(원문을 5등분)으로 전환 — 이 경우도 원문 그대로, 새 문장을 짓지 않는다.
+    반환: (slides: [{"title","content"}], method: "psst_anchor_split"|"fallback_equal_split")"""
+    normalized = re.sub(r"\s+", " ", text or "").strip()
+    matches = []
+    for label, pattern in PSST_SECTION_ANCHORS:
+        m = re.search(pattern, normalized)
+        if m:
+            matches.append((m.start(), m.end(), label))
+    matches.sort(key=lambda t: t[0])
+
+    slides = []
+    if len(matches) >= 2:
+        method = "psst_anchor_split"
+        for i, (start, end, label) in enumerate(matches):
+            content_start = end
+            content_end = matches[i + 1][0] if i + 1 < len(matches) else len(normalized)
+            chunk = normalized[content_start:content_end].strip(" :·-")
+            if len(chunk) > max_content_chars:
+                chunk = chunk[:max_content_chars].rstrip() + " …(제출확정본 원문 일부 생략)"
+            slides.append({
+                "title": label,
+                "content": chunk or "[제출확정본에서 해당 구간 텍스트를 찾지 못함 — 확인 필요]",
+            })
+    else:
+        method = "fallback_equal_split"
+        chunk_count = 5
+        n = len(normalized)
+        step = max(1, n // chunk_count) if n else 0
+        for i in range(chunk_count):
+            start = i * step
+            end = n if i == chunk_count - 1 else min(n, (i + 1) * step)
+            if start >= n:
+                break
+            chunk = normalized[start:end].strip()
+            if len(chunk) > max_content_chars:
+                chunk = chunk[:max_content_chars].rstrip() + " …(생략)"
+            slides.append({
+                "title": f"제출확정본 발췌 {i + 1}",
+                "content": chunk or "[내용 없음]",
+            })
+        if not slides:
+            slides = [{"title": "제출확정본", "content": "[제출확정본 텍스트가 비어있음 — 확인 필요]"}]
+    return slides, method
+
+
+def _render_ppt_pptx(slides, out_path, title):
+    """python-pptx로 실제 .pptx 파일을 생성한다(pptx 스킬 권장 방식 중 하나 — 단순 텍스트
+    슬라이드라 python-pptx로 충분, pptxgenjs 전용 디자인 기능은 이 배선 단계에서 불필요).
+    실패하면 예외를 그대로 올린다 — 호출측(stage_ppt초안생성)이 render_error로 정직하게 기록."""
+    from pptx import Presentation  # 지연 임포트 — 이 모듈이 없어도 run.py의 다른 진입점은 영향 없음
+
+    prs = Presentation()
+    title_slide = prs.slides.add_slide(prs.slide_layouts[0])
+    title_slide.shapes.title.text = title
+    if len(title_slide.placeholders) > 1:
+        title_slide.placeholders[1].text = "발표자료 초안 — 제출확정본(submitted_application_ref) 재구성, 신규 창작 없음"
+
+    content_layout = prs.slide_layouts[1]
+    for item in slides:
+        slide = prs.slides.add_slide(content_layout)
+        slide.shapes.title.text = item["title"]
+        body = slide.placeholders[1].text_frame
+        body.text = item["content"]
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    prs.save(str(out_path))
+    return str(out_path)
+
+
 def stage_ppt초안생성(ctx):
-    """kind: model, tier: mid. 제출확정본+발표 배점표 -> 슬라이드 아웃라인.
-    known limitation: 실 LLM 미연동 — 규칙기반 목업(섹션 제목만 구조화, 본문은 자리표시)."""
+    """kind: model, tier: mid. §18 판정4(2026-07-16, decision-log): mock -> 실물 연결.
+    submitted_application_ref(승인된 실제 제출확정본)의 텍스트만 재구성해 슬라이드 아웃라인을
+    만들고, pptx 스킬(python-pptx)로 실제 .pptx 파일을 생성한다. 새로운 내용을 창작하지
+    않는다 — 원문 구간을 찾아 배치·길이 절단만 한다. 렌더링이 실패하면(도구/환경 문제)
+    삼키지 않고 render_error에 사유를 정직하게 남긴다."""
     req = ctx.get("presentation_requirements") or {}
-    outline = [
-        {"slide": 1, "title": "사업 개요", "content": "[목업] submitted_application_ref 참조 요약 필요 — 실 LLM 미연동"},
-        {"slide": 2, "title": "문제 정의 및 필요성", "content": "[목업]"},
-        {"slide": 3, "title": "실행 계획", "content": "[목업]"},
-        {"slide": 4, "title": "예산 계획", "content": "[목업]"},
-        {"slide": 5, "title": "기대 효과", "content": "[목업]"},
-    ]
+    submitted_ref = ctx.get("submitted_application_ref")
+    program_title = (ctx.get("selection_notice") or {}).get("program_name") or "발표자료 초안"
+
+    outline = []
+    method = None
+    pptx_path = None
+    render_error = None
+    try:
+        if not submitted_ref:
+            raise ValueError("submitted_application_ref가 ctx에 없음 — PPT 재구성 대상 텍스트가 없음")
+        text = _load_submitted_application_text(submitted_ref)
+        outline, method = _split_submitted_text_into_slides(text)
+
+        slide_limit = req.get("슬라이드_제한")
+        if isinstance(slide_limit, int) and slide_limit > 0:
+            # 표지(타이틀) 1장을 쓰므로 콘텐츠는 slide_limit-1장까지만 유지
+            max_content_slides = max(1, slide_limit - 1)
+            if len(outline) > max_content_slides:
+                outline = outline[:max_content_slides]
+
+        # stage_발표대본생성()이 s['slide']/s['title']로 outline을 순회한다(§17 판정2, 이번 작업
+        # 범위 밖이라 그 함수는 건드리지 않음) — 아래에서 "slide" 번호를 채워 하위호환을 유지한다.
+        for i, item in enumerate(outline, start=1):
+            item["slide"] = i
+
+        out_dir = ROOT_DIR / "test" / "ppt_output"
+        safe_name = re.sub(r"[^0-9A-Za-z가-힣_-]", "_", str(program_title))[:60]
+        ref_dt = (ctx.get("_ref_datetime") or "").replace(":", "")
+        pptx_path = out_dir / f"ppt_draft_{safe_name}_{ref_dt}.pptx"
+        _render_ppt_pptx(outline, pptx_path, program_title)
+    except Exception as exc:  # 렌더링/추출 실패는 승인 게이트에서 사람이 보게 기록만 하고 삼키지 않음
+        render_error = str(exc)
+        pptx_path = None
+
     return {
         "outline": outline,
+        "extraction_method": method,
+        "pptx_path": str(pptx_path) if pptx_path else None,
+        "render_error": render_error,
         "slide_limit_note": req.get("슬라이드_제한"),
         "approval_required": True,
         "approval": _new_presentation_approval_block(ctx.get("ppt_draft")),
@@ -2298,22 +2740,88 @@ def stage_발표대본생성(ctx):
     }
 
 
+# §18 판정4(2026-07-16, decision-log): QnA.pdf 실측(pdftotext, gov-support-skill/QnA.pdf,
+# 2026-07-16 §17 후속에서 이미 확인된 실측 그대로) 결과, 골든 레퍼런스는 "약점 하나당 질문
+# 하나"가 아니라 "5개 만능답변 템플릿에 실제 질문 여러 개를 매핑"하는 구조였다:
+#   1. 상품·차별성   2. 기술·검증   3. 시장·수요·판로   4. 예산·지원금   5. 실행·대표역량·모르는질문
+# (5번은 골든 문서에서도 "대표역량" 질문과 "모르는 질문"을 함께 묶은 catch-all이다.)
+#
+# 분류 근거: 이 스킬의 8인 가상 심사위원 카테고리(JUDGE_DEFINITIONS)를 위 5개 템플릿에
+# 매핑했다 — 새 판정 로직을 만들지 않고 기존 신호를 재사용하라는 §17 판정4 원칙을 그대로
+# 따른 것.
+#   문제정의/AI필요성      -> 1.상품·차별성   (무엇이 다른가/왜 이 방식인가는 상품 차별화 질문과 동형)
+#   실행계획               -> 2.기술·검증     (실행계획 심사위원의 질문 = "현실적인가/검증됐는가")
+#   성과확장/공고적합성     -> 3.시장·수요·판로 (성과·확장=시장에서 통하는가, 공고적합성=수요와 맞는가)
+#   예산증빙               -> 4.예산·지원금
+#   자격규정/발표QA/기타    -> 5.실행·대표역량·모르는질문 (골든 문서와 동일하게 catch-all로 둔다 —
+#                              자격·규정은 "그래서 누가 실행하는가"에 가깝고, 분류 근거가 약한
+#                              신호(needs_confirmation 등)를 억지로 1~4번에 끼워맞추지 않는다)
+QNA_TEMPLATES = [
+    {"id": 1, "label": "상품·차별성", "answer": "[목업] submitted_application_ref의 상품/차별성 서술을 요약해 채워야 함 — 실 LLM 미연동"},
+    {"id": 2, "label": "기술·검증", "answer": "[목업] submitted_application_ref의 실행계획/검증 방법 서술을 요약해 채워야 함 — 실 LLM 미연동"},
+    {"id": 3, "label": "시장·수요·판로", "answer": "[목업] submitted_application_ref의 시장/수요/판로 서술을 요약해 채워야 함 — 실 LLM 미연동"},
+    {"id": 4, "label": "예산·지원금", "answer": "[목업] submitted_application_ref의 예산 집행계획 서술을 요약해 채워야 함 — 실 LLM 미연동"},
+    {"id": 5, "label": "실행·대표역량·모르는질문", "answer": "[목업] submitted_application_ref의 대표 역량/실행 주체 서술을 요약해 채워야 함 — 실 LLM 미연동"},
+]
+
+_QNA_TEMPLATE_KEYWORD_MAP = [
+    (1, ("문제정의", "AI 필요성", "AI필요성", "차별")),
+    (2, ("실행계획",)),
+    (3, ("성과", "확장", "공고적합성", "시장", "판로", "수요")),
+    (4, ("예산", "증빙")),
+]
+
+
+def _classify_qna_template(source_label):
+    """source_label(주로 JUDGE_DEFINITIONS의 심사위원 이름/키) -> 템플릿 id(1~5).
+    매칭되는 키워드가 없으면 5번(실행·대표역량·모르는질문)으로 보낸다 — 골든 문서도 5번을
+    "대표역량 또는 모르는 질문" catch-all로 쓰므로, 근거 약한 신호를 억지로 1~4번에
+    끼워맞추지 않는 것이 §16 판정2("애매하면 자동으로 확정하지 않는다") 원칙과 일관된다."""
+    text = source_label or ""
+    for template_id, keywords in _QNA_TEMPLATE_KEYWORD_MAP:
+        if any(kw in text for kw in keywords):
+            return template_id
+    return 5
+
+
 def stage_예상qna생성(ctx, judge_review=None):
-    """kind: model, tier: high. 8인심사위원/감점전파/확인필요 목록을 질문 소재로
-    재사용한다 — 새 판정 로직을 만들지 않는다(§17 판정4). 적대적 심사위원 시뮬레이션."""
+    """kind: model, tier: high. §18 판정4: mock 구조를 "약점별 1문항"에서 골든 레퍼런스
+    실측 구조("5개 만능답변 템플릿 + 질문 매핑")로 재설계. 8인심사위원/과장플래그/확인필요
+    목록을 질문 소재로 재사용한다 — 새 판정 로직을 만들지 않는다(§17 판정4 원칙 유지)."""
     jr = judge_review or {}
-    weak_points = []
-    weak_points += (jr.get("judge_panel_review", {}) or {}).get("immediate_warnings", []) or []
-    weak_points += jr.get("exaggeration_flags", []) or []
-    weak_points += [f"{k} 확인 필요" for k in (ctx.get("needs_confirmation") or [])]
-    if not weak_points:
-        weak_points = ["[확인 필요 목록 없음 — 일반 질문만 생성]"]
-    qna = [
-        {"question": f"[목업] '{wp}'에 대해 어떻게 대응하시겠습니까?", "answer": "[목업] 실 LLM 미연동 — 답변 초안 생성 안 됨"}
-        for wp in weak_points
-    ]
+    weak_signals = []  # (question_source_text, source_label_for_classification)
+
+    panel = (jr.get("judge_panel_review", {}) or {}).get("panel", []) or []
+    for p in panel:
+        if p.get("warning"):
+            weak_signals.append((p.get("reason") or p.get("judge") or "", p.get("judge") or ""))
+
+    for flag in jr.get("exaggeration_flags", []) or []:
+        # 과장 표현은 "왜 그렇게 확신하는가/모르는 질문" 방어 성격이라 5번(대표역량·모르는질문)으로 분류
+        weak_signals.append((flag, "발표·Q&A 심사위원"))
+
+    for nc in ctx.get("needs_confirmation") or []:
+        weak_signals.append((f"{nc} 확인 필요", ""))
+
+    if not weak_signals:
+        weak_signals = [("[확인 필요 목록 없음 — 일반 질문만 생성]", "")]
+
+    templates_by_id = {t["id"]: {
+        "template_id": t["id"],
+        "label": t["label"],
+        "answer": t["answer"],
+        "mapped_questions": [],
+    } for t in QNA_TEMPLATES}
+
+    for question_source, source_label in weak_signals:
+        template_id = _classify_qna_template(source_label)
+        templates_by_id[template_id]["mapped_questions"].append(
+            f"[목업 질문] '{question_source}'에 대해 어떻게 대응하시겠습니까?"
+        )
+
+    qna_templates = [templates_by_id[t["id"]] for t in QNA_TEMPLATES]
     return {
-        "qna": qna,
+        "qna_templates": qna_templates,
         "approval_required": True,
         "approval": _new_presentation_approval_block(ctx.get("expected_qna")),
         "locked": False,

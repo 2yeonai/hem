@@ -1,0 +1,60 @@
+{
+  "collected_at": "2026-07-16T07:00:00",
+  "source": "bizinfo.go.kr (테스트용 가짜 데이터 — 실제 수집 아님)",
+  "schema_note": "promote_candidates.py 단독 테스트용 fixture. 실제 네트워크 수집 결과가 아니라 5건의 합성 공고(마감 지난 것 2건 포함, 3사업 프로필에 하나씩 걸리는 키워드 구성)입니다.",
+  "field_mapping_warnings": [],
+  "count": 5,
+  "announcements": [
+    {
+      "title": "2026년 화훼농가 경영환경개선 지원사업 공고",
+      "agency": "경상남도청",
+      "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0001",
+      "pblancId": "PBLN_TEST_0001",
+      "announcement_date": "2026-07-10",
+      "deadline": "2026-08-15",
+      "attachment_links": [
+        "https://www.bizinfo.go.kr/download/PBLN_TEST_0001_공고문.hwp"
+      ]
+    },
+    {
+      "title": "2026년 소독·방역업체 위생관리 시설개선 지원사업 공고",
+      "agency": "창녕군청",
+      "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0002",
+      "pblancId": "PBLN_TEST_0002",
+      "announcement_date": "2026-07-12",
+      "deadline": "2026-08-20",
+      "attachment_links": [
+        "https://www.bizinfo.go.kr/download/PBLN_TEST_0002_공고문.hwp"
+      ]
+    },
+    {
+      "title": "2026년 여성 소상공인 예비창업패키지 참가자 모집공고",
+      "agency": "중소벤처기업부",
+      "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0003",
+      "pblancId": "PBLN_TEST_0003",
+      "announcement_date": "2026-07-14",
+      "deadline": "2026-09-01",
+      "attachment_links": [
+        "https://www.bizinfo.go.kr/download/PBLN_TEST_0003_공고문.hwp"
+      ]
+    },
+    {
+      "title": "2026년 화훼단지 시설현대화 지원사업 공고 (마감)",
+      "agency": "경상남도청",
+      "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0004",
+      "pblancId": "PBLN_TEST_0004",
+      "announcement_date": "2026-05-20",
+      "deadline": "2026-06-30",
+      "attachment_links": []
+    },
+    {
+      "title": "2026년 청년창업 사관학교 모집공고",
+      "agency": "중소벤처기업부",
+      "url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0005",
+      "pblancId": "PBLN_TEST_0005",
+      "announcement_date": "2026-05-25",
+      "deadline": "2026-07-01",
+      "attachment_links": []
+    }
+  ]
+}

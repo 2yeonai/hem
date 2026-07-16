@@ -1,0 +1,30 @@
+{
+  "_purpose": "[합성 테스트-v0.5.0] 4번(AI필요성) 심사위원 대조군 — 구체적 AI 적용계획(과장 표현 없음) 입력. synthetic_ai_judge_exaggeration.json과 대조용.",
+  "business_profile": {
+    "biz_type": "법인",
+    "industry_code": "56194 (커피전문점)",
+    "founded_date": "2023-03-15",
+    "region": "서울특별시",
+    "annual_revenue_krw": 150000000,
+    "employees": 3,
+    "ceo_birth_date": "1990-05-20",
+    "disqualification_flags": [],
+    "business_description": "저희 카페는 직원이 주문당 평균 5분씩 소요하던 주문 접수 프로세스에 GPT 기반 챗봇을 도입해 반자동화하려 합니다. 챗봇이 1차 응대안을 제안하면 대표자가 최종 확인 후 확정하는 구조로 운영하며, 예약 알림도 발송 대기열에 넣은 뒤 담당자 승인 후 발송합니다.",
+    "team_experience": "대표자는 카페 운영 3년 경력을 보유하고 있습니다.",
+    "budget_detail": [
+      { "item": "AI 챗봇 솔루션 도입", "category": "AI 활용 도입", "amount_krw": 8000000, "note": "고객 문의 자동응대" },
+      { "item": "홍보 콘텐츠 제작", "category": "홍보비", "amount_krw": 3000000, "note": "AI 콘텐츠 활용 광고" }
+    ],
+    "expected_outcomes": "도입 후 고객 응대시간을 월 20시간 절감하고, 재방문율 15% 향상을 목표로 합니다.",
+    "documents_status": {
+      "사업신청서": true,
+      "사업계획서 (서식)": true,
+      "중소기업확인서(소상공인확인서)": true,
+      "사업자등록증": true,
+      "국세 납세증명서(개인, 법인)": true,
+      "지방세 납세증명서(개인, 법인)": true,
+      "부가가치과세표준증명(최근 3개년)": true
+    }
+  },
+  "target_period": { "start_date": "2026-06-01", "end_date": "2026-07-31" }
+}

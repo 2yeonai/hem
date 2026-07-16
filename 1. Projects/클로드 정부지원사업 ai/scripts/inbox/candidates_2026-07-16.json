@@ -1,0 +1,139 @@
+{
+  "generated_at": "2026-07-16T15:11:10",
+  "schema_note": "candidate 계층 — real_announcements.json과 동일한 필드명 사용, 본문 해석 필드는 전부 null(unresolved[] 참고). 사람 검수 게이트를 통과해야 정본(real_announcements.json)으로 병합됨(§14 Q4).",
+  "count": 3,
+  "per_profile_counts": {
+    "oncheon_flower": 1,
+    "daeryuk": 1,
+    "moon": 1
+  },
+  "candidates": [
+    {
+      "program_name": "2026년 화훼농가 경영환경개선 지원사업 공고",
+      "agency": "경상남도청",
+      "source_url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0001",
+      "source_note": "[자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "announcement_date": "2026-07-10",
+      "deadline": "2026-08-15",
+      "pblancId": "PBLN_TEST_0001",
+      "attachment_links": [
+        "https://www.bizinfo.go.kr/download/PBLN_TEST_0001_공고문.hwp"
+      ],
+      "matched_profiles": [
+        "oncheon_flower"
+      ],
+      "match_detail": {
+        "oncheon_flower": [
+          "화훼",
+          "경영환경개선"
+        ]
+      },
+      "collected_at": "2026-07-16T15:11:10",
+      "promoted_at": "2026-07-16T15:11:10",
+      "extraction_confidence": null,
+      "eligibility": null,
+      "exclusion_conditions": null,
+      "required_documents": null,
+      "required_documents_note": null,
+      "submission_format": null,
+      "budget_criteria": null,
+      "scoring_rubric": null,
+      "scoring_rubric_note": null,
+      "unresolved": [
+        "eligibility",
+        "exclusion_conditions",
+        "required_documents",
+        "required_documents_note",
+        "submission_format",
+        "budget_criteria",
+        "scoring_rubric",
+        "scoring_rubric_note",
+        "extraction_confidence"
+      ]
+    },
+    {
+      "program_name": "2026년 소독·방역업체 위생관리 시설개선 지원사업 공고",
+      "agency": "창녕군청",
+      "source_url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0002",
+      "source_note": "[자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "announcement_date": "2026-07-12",
+      "deadline": "2026-08-20",
+      "pblancId": "PBLN_TEST_0002",
+      "attachment_links": [
+        "https://www.bizinfo.go.kr/download/PBLN_TEST_0002_공고문.hwp"
+      ],
+      "matched_profiles": [
+        "daeryuk"
+      ],
+      "match_detail": {
+        "daeryuk": [
+          "소독·방역"
+        ]
+      },
+      "collected_at": "2026-07-16T15:11:10",
+      "promoted_at": "2026-07-16T15:11:10",
+      "extraction_confidence": null,
+      "eligibility": null,
+      "exclusion_conditions": null,
+      "required_documents": null,
+      "required_documents_note": null,
+      "submission_format": null,
+      "budget_criteria": null,
+      "scoring_rubric": null,
+      "scoring_rubric_note": null,
+      "unresolved": [
+        "eligibility",
+        "exclusion_conditions",
+        "required_documents",
+        "required_documents_note",
+        "submission_format",
+        "budget_criteria",
+        "scoring_rubric",
+        "scoring_rubric_note",
+        "extraction_confidence"
+      ]
+    },
+    {
+      "program_name": "2026년 여성 소상공인 예비창업패키지 참가자 모집공고",
+      "agency": "중소벤처기업부",
+      "source_url": "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=PBLN_TEST_0003",
+      "source_note": "[자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "announcement_date": "2026-07-14",
+      "deadline": "2026-09-01",
+      "pblancId": "PBLN_TEST_0003",
+      "attachment_links": [
+        "https://www.bizinfo.go.kr/download/PBLN_TEST_0003_공고문.hwp"
+      ],
+      "matched_profiles": [
+        "moon"
+      ],
+      "match_detail": {
+        "moon": [
+          "예비창업"
+        ]
+      },
+      "collected_at": "2026-07-16T15:11:10",
+      "promoted_at": "2026-07-16T15:11:10",
+      "extraction_confidence": null,
+      "eligibility": null,
+      "exclusion_conditions": null,
+      "required_documents": null,
+      "required_documents_note": null,
+      "submission_format": null,
+      "budget_criteria": null,
+      "scoring_rubric": null,
+      "scoring_rubric_note": null,
+      "unresolved": [
+        "eligibility",
+        "exclusion_conditions",
+        "required_documents",
+        "required_documents_note",
+        "submission_format",
+        "budget_criteria",
+        "scoring_rubric",
+        "scoring_rubric_note",
+        "extraction_confidence"
+      ]
+    }
+  ]
+}
