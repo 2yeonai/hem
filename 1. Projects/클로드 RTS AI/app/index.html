@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RTS 복습·실기 연습</title>
+<meta name="theme-color" content="#2f6fed">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="header">
+  <a href="#/home" class="logo">RTS</a>
+  <div class="searchbox">
+    <input type="search" id="searchInput" placeholder="검사·근육·테크닉 검색">
+  </div>
+</div>
+<div id="crumb" class="crumb"></div>
+<main id="app"></main>
+
+<nav class="navbar">
+  <a href="#/home" data-route="home"><span class="ic">🏠</span>홈</a>
+  <a href="#/assessments" data-route="assessments"><span class="ic">🩺</span>검사</a>
+  <a href="#/techniques" data-route="techniques"><span class="ic">✋</span>테크닉</a>
+  <a href="#/quiz" data-route="quiz"><span class="ic">📝</span>퀴즈</a>
+  <a href="#/review" data-route="review"><span class="ic">📌</span>오답노트</a>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>
