@@ -1,7 +1,7 @@
 ---
 tags: [꽃집, ai공장, 지침]
 created: 2026-07-14
-updated: 2026-07-16
+updated: 2026-07-17
 ---
 
 # HANDOFF — 클로드 꽃집 ai (온천꽃식물원 주문 자동화 파이프라인)
@@ -72,7 +72,7 @@ updated: 2026-07-16
 
 ## 아직 안 된 것 (알려진 한계)
 
-1. **kind:model 6개 전부 실 LLM 미연동**: order_classification_bot/order_split_bot(2026-07-07)에 이어 correction_bot(말귀봇)/order_draft_bot(주문정리봇)/ribbon_price_bot(리본상품금액봇)/review_manager_bot(검수매니저)도 2026-07-14에 규칙기반으로 구현됐지만, 6개 전부 여전히 실제 LLM 호출이 아니다(API 키 미연동). 각 파일 상단 docstring에 known limitation이 구체적으로 적혀 있다 — 위 표 참고.
+1. ~~**kind:model 6개 전부 실 LLM 미연동**~~ → **해결 (2026-07-17)**. 혜미가 새로 발급한 진짜 Anthropic API 키를 `code/.env`(gitignore 대상, 이 파일은 절대 커밋되지 않음)에 저장 후, 6개 model stage 전부(`order_classification_bot`/`order_split_bot`/`correction_bot`/`order_draft_bot`/`ribbon_price_bot`/`review_manager_bot`) `*_ENGINE`을 실제 Claude 호출 버전으로 교체 완료. 공통 호출부는 신규 `code/llm_client.py`(tier→모델명 매핑, .env 로더, JSON 파싱). 각 봇은 `_xxx_llm`(진짜 호출) + `_xxx_auto`(LLM 우선 시도, 실패 시 기존 규칙기반으로 자동 대체 — 안전망) 구조. **실측 확인**: `order_classification_bot`/`order_draft_bot` 단독 호출 테스트 통과(특히 order_draft_bot은 "이름 절대 추측 금지" 원칙을 실제로 지킴 — 코드 레벨 이중 안전망까지 확인), 러너로 전체 14 stage 파이프라인을 진짜 LLM으로 2회 실행해 전부 OK 확인(2회차는 LLM이 규칙기반보다 더 신중하게 판단해 split_status=확인필요/product 미확정으로 사람에게 넘긴 것도 관찰 — "애매하면 안 채운다" 원칙이 실제로 작동). 이 과정에서 만들어진 테스트용 파일(`flower_orders.json`, 러너 로그/상태)은 실데이터가 아니므로 정리함.
 2. **kind:human 1개 승인 UI 없음**: human_reviewer(사람 검수자) — 실제 검수 화면/버튼([검수저장]/[주문확정]/[출력준비]) 없음. run_pipeline.py는 데모 목적으로만 자동 통과시킴(실제 사람 승인 아님을 로그에 명시). 이번 작업(2026-07-14 model 4봇 구현)에서도 이 stage는 의도적으로 그대로 mock 유지.
 3. transcription_bot의 STT/OCR — 실 API 키 미연동, 항등(identity) 목업.
 4. sms_ledger_bot의 문자 발송 — 실 게이트웨이(알리고 등) 미연동, mock 항상 성공.
@@ -83,7 +83,10 @@ updated: 2026-07-16
 
 ## 다음 세션에서 이어받을 사람을 위한 시작점
 
-**지금 여기서부터 시작하면 됨**: kind:model 6개 전부 규칙기반 구현은 끝났으니, 다음 우선순위는 (a) 실제 Claude API 키를 연결해 6개 model stage를 하나씩 실 LLM 호출로 교체하는 것(각 파일의 `*_ENGINE` 변수 자리에 LLM 호출 함수만 갈아끼우면 되도록 이미 구조가 분리돼 있음 — 예: `correction_bot.CORRECTION_ENGINE = correct_text_llm`), 아니면 (b) human_reviewer 승인 UI(간단한 웹 폼도 가능)를 붙이는 것. golden_set.yaml 5개 케이스로 회귀 테스트하는 것을 잊지 말 것 — 특히 001(SMS)과 005/006(call_007)은 실제 LLM이 붙으면 지금의 규칙기반 결과와 달라지는 게 정상이니 "달라짐=버그"로 오판하지 않도록 주의(특히 order_draft_bot의 위치 휴리스틱이나 ribbon_price_bot의 단일 템플릿처럼, 지금 값은 어차피 규칙기반의 근사치일 뿐이다).
+**2026-07-17 갱신**: 위 우선순위 (a)(실 LLM 연동)는 완료됨(바로 위 "아직 안 된 것" 1번 참고). (b) human_reviewer 승인 UI도 같은 날 이어서 완료 — `webapp/app.py`(신규, Flask) 참고. **지금 여기서부터 시작하면 됨**: `webapp/DEPLOY_RENDER.md`를 따라 Render에 배포(혜미가 직접 계정 가입 필요)한 뒤 실사용 시작. 그 다음으로는 golden_set.yaml 5개 케이스 전체로 실 LLM 회귀 테스트를 돌려서 규칙기반 버전과 결과가 어떻게 달라지는지 표로 정리하는 것(001/005/006처럼 결과가 달라지는 건 정상이니 "달라짐=버그"로 오판하지 말 것 — 오히려 LLM이 규칙기반보다 더 신중하게 판단하는 사례를 이번에 이미 1건 관찰함).
+
+**꽃집 human_reviewer 승인 UI 실제 연결 완료 (2026-07-17)**: `webapp/app.py` 신설 — 휴대폰 브라우저에서 새 문의를 입력하면 `collection_bot`~`review_manager_bot`까지 실제로 실행해 검수 대기 목록에 올리고, 상세 화면에서 값을 확인/수정 후 승인을 누르면 `storage_bot`~`sms_ledger_bot`까지 실제로 실행하는 **진짜 동작하는 웹앱**(승인화면_프로토타입_v1.html은 정적 목업이었던 것과 다름). `code/` 폴더의 봇 파일은 한 글자도 안 고침(run_pipeline.py/flower_adapter.py와 동일한 sys.path 재사용 원칙). 로컬에서 실제 API 호출로 스모크 테스트 완료(대기 등록→상세 조회→승인→저장까지 전체 흐름 확인, 테스트 데이터는 정리함). Render 무료 서버 배포 가이드(`webapp/DEPLOY_RENDER.md`)까지 작성 — 계정 가입은 혜미가 직접 해야 하는 부분이라 남겨둠.
+알려진 한계(그대로 문서화): 다중 주문 감지 시 첫 세그먼트만 처리(flower_adapter.py 발견사항 3과 동일), 3단계 승인(검수저장/주문확정/출력준비) 대신 1단계로 단순화, 동시 접속 충돌 처리 없음(1인 운영 가정).
 
 그 다음으로는 리스크_메모_통화녹음_제3자동의.md의 법적 이슈를 정리하는 것도 우선순위 후보.
 

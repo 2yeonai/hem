@@ -34,8 +34,25 @@
 # =====================================================================
 
 name: flower-shop-order-skill
-version: 0.1.1
+version: 0.1.2
 domain: flower_shop
+
+# ---------------------------------------------------------------------
+# triggers - 2026-07-17 added. This section was entirely missing before
+# (confirmed by grep "^triggers:" -> 0 matches), which meant static
+# validation (runner.py --validate-only) could pass while actual execution
+# (runner.py ... --trigger event) always failed with "manifest에 type=event
+# 트리거가 없음" (flower_adapter.py 발견사항 1). Only one trigger exists for
+# this skill: a new incoming contact (call/kakao/sms/photo/manual) starts
+# the pipeline at collection_bot. There is no schedule-type trigger here
+# (no reminder-bot stage exists in this 14-stage list, unlike pest-control's
+# 리마인더봇) - only "event" is declared, matching the actual stage list.
+# ---------------------------------------------------------------------
+triggers:
+  - type: event
+    source: inquiry
+    entry_stage: collection_bot
+    note: "전화/카카오톡/문자/사진/수기 등으로 신규 주문 문의가 들어오면 즉시 시작"
 
 # ---------------------------------------------------------------------
 # io_contract - the skill's real identity (should not change even if
@@ -82,11 +99,24 @@ io_contract:
             message_result: { type: object, description: "Result of the completion SMS sent to the customer" }
 
 # ---------------------------------------------------------------------
-# model_routing - model names are forbidden, tier names only. tier is
-# declared ONLY here (not duplicated on stages, to avoid drift).
+# model_routing - model names are forbidden, tier names only.
 # Mapping used: haiku -> low_cost, sonnet -> mid, opus -> high
 # (converted from the haiku/sonnet labels already used in
 # 12bot_kind_bunryupyo.yaml)
+#
+# 2026-07-17 correction: this block used to be the ONLY place tier was
+# declared ("not duplicated on stages, to avoid drift"). Runner validation
+# (ai공장짓기/runner/runner.py static_validate()/normalize_tier()) reads
+# `stage.get("tier")` directly off each stage dict and has no knowledge of
+# this model_routing.stages block - so all 6 model stages failed static
+# validation with "model stage에 tier가 없음" (confirmed by running
+# runner.py --validate-only against this file, see flower_adapter.py's
+# 발견사항 1b for the full comparison against the pest-control manifest,
+# which does put tier directly on each stage and passes). Fixed by adding
+# `tier:` directly on each of the 6 model stages below (see each stage's
+# own 2026-07-17 comment) - this block stays as the source-of-truth
+# rationale/history, the per-stage tier is now the mechanical duplicate the
+# runner needs.
 # ---------------------------------------------------------------------
 model_routing:
   stages:
@@ -203,6 +233,9 @@ stages:
 
   - id: order_classification_bot
     kind: model
+    tier: mid   # 2026-07-17 추가: model_routing.stages와 중복되지만 러너 static_validate()가
+                # stage 딕셔너리에서 직접 tier를 찾아서(model_routing 블록은 모름) 러너 호환을 위해
+                # 여기에도 명시. model_routing.stages가 여전히 정본 근거(rationale) 출처.
     io: { reads: [stt_text, ocr_text, raw_text], writes: [order_classification] }
     check: { mode: self_check, schema_ref: "manifest.schema.v2.yaml#check_output_schema.self_check" }
     on_fail: { action: route_to_human }   # when order_classification == 확인필요
@@ -210,6 +243,7 @@ stages:
 
   - id: order_split_bot
     kind: model
+    tier: mid   # 2026-07-17 추가 (사유는 order_classification_bot의 tier 주석 참고)
     io: { reads: [stt_text, ocr_text, raw_text, order_classification], writes: [order_segments, split_status, bundle_id, bundle_sequence] }
     check: { mode: self_check, schema_ref: "manifest.schema.v2.yaml#check_output_schema.self_check" }
     on_fail: { action: route_to_human }   # when split_status == 확인필요
@@ -217,21 +251,25 @@ stages:
 
   - id: correction_bot
     kind: model
+    tier: mid   # 2026-07-17 추가 (사유는 order_classification_bot의 tier 주석 참고)
     io: { reads: [order_segments, stt_text, ocr_text], writes: [normalized_text, correction_log, candidates] }
     depends_on: [order_split_bot]
 
   - id: order_draft_bot
     kind: model
+    tier: low_cost   # 2026-07-17 추가 (사유는 order_classification_bot의 tier 주석 참고)
     io: { reads: [normalized_text], writes: [order_draft, field_confidence, field_sources, missing_fields] }
     depends_on: [correction_bot]
 
   - id: ribbon_price_bot
     kind: model
+    tier: low_cost   # 2026-07-17 추가 (사유는 order_classification_bot의 tier 주석 참고)
     io: { reads: [order_draft, normalized_text], writes: [ribbon_message_raw, ribbon_message_final, product_name, price, quantity] }
     depends_on: [order_draft_bot]
 
   - id: review_manager_bot
     kind: model
+    tier: mid   # 2026-07-17 추가 (사유는 order_classification_bot의 tier 주석 참고)
     io:
       reads: [order_draft, field_confidence, field_sources, missing_fields, candidates, ribbon_message_raw, ribbon_message_final, product_name, price, quantity, correction_log, split_status]
       writes: [review_checklist, review_priority, editable_fields]

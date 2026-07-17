@@ -52,6 +52,37 @@ order_draft_bot.py - 주문정리봇 (규칙기반 임시 버전)
 
 import re
 
+import llm_client
+
+_SYSTEM_PROMPT = """당신은 꽃집(온천꽃식물원) 주문 문자/통화의 정규화된 텍스트에서
+정형 필드를 뽑는 담당자입니다. 아래 필드를 채우세요:
+recipient_org, recipient_name, recipient_title, sender_org, sender_name, sender_title,
+event, amount_krw(정수, 원 단위), product, ribbon_phrase_raw.
+
+가장 중요한 절대 원칙 (반드시 지킬 것 - 실제 사고 이력이 있는 규칙입니다):
+- recipient_name과 sender_name은 **절대로 채우지 마세요. 항상 null로 남기세요.**
+  텍스트에 레이블 없이 한글 이름이 나열돼 있으면(예: "OOO OOO"), 어느 것이
+  수신자 이름이고 어느 것이 발신자 이름인지 순서를 안전하게 구분할 근거가 없습니다.
+  과거에 이 순서를 잘못 판단해 이름이 실제로 뒤바뀐 실사고가 있었습니다. 문맥상
+  "확실해 보여도" 절대 채우지 말고 missing_fields에 넣으세요.
+- ribbon_phrase_raw 후보가 2개 이상이면(예: "면접축하"와 "승진축하" 둘 다 등장)
+  어느 것이 맞는지 확정하지 말고 null로 남기세요.
+- 그 외 필드도 확신이 없으면 null + missing_fields로 남기고 지어내지 마세요.
+- 각 필드마다 field_confidence(0.0~1.0)와 field_sources(왜 그렇게 판단했는지 또는
+  왜 못 채웠는지 한 문장)를 반드시 채우세요.
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "order_draft": {"recipient_org": null|"...", "recipient_name": null, "recipient_title": null|"...",
+                   "sender_org": null|"...", "sender_name": null, "sender_title": null|"...",
+                   "event": null|"...", "amount_krw": null|<정수>, "product": null|"...",
+                   "ribbon_phrase_raw": null|"..."},
+  "field_confidence": {"<필드명>": <0.0~1.0>, ...},
+  "field_sources": {"<필드명>": "<판단 근거 또는 못 채운 이유>", ...},
+  "missing_fields": ["<채우지 못한 필드명>", ...]
+}
+"""
+
 _TITLE_PATTERN = re.compile(r"([가-힣]{1,4})\s*(면장|동장|이장|사장|대표|원장|과장|팀장|부장)")
 _ORG_PATTERN = re.compile(r"([가-힣]{2,10})\s*(군청|시청|구청|주민센터|면사무소|동사무소|협의회|건설|병원|학교|회사)")
 _DEPT_SUFFIX_PATTERN = re.compile(r"^\s*([가-힣]{2,6}과)")
@@ -232,10 +263,46 @@ def _draft_rule_based(text: str) -> dict:
     }
 
 
-# 실제로 쓰이는 구조화 엔진. 지금은 규칙기반. 나중에 LLM 버전을 만들면
-# order_draft_bot.DRAFT_ENGINE = draft_llm 처럼 이 이름만 바꿔치기하면
-# build_draft()를 포함해 이 파일을 쓰는 다른 코드는 손댈 필요가 없다.
-DRAFT_ENGINE = _draft_rule_based
+def _draft_llm(text: str) -> dict:
+    """2026-07-17 신설: 실제 Claude 호출 버전. manifest.yaml의 tier: low_cost 사용."""
+    result = llm_client.call_llm_json(
+        tier="low_cost",
+        system_prompt=_SYSTEM_PROMPT,
+        user_prompt=f"정규화된 텍스트:\n{text}",
+    )
+    draft = result.get("order_draft")
+    if not isinstance(draft, dict):
+        raise llm_client.LLMUnavailableError(f"order_draft 형식이 이상함: {draft!r}")
+    # 절대 원칙 재확인: 모델이 지시를 어기고 이름을 채웠어도 여기서 강제로 비운다
+    # (프롬프트만 믿지 않고 코드로도 한 번 더 막는 이중 안전망 - 실사고 이력이 있는 규칙이라 강화).
+    for name_field in ("recipient_name", "sender_name"):
+        if draft.get(name_field) is not None:
+            draft[name_field] = None
+            (result.setdefault("field_sources", {}))[name_field] = (
+                "이름 추출 시도 안 함(레이블 없는 한글 이름은 순서 신뢰 불가 - 확인 필요, "
+                "모델이 채우려 해도 코드에서 강제로 비움 - 이중 안전망)"
+            )
+    result.setdefault("field_confidence", {})
+    result.setdefault("field_sources", {})
+    missing = [f for f in FIELDS if draft.get(f) is None]
+    result["missing_fields"] = missing
+    result["order_draft"] = draft
+    return result
+
+
+def _draft_auto(text: str) -> dict:
+    """LLM 우선, 실패 시 규칙기반 자동 대체."""
+    try:
+        return _draft_llm(text)
+    except llm_client.LLMUnavailableError as e:
+        result = dict(_draft_rule_based(text))
+        result["field_sources"] = dict(result.get("field_sources") or {})
+        result["field_sources"]["_engine_note"] = f"LLM 호출 실패로 규칙기반 대체: {e}"
+        return result
+
+
+# 2026-07-17부터 LLM(Claude) 우선, 실패 시 규칙기반 자동 대체.
+DRAFT_ENGINE = _draft_auto
 
 
 def build_draft(normalized_text: str) -> dict:

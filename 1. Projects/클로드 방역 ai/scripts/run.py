@@ -32,6 +32,8 @@ except ImportError:
     print("[ERROR] pyyaml이 필요합니다: pip install pyyaml --break-system-packages")
     sys.exit(1)
 
+import llm_client  # 2026-07-17: 진짜 API 키 연결 후 신설 - 4개 model stage가 공용으로 사용
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SCRIPT_DIR.parent
 DEFAULT_MANIFEST = ROOT_DIR / "manifest.yaml"
@@ -182,11 +184,43 @@ def run_전사봇(ctx, stage):
     return "stt_text = raw_text (mock, 실제 STT 호출 없음)"
 
 
-def run_문의판정봇(ctx, stage):
-    text = ctx.get("stt_text", "") or ctx.get("raw_text", "")
+_INQUIRY_CLASSIFICATIONS = ["방역요청", "견적문의", "일반문의", "스팸무관", "확인필요"]
+
+_INQUIRY_SYSTEM_PROMPT = """당신은 경남 진주 지역 방역업체(방역&클린)의 문의 판정 담당자입니다.
+전화/문자 원문 1건을 보고 아래 5개 분류 중 정확히 하나로 판정하세요.
+
+- 방역요청: 실제로 방역/소독 방문을 원하는 의도가 명확함(바퀴벌레·해충·쥐·곰팡이 등 구체적 문제 + 방문 요청)
+- 견적문의: 방문 확정은 아니지만 가격/견적을 물어봄
+- 일반문의: 방역과 무관한 일반 문의(영업시간, 위치 등)
+- 스팸무관: 스팸이거나 방역과 완전히 무관함
+- 확인필요: 위 어디에도 자신 있게 넣기 애매함 - 확신이 없으면 반드시 이 값을 고르세요
+
+반드시 아래 JSON 형식으로만 답하세요:
+{"inquiry_classification": "<5개 중 하나>", "confidence": <0.0~1.0>, "reason": "<한 문장 이유>"}
+"""
+
+
+def _classify_inquiry_rule_based(text: str) -> str:
     keywords_pest = ["방역", "소독", "바퀴", "해충", "쥐", "곰팡이"]
-    ctx["inquiry_classification"] = "방역요청" if any(k in text for k in keywords_pest) else "일반문의"
-    return f"inquiry_classification={ctx['inquiry_classification']} (키워드 매칭 mock)"
+    return "방역요청" if any(k in text for k in keywords_pest) else "일반문의"
+
+
+def run_문의판정봇(ctx, stage):
+    """2026-07-17: 진짜 Claude 호출로 교체(manifest.yaml tier: sonnet). 실패 시 기존
+    키워드 매칭 mock으로 자동 대체 - 꽃집 스킬과 동일한 안전망 패턴."""
+    text = ctx.get("stt_text", "") or ctx.get("raw_text", "")
+    try:
+        result = llm_client.call_llm_json(
+            tier="sonnet", system_prompt=_INQUIRY_SYSTEM_PROMPT, user_prompt=f"원문:\n{text}"
+        )
+        classification = result.get("inquiry_classification")
+        if classification not in _INQUIRY_CLASSIFICATIONS:
+            raise llm_client.LLMUnavailableError(f"허용된 5개 분류 밖의 값: {classification!r}")
+        ctx["inquiry_classification"] = classification
+        return f"inquiry_classification={classification} (Claude 호출, confidence={result.get('confidence')}) - {result.get('reason')}"
+    except llm_client.LLMUnavailableError as e:
+        ctx["inquiry_classification"] = _classify_inquiry_rule_based(text)
+        return f"inquiry_classification={ctx['inquiry_classification']} (LLM 호출 실패로 키워드 매칭 mock 대체: {e})"
 
 
 def run_현장분리봇(ctx, stage):
@@ -195,30 +229,109 @@ def run_현장분리봇(ctx, stage):
     return "mock: 분리 없음(단일 현장으로 취급)"
 
 
+_CORRECTION_SYSTEM_PROMPT = """당신은 경남 진주 지역 방역업체(방역&클린)의 문의 원문 보정 담당자입니다.
+STT(음성인식) 오인식이나 진주 지역 사투리·구어체를 문맥으로 보정한 normalized_text를 만드세요.
+
+절대 원칙:
+- 의미가 바뀌지 않는 명백한 오류/사투리 표기만 반영하세요(예: 사투리 어미를 표준어로,
+  명백한 오인식을 문맥상 뜻이 분명한 단어로).
+- 조금이라도 확신이 안 서는 보정은 원문을 바꾸지 말고 그대로 두세요.
+- 원문에 없는 내용을 지어내지 마세요.
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "normalized_text": "<보정된 텍스트>",
+  "correction_log": [{"original": "...", "corrected": "...", "note": "..."}],
+  "reason": "<한 문장 이유>"
+}
+"""
+
+
 def run_보정봇(ctx, stage):
-    ctx["normalized_text"] = ctx.get("stt_text") or ctx.get("raw_text", "")
-    ctx["correction_log"] = []
-    return "normalized_text = stt_text 그대로 (mock)"
+    """2026-07-17: 진짜 Claude 호출로 교체(manifest.yaml tier: sonnet). 실패 시 기존
+    항등(identity) mock으로 자동 대체."""
+    text = ctx.get("stt_text") or ctx.get("raw_text", "")
+    try:
+        result = llm_client.call_llm_json(
+            tier="sonnet", system_prompt=_CORRECTION_SYSTEM_PROMPT, user_prompt=f"원문:\n{text}"
+        )
+        normalized = result.get("normalized_text")
+        if not isinstance(normalized, str):
+            raise llm_client.LLMUnavailableError(f"normalized_text 형식이 이상함: {normalized!r}")
+        ctx["normalized_text"] = normalized
+        ctx["correction_log"] = result.get("correction_log") or []
+        return f"normalized_text 보정 완료(Claude 호출, 보정 {len(ctx['correction_log'])}건) - {result.get('reason')}"
+    except llm_client.LLMUnavailableError as e:
+        ctx["normalized_text"] = text
+        ctx["correction_log"] = []
+        return f"normalized_text = stt_text 그대로 (LLM 호출 실패로 mock 대체: {e})"
+
+
+_INQUIRY_ORGANIZE_SYSTEM_PROMPT = """당신은 방역업체(방역&클린) 문의 정리 담당자입니다.
+정규화된 문의 원문에서 아래 필드를 채우세요:
+space_type(공간 유형, 예: 사무실/가정집/카페), visit_requested_date(방문 희망일,
+원문에 명시된 경우만, ISO 날짜 형식이 아니어도 원문 표현 그대로 가능),
+report_requested(방역 보고서 요청 여부, true/false),
+certificate_requested(소독증명서 요청 여부, true/false),
+followup_needed(후속 연락 필요 여부, true/false).
+
+절대 원칙: 원문에 명시되지 않은 값은 절대 채우지 마세요(null로 남기고
+missing_fields에 넣으세요). 특히 고객 이름(customer_name)은 이 stage가
+채우지 않습니다 - 전화/문자 발신자 정보로 별도 확보하는 값이라 원문 텍스트만으로
+추측하면 안 됩니다. 확신 없는 값을 지어내지 마세요.
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "space_type": null|"...",
+  "visit_requested_date": null|"...",
+  "report_requested": true|false,
+  "certificate_requested": true|false,
+  "followup_needed": true|false,
+  "field_confidence": {"<필드명>": <0.0~1.0>, ...},
+  "field_sources": {"<필드명>": "<근거 또는 못 채운 이유>", ...},
+  "missing_fields": ["<필드명>", ...]
+}
+"""
 
 
 def run_문의정리봇(ctx, stage):
+    """2026-07-17: 진짜 Claude 호출로 교체(manifest.yaml tier: haiku). customer_name은
+    이 stage가 원래부터 채우지 않는 설계라(전화/문자 발신자 정보로 별도 확보) 그대로
+    _input에서 pass-through. 실패 시 기존 mock(테스트용 _input 직접 복사)으로 대체."""
     text = ctx.get("normalized_text", "")
     inp = ctx["_input"]
     ctx["customer_name"] = inp.get("customer_name", "확인필요")
-    ctx["space_type"] = inp.get("space_type", "확인필요")
-    ctx["visit_requested_date"] = inp.get("visit_requested_date", "확인필요")
     ctx["request_note"] = text
-    report_wanted = ("보고서" in text) or bool(inp.get("report_requested"))
-    cert_wanted = ("증명서" in text) or bool(inp.get("certificate_requested"))
-    if not report_wanted and not cert_wanted and inp.get("document_requested"):
-        report_wanted = True
-    ctx["report_requested"] = report_wanted
-    ctx["certificate_requested"] = cert_wanted
-    ctx["followup_needed"] = bool(inp.get("followup_needed", False))
-    ctx["field_confidence"] = {"overall": 0.7}
-    ctx["field_sources"] = {}
-    ctx["missing_fields"] = []
-    return f"report_requested={report_wanted} certificate_requested={cert_wanted} (mock)"
+    try:
+        result = llm_client.call_llm_json(
+            tier="haiku", system_prompt=_INQUIRY_ORGANIZE_SYSTEM_PROMPT, user_prompt=f"정규화된 문의 원문:\n{text}"
+        )
+        ctx["space_type"] = result.get("space_type") or inp.get("space_type", "확인필요")
+        ctx["visit_requested_date"] = result.get("visit_requested_date") or inp.get("visit_requested_date", "확인필요")
+        ctx["report_requested"] = bool(result.get("report_requested"))
+        ctx["certificate_requested"] = bool(result.get("certificate_requested"))
+        ctx["followup_needed"] = bool(result.get("followup_needed"))
+        ctx["field_confidence"] = result.get("field_confidence") or {}
+        ctx["field_sources"] = result.get("field_sources") or {}
+        ctx["missing_fields"] = result.get("missing_fields") or []
+        return (
+            f"report_requested={ctx['report_requested']} certificate_requested={ctx['certificate_requested']} "
+            f"(Claude 호출)"
+        )
+    except llm_client.LLMUnavailableError as e:
+        ctx["space_type"] = inp.get("space_type", "확인필요")
+        ctx["visit_requested_date"] = inp.get("visit_requested_date", "확인필요")
+        report_wanted = ("보고서" in text) or bool(inp.get("report_requested"))
+        cert_wanted = ("증명서" in text) or bool(inp.get("certificate_requested"))
+        if not report_wanted and not cert_wanted and inp.get("document_requested"):
+            report_wanted = True
+        ctx["report_requested"] = report_wanted
+        ctx["certificate_requested"] = cert_wanted
+        ctx["followup_needed"] = bool(inp.get("followup_needed", False))
+        ctx["field_confidence"] = {"overall": 0.7}
+        ctx["field_sources"] = {}
+        ctx["missing_fields"] = []
+        return f"report_requested={report_wanted} certificate_requested={cert_wanted} (LLM 호출 실패로 mock 대체: {e})"
 
 
 def run_견적금액산정봇(ctx, stage):
@@ -226,11 +339,54 @@ def run_견적금액산정봇(ctx, stage):
     return "mock: 미실행 상태 (run_if로 꺼져 있음)"
 
 
+_REVIEW_SYSTEM_PROMPT = """당신은 방역업체(방역&클린) 파이프라인의 검수 매니저입니다.
+여러 상류 단계의 결과(고객명/공간유형/방문희망일/요청사항/문서요청여부/후속연락여부/
+missing_fields/estimated_price 등)를 받아서, 대표자가 확인해야 할 항목
+(review_checklist)과 우선순위(review_priority: 빨강/노랑/파랑/초록 중 하나)를 만드세요.
+
+우선순위 판단 기준:
+- 빨강: 방문희망일처럼 예약에 꼭 필요한 핵심 필드가 없거나 확인이 시급할 때
+- 노랑: missing_fields가 여러 개 있거나 애매한 부분이 있을 때
+- 파랑: missing_fields가 일부 있지만 핵심 필드는 채워져 급하지 않을 때
+- 초록: missing_fields가 전혀 없고 핵심 정보가 다 확인됐을 때
+
+절대 원칙: 고객 이름(customer_name)은 이 스킬에서 원래 전화/문자 발신자 정보로
+별도 확보하는 값이라 이것 때문에 priority를 필요 이상으로 높이지 마세요.
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "review_checklist": ["<확인 항목>", ...],
+  "review_priority": "빨강"|"노랑"|"파랑"|"초록",
+  "editable_fields": ["<필드명>", ...],
+  "reason": "<한 문장 이유>"
+}
+"""
+
+
 def run_검수매니저(ctx, stage):
-    ctx["review_checklist"] = ["고객명 확인", "방문희망일 확인"]
-    ctx["review_priority"] = "초록"
-    ctx["editable_fields"] = ["customer_name", "visit_requested_date"]
-    return "review_priority=초록 (mock)"
+    """2026-07-17: 진짜 Claude 호출로 교체(manifest.yaml tier: sonnet). 실패 시 기존
+    고정값 mock으로 자동 대체."""
+    user_prompt = (
+        f"customer_name: {ctx.get('customer_name')}\nspace_type: {ctx.get('space_type')}\n"
+        f"visit_requested_date: {ctx.get('visit_requested_date')}\nrequest_note: {ctx.get('request_note')}\n"
+        f"report_requested: {ctx.get('report_requested')}\ncertificate_requested: {ctx.get('certificate_requested')}\n"
+        f"followup_needed: {ctx.get('followup_needed')}\nmissing_fields: {ctx.get('missing_fields')}\n"
+        f"correction_log: {ctx.get('correction_log')}\nsplit_status: {ctx.get('split_status')}\n"
+        f"estimated_price: {ctx.get('estimated_price')}"
+    )
+    try:
+        result = llm_client.call_llm_json(tier="sonnet", system_prompt=_REVIEW_SYSTEM_PROMPT, user_prompt=user_prompt)
+        if result.get("review_priority") not in ("빨강", "노랑", "파랑", "초록"):
+            raise llm_client.LLMUnavailableError(f"review_priority 값이 이상함: {result.get('review_priority')!r}")
+        ctx["review_checklist"] = result.get("review_checklist") or []
+        ctx["review_priority"] = result["review_priority"]
+        ctx["editable_fields"] = result.get("editable_fields") or ["customer_name", "visit_requested_date"]
+        return f"review_priority={ctx['review_priority']} (Claude 호출) - {result.get('reason')}"
+    except llm_client.LLMUnavailableError as e:
+        ctx["review_checklist"] = ["고객명 확인", "방문희망일 확인"]
+        ctx["review_priority"] = "초록"
+        ctx["editable_fields"] = ["customer_name", "visit_requested_date"]
+        return f"review_priority=초록 (LLM 호출 실패로 mock 대체: {e})"
 
 
 def run_대표자검수(ctx, stage):

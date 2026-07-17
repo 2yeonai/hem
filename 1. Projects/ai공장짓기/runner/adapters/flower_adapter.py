@@ -41,18 +41,26 @@ pest_adapter.py(방역)와의 구조적 차이 (반드시 먼저 읽을 것 — 
 [발견사항 2026-07-17] manifest.yaml과 실제 구현/러너 계약 사이에서 발견한 불일치들
 (감추지 않고 여기 기록 — manifest.yaml 폴더 자체는 고치지 않음):
 
-1. manifest.yaml에 triggers: 섹션이 아예 없다.
+1. [RESOLVED 2026-07-17 — 볼트 쪽 manifest.yaml 직접 수정으로 해결됨. 아래는 당시
+   기록 그대로 보존] manifest.yaml에 triggers: 섹션이 아예 없었다.
    방역 manifest.yaml에는 triggers(type: event/schedule, entry_stage)가 있는데
-   꽃집 manifest.yaml에는 그 섹션 자체가 없다(grep 확인 — "^triggers:" 0건).
+   꽃집 manifest.yaml에는 그 섹션 자체가 없었다(grep 확인 — "^triggers:" 0건).
    러너(runner.py) Runner.run()은 `trigger = next(t for t in self.triggers if
    t.get("type")==trigger_type)`에서 못 찾으면 즉시 RunnerError로 정지한다.
    즉 이 manifest.yaml로는 --validate-only(정적검증)는 통과할 수 있어도,
    실제 실행(python3 runner.py ... --trigger event)은 트리거 자체가 없어서
-   무조건 실패한다. 이건 이 어댑터가 고칠 수 있는 범위 밖이다(manifest.yaml
-   수정 금지 원칙) — 꽃집 폴더 쪽에서 triggers: 블록을 추가해야 근본 해결됨.
+   무조건 실패했다. 당시엔 이 어댑터가 고칠 수 있는 범위 밖이었다(manifest.yaml
+   수정 금지 원칙) — 2026-07-17 세션에서 꽃집 폴더 쪽에 triggers: 블록
+   (type: event, entry_stage: collection_bot 하나만 — schedule 트리거를 쓰는
+   리마인더봇 성격의 stage가 이 14개 안에 없어서 event 하나만 선언)을 추가해
+   해결. 재검증: `runner.py "manifest.yaml" --handlers flower_adapter.py
+   --input <sample.json> --trigger event` 실제 실행 → 14개 stage 전부 OK로
+   완주 확인(golden_set.yaml entry 001 문자 원문으로 스모크 테스트, 테스트로
+   생성된 flower_orders.json/logs/state는 실데이터 아니므로 실행 후 정리함).
 
-1b. [실행해서 확인함 — 가장 치명적인 발견] 정적검증(runner.py --validate-only)이
-   FAIL 6건으로 막힌다. 원인: manifest.yaml은 tier를 각 model stage 항목 안에
+1b. [RESOLVED 2026-07-17 — 볼트 쪽 manifest.yaml 직접 수정으로 해결됨. 아래는 당시
+   기록 그대로 보존] 정적검증(runner.py --validate-only)이 FAIL 6건으로 막혔었다.
+   원인: manifest.yaml은 tier를 각 model stage 항목 안에
    직접 쓰지 않고, 별도 최상위 블록 `model_routing.stages`(step/tier 쌍의
    리스트)에 따로 선언한다(파일 상단 주석: "tier is declared ONLY here (not
    duplicated on stages), to avoid drift" — 의도적 설계였음). 반면 러너의
@@ -64,13 +72,15 @@ pest_adapter.py(방역)와의 구조적 차이 (반드시 먼저 읽을 것 — 
    때문에(`kind: model` 바로 아래 `tier: sonnet` 식) 같은 검증에서 FAIL 0건
    /WARN 11건(티어명 별칭 경고만)으로 통과한다 — 실제로 두 manifest를 같은
    러너로 돌려 대조 확인함.
-   이건 이 어댑터(핸들러 모듈)가 고칠 수 있는 지점이 아니다 — static_validate()는
+   당시엔 이 어댑터(핸들러 모듈)가 고칠 수 있는 지점이 아니었다 — static_validate()는
    runner.py의 main()이 handlers 모듈을 로드하기도 전에, manifest.yaml만 보고
-   먼저 실행된다(핸들러 훅 5개 중 어느 것도 여기 개입하지 않음). 근본 해결은
-   ① manifest.yaml의 각 stage에 tier를 직접 추가(model_routing과 중복되더라도
-   러너 호환을 위해)하거나, ② runner.py의 static_validate/normalize_tier가
-   model_routing.stages도 찾아보게 고치거나 — 둘 다 "폴더 무수정 + 새 파일만
-   추가" 원칙 밖이라 이번 작업에서는 하지 않는다. 실행 결과 그대로만 보고한다.
+   먼저 실행되기 때문(핸들러 훅 5개 중 어느 것도 여기 개입하지 않음). 근본 해결
+   옵션 ①(manifest.yaml의 각 stage에 tier를 직접 추가, model_routing과 중복되더라도
+   러너 호환 목적)을 2026-07-17 세션에서 실행 — 6개 model stage 전부에 tier: 추가,
+   model_routing.stages 블록은 근거/이력 출처로 그대로 유지. 재검증 결과
+   `runner.py "manifest.yaml" --validate-only` → FAIL 0건/WARN 0건(방역 manifest와
+   동일 수준). validate_manifest.py(v2 스키마 검증기)도 그대로 FAIL 0/WARN 4(기존
+   schema_ref 경로 문제 4건만 남음, tier 관련 아님) PASS.
 
 2. order_classification_bot stage에 stop_condition 필드가 없다.
    12봇_kind분류표.yaml(209행)에는 "order_classification이 단순문의|일반통화|

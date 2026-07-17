@@ -48,6 +48,33 @@ tier_rationale 참고).
 
 import re
 
+import llm_client
+
+_SYSTEM_PROMPT = """당신은 꽃집(온천꽃식물원)의 리본 문구·상품·금액 정규화 담당자입니다.
+order_draft(구조화된 필드)와 원문(normalized_text)을 보고 아래를 만드세요:
+- ribbon_message_final: order_draft의 ribbon_phrase_raw를 정중한 최종 리본 문구로
+  다듬으세요(예: "승진축하" -> "승진을 축하드립니다."). 경조사 종류(승진/취임/합격/
+  개업/결혼/출산/근조 등)에 맞는 자연스러운 존댓말 문구를 쓰세요.
+- product_name/price: order_draft의 product/amount_krw 값을 그대로 채택하세요(다시
+  계산하거나 바꾸지 마세요).
+- quantity: 원문에 수량이 명시적으로 나와 있을 때만(숫자든 한글 수사든) 채우세요.
+  명시가 없으면 절대 "1개"로 가정하지 말고 null로 남기세요.
+
+절대 원칙: ribbon_phrase_raw가 null이면 ribbon_message_final도 null로 남기세요(임의로
+문구를 지어내지 마세요). 확신 없는 값은 채우지 마세요.
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "ribbon_message_raw": null|"...",
+  "ribbon_message_final": null|"...",
+  "product_name": null|"...",
+  "price": null|<정수>,
+  "quantity": null|<정수>,
+  "confidence": <0.0~1.0>,
+  "reason": "<한 문장 이유>"
+}
+"""
+
 _QUANTITY_PATTERN = re.compile(r"(\d+)\s*개")
 
 
@@ -112,10 +139,30 @@ def _process_rule_based(order_draft: dict, normalized_text: str) -> dict:
     }
 
 
-# 실제로 쓰이는 정규화 엔진. 지금은 규칙기반. 나중에 LLM 버전을 만들면
-# ribbon_price_bot.PROCESS_ENGINE = process_llm 처럼 이 이름만 바꿔치기하면
-# process_ribbon_and_price()를 포함해 이 파일을 쓰는 다른 코드는 손댈 필요가 없다.
-PROCESS_ENGINE = _process_rule_based
+def _process_llm(order_draft: dict, normalized_text: str) -> dict:
+    """2026-07-17 신설: 실제 Claude 호출 버전. manifest.yaml의 tier: low_cost 사용."""
+    order_draft = order_draft or {}
+    user_prompt = (
+        f"order_draft: {order_draft}\n정규화된 텍스트: {normalized_text or ''}"
+    )
+    result = llm_client.call_llm_json(tier="low_cost", system_prompt=_SYSTEM_PROMPT, user_prompt=user_prompt)
+    for key in ("ribbon_message_raw", "ribbon_message_final", "product_name", "price", "quantity"):
+        result.setdefault(key, None)
+    return result
+
+
+def _process_auto(order_draft: dict, normalized_text: str) -> dict:
+    """LLM 우선, 실패 시 규칙기반 자동 대체."""
+    try:
+        return _process_llm(order_draft, normalized_text)
+    except llm_client.LLMUnavailableError as e:
+        result = dict(_process_rule_based(order_draft, normalized_text))
+        result["reason"] = result["reason"] + f" [LLM 호출 실패로 규칙기반 대체: {e}]"
+        return result
+
+
+# 2026-07-17부터 LLM(Claude) 우선, 실패 시 규칙기반 자동 대체.
+PROCESS_ENGINE = _process_auto
 
 
 def process_ribbon_and_price(order_draft: dict, normalized_text: str = "") -> dict:

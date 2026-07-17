@@ -47,8 +47,35 @@ open_questions에 "review_manager_bot.check의 confidence 매핑: ... 미정"으
   io.writes: review_checklist, review_priority, editable_fields
 """
 
+import llm_client
+
 _CRITICAL_FIELD_NAMES = ["product_name", "price"]
 _NAME_FIELDS = {"recipient_name", "sender_name"}
+
+_SYSTEM_PROMPT = """당신은 꽃집(온천꽃식물원) 주문 파이프라인의 검수 매니저입니다.
+여러 상류 단계의 결과(order_draft, missing_fields, candidates, split_status,
+product_name, price, quantity 등)를 받아서, 사람 검수자에게 무엇을 확인시켜야 하는지
+review_checklist(문장 목록)와 review_priority(빨강/노랑/파랑/초록 중 하나)를 만드세요.
+
+우선순위 판단 기준:
+- 빨강: split_status가 확인필요이거나, product_name/price처럼 배송·정산에 꼭 필요한
+  핵심 필드가 없을 때
+- 노랑: candidates(불확실 후보)가 있거나 missing_fields가 3개 초과일 때
+- 파랑: missing_fields가 일부(주로 이름류) 있지만 핵심 필드는 다 채워져 급하지 않을 때
+- 초록: missing_fields/candidates가 전혀 없고 split_status도 완료일 때
+
+절대 원칙: recipient_name/sender_name이 없는 것은 이 스킬의 의도된 설계입니다
+(이름을 함부로 추측하면 실사고로 이어진 이력이 있음) - 이것 때문에 priority를
+필요 이상으로 높이지 말고, 체크리스트에는 "사람이 직접 채워야 함"으로만 표시하세요.
+
+반드시 아래 JSON 형식으로만 답하세요:
+{
+  "review_checklist": ["<확인 항목 문장>", ...],
+  "review_priority": "빨강"|"노랑"|"파랑"|"초록",
+  "editable_fields": ["<필드명>", ...],
+  "reason": "<한 문장 이유>"
+}
+"""
 
 
 def _build_checklist(order_draft, missing_fields, candidates, split_status,
@@ -134,10 +161,50 @@ def _review_rule_based(order_draft, field_confidence, field_sources, missing_fie
     }
 
 
-# 실제로 쓰이는 검수 엔진. 지금은 규칙기반. 나중에 LLM 버전을 만들면
-# review_manager_bot.REVIEW_ENGINE = review_llm 처럼 이 이름만 바꿔치기하면
-# build_review()를 포함해 이 파일을 쓰는 다른 코드는 손댈 필요가 없다.
-REVIEW_ENGINE = _review_rule_based
+def _review_llm(order_draft, field_confidence, field_sources, missing_fields,
+                 candidates, ribbon_message_raw, ribbon_message_final,
+                 product_name, price, quantity, correction_log, split_status) -> dict:
+    """2026-07-17 신설: 실제 Claude 호출 버전. manifest.yaml의 tier: mid 사용."""
+    user_prompt = (
+        f"order_draft: {order_draft}\nmissing_fields: {missing_fields}\n"
+        f"candidates: {candidates}\nsplit_status: {split_status}\n"
+        f"product_name: {product_name}\nprice: {price}\nquantity: {quantity}\n"
+        f"correction_log: {correction_log}"
+    )
+    result = llm_client.call_llm_json(tier="mid", system_prompt=_SYSTEM_PROMPT, user_prompt=user_prompt)
+    if result.get("review_priority") not in ("빨강", "노랑", "파랑", "초록"):
+        raise llm_client.LLMUnavailableError(f"review_priority 값이 이상함: {result.get('review_priority')!r}")
+    if not isinstance(result.get("review_checklist"), list):
+        raise llm_client.LLMUnavailableError("review_checklist가 리스트가 아님")
+    result.setdefault("editable_fields", sorted(set(
+        list((order_draft or {}).keys())
+        + ["ribbon_message_raw", "ribbon_message_final", "product_name", "price", "quantity"]
+    )))
+    return result
+
+
+def _review_auto(order_draft, field_confidence, field_sources, missing_fields,
+                  candidates, ribbon_message_raw, ribbon_message_final,
+                  product_name, price, quantity, correction_log, split_status) -> dict:
+    """LLM 우선, 실패 시 규칙기반 자동 대체."""
+    try:
+        return _review_llm(
+            order_draft, field_confidence, field_sources, missing_fields, candidates,
+            ribbon_message_raw, ribbon_message_final, product_name, price, quantity,
+            correction_log, split_status,
+        )
+    except llm_client.LLMUnavailableError as e:
+        result = dict(_review_rule_based(
+            order_draft, field_confidence, field_sources, missing_fields, candidates,
+            ribbon_message_raw, ribbon_message_final, product_name, price, quantity,
+            correction_log, split_status,
+        ))
+        result["reason"] = result["reason"] + f" [LLM 호출 실패로 규칙기반 대체: {e}]"
+        return result
+
+
+# 2026-07-17부터 LLM(Claude) 우선, 실패 시 규칙기반 자동 대체.
+REVIEW_ENGINE = _review_auto
 
 
 def build_review(order_draft=None, field_confidence=None, field_sources=None,
