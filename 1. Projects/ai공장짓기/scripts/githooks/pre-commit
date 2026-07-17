@@ -1,0 +1,21 @@
+#!/bin/sh
+# pre-commit — vault_check.py --pre-commit 호출용 훅 본체.
+#
+# 배경: `0. Docs/규칙강제_설계_2026-07-18.md`. 이 훅은 저장소 루트에서
+# 실행되므로(git이 항상 그렇게 실행함) 볼트 루트 기준 상대경로로
+# vault_check.py를 호출한다. 활성화하려면 저장소 루트에서:
+#   git config core.hooksPath "1. Projects/ai공장짓기/scripts/githooks"
+
+VAULT_CHECK="1. Projects/ai공장짓기/scripts/vault_check.py"
+
+if command -v python3 >/dev/null 2>&1; then
+    PY=python3
+elif command -v python >/dev/null 2>&1; then
+    PY=python
+else
+    echo "[vault_check] python3/python을 찾을 수 없어 검사를 건너뜁니다." >&2
+    exit 0
+fi
+
+"$PY" "$VAULT_CHECK" --pre-commit
+exit $?
