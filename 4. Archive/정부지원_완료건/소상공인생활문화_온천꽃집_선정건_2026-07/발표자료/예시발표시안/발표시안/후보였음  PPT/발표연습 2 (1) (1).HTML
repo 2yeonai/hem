@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>따오 발표 연습기 - 온천꽃식물원 피칭 & Q&A 시뮬레이터</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background-color: #fcf9f2;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Prevent horizontal scrollbars in desktop mode */
+        html {
+            overflow-x: hidden;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        /* Override container styles when in desktop mode: use full screen */
+        .app.desktop-mode.container {
+            max-width: none;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        h1 { color: #e75b4c; text-align: center; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-weight: bold; }
+        
+        /* 타이머 & 기록 영역 */
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .timer-sec, .history-sec {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffeeba;
+            flex: 1;
+        }
+        /* 녹음 패널도 동일한 스타일을 적용합니다 */
+        .rec-sec {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffeeba;
+            flex: 1;
+        }
+        .timer-sec { text-align: center; }
+        .time-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #d9534f;
+            margin: 5px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        button.btn-timer {
+            padding: 8px 16px; font-size: 15px; cursor: pointer; font-weight: bold;
+            border: none; border-radius: 6px;
+            background-color: #e75b4c; color: white; margin: 3px;
+            transition: background 0.3s;
+        }
+        button.btn-timer:hover { background-color: #c9493a; }
+        
+        .history-sec h3 { margin-top: 0; color: #2c5e3b; font-size: 18px; text-align: center; }
+        .history-list {
+            list-style: none; padding: 0; margin: 0;
+            max-height: 100px; overflow-y: auto; font-size: 14px; color: #555;
+        }
+        .history-list li { padding: 5px 0; border-bottom: 1px dashed #ccc; }
+
+        /* 탭 메뉴 */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e75b4c;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1; padding: 15px; font-size: 17px; font-weight: bold;
+            background: #fdf2f0; border: none; cursor: pointer;
+            color: #555; transition: 0.3s;
+        }
+        .tab-btn.active { background: #e75b4c; color: white; }
+        /*
+         * Previously, tab-content sections were hidden by default and shown when active.
+         * We now manage visibility via mode selection and the 'hidden' class, so
+         * tab-content blocks should be visible by default. The 'hidden' class will
+         * explicitly hide sections when needed.
+         */
+        .tab-content { display: block; }
+
+        /* 슬라이드 뷰 및 녹음 */
+        .slide-view {
+            width: 100%; background: #f0f0f0; border: 1px solid #ddd;
+            border-radius: 8px; display: flex; flex-direction: column;
+            align-items: center; padding: 20px; box-sizing: border-box;
+        }
+        .slide-view img {
+            max-width: 100%; max-height: 400px; object-fit: contain;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px;
+        }
+        .slide-controls { margin-top: 15px; display: flex; gap: 10px; align-items: center; }
+        
+        .record-controls {
+            margin-top: 15px; background: #fff; padding: 10px 20px; border-radius: 30px;
+            display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .btn-record { padding: 8px 15px; font-weight: bold; cursor: pointer; border: none; border-radius: 20px; color: white; }
+        .btn-start-rec { background-color: #d9534f; }
+        .btn-stop-rec { background-color: #555; display: none; }
+        .recording-indicator { color: #d9534f; font-weight: bold; animation: blink 1s infinite; display: none; }
+        @keyframes blink { 50% { opacity: 0; } }
+        
+        .btn-nav {
+            padding: 10px 20px; font-size: 16px; font-weight: bold;
+            cursor: pointer; border: none; border-radius: 6px;
+            background-color: #2c5e3b; color: white; transition: 0.2s;
+        }
+        .btn-nav:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* 대본 및 Q&A */
+        .script-view {
+            width: 100%; background: #fff; border: 2px solid #e75b4c;
+            padding: 25px; border-radius: 8px; font-size: 24px; line-height: 1.8;
+            box-sizing: border-box; min-height: 200px; margin-top: 20px; position: relative;
+        }
+        .btn-tts {
+            position: absolute; top: 15px; right: 15px; padding: 8px 15px;
+            background-color: #007bff; color: white; border: none; border-radius: 20px;
+            font-weight: bold; cursor: pointer; font-size: 14px;
+        }
+        .btn-tts:hover { background-color: #0056b3; }
+
+        .slide-title { background: #2c5e3b; color: white; padding: 5px 15px; border-radius: 20px; font-size: 18px; font-weight: bold; margin-bottom: 15px; display: inline-block; }
+        .cue-action { color: #0066cc; font-weight: bold; }
+        .cue-pause { color: #d9534f; font-weight: bold; background: #ffeeee; padding: 2px 5px; border-radius: 4px; }
+        .script-text p { margin-bottom: 15px; margin-top: 0; }
+        
+        .qna-sec { padding: 10px; }
+        .type-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 16px; font-weight: bold; color: white; margin-bottom: 15px; }
+        .type-attack { background-color: #d9534f; }
+        .type-mild { background-color: #5bc0de; }
+        .type-pressure { background-color: #8e44ad; }
+        .question-box { font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.5; color: #111; }
+        .answer-box { display: none; background-color: #eef7f0; padding: 30px; border-left: 6px solid #2c5e3b; border-radius: 6px; font-size: 24px; line-height: 1.7; margin-bottom: 25px; color: #111; }
+        button.btn-qna { padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; border-radius: 6px; background-color: #2c5e3b; color: white; margin: 5px; }
+        button.btn-qna:hover { background-color: #1e4028; }
+
+        .toast-msg {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 15px 30px;
+            border-radius: 30px; font-size: 18px; font-weight: bold;
+            display: none; z-index: 1000;
+        }
+
+        /* -------------------- New Layout Styles -------------------- */
+        /* Mode bar and view buttons */
+        .mode-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #fdf2f0;
+            color: #555;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .mode-btn.active {
+            background-color: #e75b4c;
+            color: #ffffff;
+        }
+        .view-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #fdf2f0;
+            color: #555;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .view-btn.active {
+            background-color: #2c5e3b;
+            color: #fff;
+        }
+
+        /* App layout for desktop and mobile */
+        .app.desktop-mode {
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .app.mobile-mode {
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        /* In desktop mode, main practice area uses grid for slide and script */
+        .app.desktop-mode #scriptTab {
+                /* Use flexbox instead of a grid so that flex-basis on the children can control the 2:3 ratio.
+                 * The flex basis for each child is defined in the media query below. */
+                flex: 1;
+                display: flex;
+                flex-direction: row;
+                gap: 16px;
+                overflow: hidden;
+        }
+        .app.desktop-mode #scriptTab .slide-view {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .app.desktop-mode #scriptTab .slide-view img {
+            height: calc(100% - 60px);
+            width: 100%;
+            object-fit: contain;
+        }
+        .app.desktop-mode #scriptTab .script-view {
+            height: 100%;
+            overflow-y: auto;
+            margin-top: 0;
+        }
+        /* In mobile mode, stack slide and script vertically */
+        .app.mobile-mode #scriptTab {
+            display: flex;
+            flex-direction: column;
+        }
+        .app.mobile-mode #scriptTab .slide-view img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+        /* Hide practiceTopBar when not needed */
+        #practiceTopBar.hidden { display: none !important; }
+        /* Hide sections by mode */
+        #scriptTab.hidden, #qnaTab.hidden, #pressureTab.hidden { display: none !important; }
+
+        /* --- Responsive layout for slide and script --- */
+        /* On wider screens, display slide and script side-by-side */
+        @media (min-width: 768px) {
+            #scriptTab {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            /* Adjust flex basis to give slide and script panels a 2:3 ratio */
+            #scriptTab .slide-view {
+                flex: 2 1 0%;
+            }
+            #scriptTab .script-view {
+                flex: 3 1 0%;
+                margin-top: 0;
+            }
+        }
+        /* On narrow screens, stack slide and script vertically */
+        @media (max-width: 767px) {
+            #scriptTab {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast-msg" id="toastMsg"></div>
+
+    <!-- Root app container -->
+    <div class="container app" id="app">
+        <h1>🌱 따오 발표 연습기 (최종 통합본)</h1>
+        <div class="subtitle">슬라이드 녹음 | 브라우저 자동 읽기(TTS) | 원본 대본 100% | 압박 면접 모드</div>
+        
+        <!-- Main mode selection bar -->
+        <div class="mode-bar" id="modeBar" style="display:flex; gap:10px; margin-bottom:20px;">
+            <button class="mode-btn active" onclick="selectMode('practice')">발표 10분 연습</button>
+            <button class="mode-btn" onclick="selectMode('qa')">일반 Q&A 연습</button>
+            <button class="mode-btn" onclick="selectMode('pressure')">압박 심사위원 모드</button>
+        </div>
+
+        <!-- Top practice bar for practice mode: timer, recording, view options and slide counter -->
+        <div id="practiceTopBar" class="top-practice-bar" style="display:flex; flex-wrap:wrap; gap:15px; align-items:center; margin-bottom:15px;">
+            <div style="display:flex; flex-direction:row; align-items:center; gap:10px;">
+                <span style="font-weight:bold;">보기:</span>
+                <button class="view-btn" onclick="setView('auto')">자동</button>
+                <button class="view-btn" onclick="setView('desktop')">컴퓨터 가로형</button>
+                <button class="view-btn" onclick="setView('mobile')">모바일 세로형</button>
+            </div>
+            <div style="display:flex; flex-direction:row; align-items:center; gap:5px;">
+                <span style="font-weight:bold;">슬라이드:</span>
+                <span id="slideCounterTop">1 / 12</span>
+            </div>
+            <div style="display:flex; flex-direction:row; align-items:center; gap:5px;">
+                <span style="font-weight:bold;">타이머:</span>
+                <span class="time-display" id="time">00:00</span>
+                <button class="btn-timer" onclick="startTimer()">▶</button>
+                <button class="btn-timer" onclick="pauseTimer()">⏸</button>
+                <button class="btn-timer" onclick="stopAndSaveTimer()" style="background-color:#4CAF50;">💾</button>
+                <button class="btn-timer" onclick="resetTimer()" style="background-color:#666;">초기화</button>
+            </div>
+            <div style="display:flex; flex-direction:row; align-items:center; gap:5px;">
+                <span style="font-weight:bold;">녹음:</span>
+                <button class="btn-record btn-start-rec" id="btnStartRec" onclick="startRecording()">🔴 시작</button>
+                <button class="btn-record btn-stop-rec" id="btnStopRec" onclick="stopRecording()">⏹ 종료</button>
+                <span class="recording-indicator" id="recIndicator" style="display:none;">REC</span>
+                <span id="recTimer" style="font-size:14px; font-weight:bold; color:#d9534f;">00:00</span>
+                <span id="recDurationLabel" style="font-size:14px; font-weight:bold; color:#555;"></span>
+                <audio id="audioPlayback" controls style="width:150px; height:24px;"></audio>
+            </div>
+            <div style="flex-grow:1;">
+                <h3 style="margin:0; font-size:16px;">⏱ 과거 기록</h3>
+                <ul class="history-list" id="historyList" style="max-height:60px; overflow-y:auto; padding-left:0;"></ul>
+            </div>
+        </div>
+
+        <!-- 기존 탭 메뉴를 비활성화합니다. 모드 전환은 상단 모드바에서 처리합니다. -->
+        <div class="tabs" style="display:none;"></div>
+
+        <div id="scriptTab" class="tab-content active">
+            <div class="slide-view">
+                <img id="currentSlideImg" src="슬라이드0001.jpg" alt="슬라이드 이미지" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22800%22%20height%3D%22450%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20800%20450%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22800%22%20height%3D%22450%22%20fill%3D%22%23eee%22%3E%3C%2Frect%3E%3Ctext%20x%3D%22260%22%20y%3D%22235%22%20fill%3D%22%23999%22%20font-size%3D%2224%22%3E%EC%9D%B4%EB%AF%B8%EC%A7%80%EB%A5%BC%20%EC%B0%BE%EC%9D%84%20%EC%88%98%20%EC%97%86%EC%8A%B5%EB%8B%88%EB%8B%A4.%3C%2Ftext%3E%3C%2Fsvg%3E';">
+                
+                <div class="slide-controls">
+                    <button class="btn-nav" id="btnPrev" onclick="changeSlide(-1)">◀ 이전</button>
+                    <div class="slide-counter" id="slideCounter" style="width: 80px; text-align: center; font-weight: bold;">1 / 12</div>
+                    <button class="btn-nav" id="btnNext" onclick="changeSlide(1)">다음 ▶</button>
+                </div>
+
+                <!-- 슬라이드 영역에서 녹음 컨트롤을 제거했습니다. 새로운 위치는 상단 대시보드 영역에 있습니다. -->
+            </div>
+
+            <div class="script-view script-text" id="currentScriptText">
+                </div>
+        </div>
+
+        <div id="qnaTab" class="tab-content qna-sec">
+            <button class="btn-tts" onclick="readText(document.getElementById('q-text-normal').innerText)">🔊 브라우저가 질문 읽기</button>
+            <div style="text-align: right; font-size: 15px; color: #888; font-weight: bold; margin-bottom: 10px;" id="progress-normal">전체 21문제 대기 중</div>
+            
+            <span id="q-type-normal" class="type-badge" style="background-color: #666;">질문 대기 중</span>
+            <div id="q-text-normal" class="question-box">아래 '랜덤 질문 받기' 버튼을 눌러주세요.</div>
+            <div id="a-text-normal" class="answer-box"></div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-qna" onclick="showAnswer('normal')" style="background-color: #f0ad4e; color: #333;">💡 대표님 답변 확인하기</button>
+                <button class="btn-qna" onclick="nextQuestion('normal')">🔄 다음 랜덤 질문 받기</button>
+                <button class="btn-qna" onclick="initQnA('normal')" style="background-color: #d9534f;">🔁 초기화</button>
+            </div>
+        </div>
+
+        <div id="pressureTab" class="tab-content qna-sec">
+            <!-- 압박 모드 시작 버튼: 사용자가 시작 버튼을 눌러야 음성이 재생됩니다. -->
+            <div style="text-align:center; margin-bottom:15px;">
+                <button id="startPressureBtn" class="btn-qna" style="background-color:#8e44ad; color:white; font-size:18px; padding:12px 24px;" onclick="startPressureMode()">🧨 압박 심사위원 모드 시작</button>
+            </div>
+            <div style="background-color: #f5eef8; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 16px; color: #555;">
+                <strong>🔥 압박 심사위원 모드란?</strong><br>
+                파손, 예산, 시장성, 캐릭터 카피, 대표자 역량 등 약점을 파고드는 핵심 '공격형' 질문만 무작위로 출제됩니다. 실전 긴장감을 높여보세요!
+            </div>
+            <div style="text-align: right; font-size: 15px; color: #888; font-weight: bold; margin-bottom: 10px;" id="progress-pressure">핵심 압박 12문제 대기 중</div>
+            
+            <span id="q-type-pressure" class="type-badge" style="background-color: #666;">압박 대기 중</span>
+            <div id="q-text-pressure" class="question-box" style="color: #c0392b;">아래 '압박 질문 받기' 버튼을 눌러주세요.</div>
+            <div id="a-text-pressure" class="answer-box"></div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-qna" onclick="showAnswer('pressure')" style="background-color: #f0ad4e; color: #333;">💡 방어 논리 확인하기</button>
+                <button class="btn-qna" onclick="nextQuestion('pressure')" style="background-color: #8e44ad;">🔥 다음 압박 질문 받기</button>
+                <button class="btn-qna" onclick="initQnA('pressure')" style="background-color: #d9534f;">🔁 초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 유틸리티 ---
+        function showToast(msg) {
+            const toast = document.getElementById('toastMsg');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        // --- 브라우저 TTS (Web Speech API) ---
+        function readText(text) {
+            if (!text || text.includes("버튼을 눌러주세요")) {
+                showToast("읽을 텍스트가 없습니다."); return;
+            }
+            window.speechSynthesis.cancel();
+            
+            // TTS용 텍스트 정제 (HTML 태그, 대괄호[], 괄호() 제거)
+            let cleanText = text.replace(/<[^>]*>?/gm, ' '); 
+            cleanText = cleanText.replace(/\[.*?\]/g, ' '); 
+            cleanText = cleanText.replace(/\(※.*?\)/g, ' '); 
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 1.1; // 살짝 빠른 템포
+            window.speechSynthesis.speak(utterance);
+            showToast("🔊 텍스트를 읽고 있습니다...");
+        }
+
+        // 안전하게 현재 슬라이드의 대본을 읽어주는 함수 (충돌 방지 핵심!)
+        function playCurrentSlideTTS() {
+            const data = presentationData[currentSlideIndex];
+            readText(data.script);
+        }
+
+        // --- 타이머 & 기록 로직 ---
+
+        // 기존 카운트다운 타이머 정의를 제거하고, records 배열만 유지합니다.
+        let records = [];
+
+        // --- 마이크 녹음 로직 (슬라이드별) ---
+        let mediaRecorder;
+        let audioChunks = [];
+        let slideAudioData = {};
+
+        // 현재 슬라이드 인덱스를 명시적으로 초기화합니다.
+        // 초기 렌더링 시 undefined로 인한 ReferenceError를 방지합니다.
+        let currentSlideIndex = 0;
+
+        // 녹음 지속시간과 인터벌을 추적하기 위한 변수들
+        let recDurationInterval = null;
+        let recSeconds = 0;
+
+        // 녹음 시간 표시를 업데이트하는 함수
+        function updateRecTimer() {
+            const timerEl = document.getElementById('recTimer');
+            if (!timerEl) return;
+            const m = Math.floor(recSeconds / 60);
+            const s = recSeconds % 60;
+            timerEl.innerText = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        }
+
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(blob);
+                    slideAudioData[currentSlideIndex] = audioUrl;
+                    document.getElementById('audioPlayback').src = audioUrl;
+                    audioChunks = [];
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                audioChunks = [];
+                // 녹음 시간을 초기화하고 타이머를 시작합니다.
+                recSeconds = 0;
+                updateRecTimer();
+                const recTimerEl = document.getElementById('recTimer');
+                if (recTimerEl) recTimerEl.style.display = 'inline-block';
+                // 이전 인터벌이 남아있으면 정리하고 새로운 인터벌 시작
+                if (recDurationInterval) clearInterval(recDurationInterval);
+                recDurationInterval = setInterval(() => {
+                    recSeconds++;
+                    updateRecTimer();
+                }, 1000);
+                // 이전 녹음 시간 표시를 초기화
+                const durationLabelEl = document.getElementById('recDurationLabel');
+                if (durationLabelEl) durationLabelEl.innerText = '';
+
+                mediaRecorder.start();
+                
+                document.getElementById('btnStartRec').style.display = 'none';
+                document.getElementById('btnStopRec').style.display = 'inline-block';
+                document.getElementById('recIndicator').style.display = 'inline-block';
+                // 슬라이드 변경 시 이전 녹음 파일을 초기화합니다.
+                document.getElementById('audioPlayback').src = '';
+
+            } catch (err) {
+                alert("마이크 접근 권한이 필요합니다. 브라우저 설정에서 마이크를 허용해주세요.\n" + err);
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop();
+                document.getElementById('btnStartRec').style.display = 'inline-block';
+                document.getElementById('btnStopRec').style.display = 'none';
+                document.getElementById('recIndicator').style.display = 'none';
+                // 녹음 중 시간 인터벌을 정지시키고 타이머를 숨깁니다.
+                if (recDurationInterval) {
+                    clearInterval(recDurationInterval);
+                    recDurationInterval = null;
+                }
+                // 녹음 시간 표시를 숨기지 않고 유지합니다. 녹음이 종료되면 시간은 계속 보여줍니다.
+                // const timerEl = document.getElementById('recTimer');
+                // if (timerEl) timerEl.style.display = 'none';
+                // 최종 녹음 길이를 표시합니다.
+                const m = Math.floor(recSeconds / 60);
+                const s = recSeconds % 60;
+                const durationLabelEl = document.getElementById('recDurationLabel');
+                if (durationLabelEl) {
+                    durationLabelEl.innerText = `(${m}분 ${s < 10 ? '0' + s : s}초 녹음)`;
+                }
+                showToast("저장 완료. 재생 버튼을 눌러 들어보세요.");
+            }
+        }
+
+        // --- 완벽한 전체 원본 대본 데이터 ---
+        const presentationData = [
+            {
+                slideNum: 1, imgSrc: "슬라이드0001.jpg", title: "[1번 슬라이드: 표지]",
+                script: `<div style="text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 10px; margin-bottom: 15px; font-size: 18px; color:#555;"><strong>창녕 안심이동 생태 테라리움 대본 (여유 8.5분 컷)</strong><br>발표자 : 온천꽃식물원 대표 이문숙</div><p><span class="cue-action">(※ 단상에 서서 바인더를 내려놓고, 심사위원과 눈을 맞춘 후 3초간)</span> <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">미소 짓고 시작합니다.</span></p><p><span class="cue-action">[고개 들고 심사위원 바라보며 당당하게]</span></p><p>"안녕하십니까. 기존 꽃집의 판매 한계를 넘어, 관광객, 기관, 그리고 온라인 고객에게 판매할 수 있는 로컬 식물 브랜드로 성장하고자 하는 온천꽃식물원 대표 이문숙입니다." <span class="cue-pause">[1초 쉬고]</span></p><p>오늘 제가 발표드릴 과제는 「창녕 안심이동 생태 테라리움 기프트」입니다.</p><p>이 사업은 단순히 예쁜 테라리움을 하나 더 만드는 것이 아닙니다.</p><p>기존 화훼 상품의 매출 한계와 이동 제약을 개선해서, 반복 판매가 가능한 로컬 식물 기프트로 전환하는 사업입니다.</p><p>발표 시작하겠습니다. <span class="cue-pause">[1초 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 2, imgSrc: "슬라이드0002.jpg", title: "[2번 슬라이드: 문제정의]",
+                script: `<p>기존 화훼 소상공인의 가장 큰 고민은 두 가지입니다. <span class="cue-pause">[1초 쉬고]</span></p><p>첫째는 '매출의 시즌성'입니다.</p><p>어버이날이나 인사 철 같은 특정 시기에는 수요가 있지만, 비수기에는 매일 팔 수 있는 상시 상품이 부족합니다. <span class="cue-pause">[1초 쉬고]</span></p><p>둘째는 '이동과 배송의 불안정성'입니다.</p><p>화분이나 테라리움은 이동 중에 흔들리거나, 흙이 쏟아지고, 수분이 새고, 용기가 파손될 위험이 너무 큽니다.</p><p>이 때문에 관광객이 사 가기도 어렵고, 기관 단체 선물이나 택배 배송으로 확장하는 데 큰 한계가 있었습니다.</p><p>저희는 이 문제를 해결하여 사업 구조를 바꾸고자 합니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 3, imgSrc: "슬라이드0003.jpg", title: "[3번 슬라이드: 해결방안]",
+                script: `<p>해결책은 바로,</p><p>'우리 지역의 이야기'와 '이동 중 흔들림을 줄이는 포장 구조'의 결합입니다. <span class="cue-pause">[1초 쉬고]</span></p><p>부곡온천과 우포늪의 맑은 생태 이미지를 용기 속에 담고,</p><p>여기에 온천꽃식물원이 창녕 따오기를 모티브로 자체 기획한 캐릭터 '따오'를 적용합니다. <span class="cue-pause">[1초 쉬고]</span></p><p>그리고 가장 중요한 것.</p><p>관광객이 들고 이동하거나 택배로 배송될 때, 흔들림과 파손, 누수 위험을 줄일 수 있는 '안심이동형 패키지 구조'를 적용하는 것입니다.</p><p>이제 매장 진열을 넘어, 관광객 휴대와 기관 납품, 온라인 배송까지 가능한 상품으로 전환하겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 4, imgSrc: "슬라이드0004.jpg", title: "[4번 슬라이드: 5중 이동안정 구조]",
+                script: `<p>이번 과제의 핵심인 '5중 이동안정 구조'입니다. <span class="cue-pause">[1초 쉬고]</span></p><p><span class="cue-action">[고개 들고 심사위원 바라보며 힘주어]</span></p><p>"기존 박스에 완충재만 넣는 수준이 아니라, 용기의 위, 옆, 아래를 함께 잡아주는 구조입니다." <span class="cue-pause">[1초 쉬고]</span></p><p>첫째, 입구 고정링으로 용기 입구를 잡아 이탈을 막고,</p><p>둘째, 옆면 충격 완충패드로 이동 중 옆 충격을 줄입니다.</p><p>셋째, 둥지형 받침대로 용기 아래를 감싸 흔들림을 잡고,</p><p>넷째, 바닥 충격흡수판으로 차량과 택배 진동을 줄입니다.</p><p>마지막으로 미끄럼 방지 패드를 더해 바닥 미끄럼과 넘어짐 위험을 줄입니다. <span class="cue-pause">[1초 쉬고]</span></p><p>저희는 이 구조를 실제 이동 테스트를 통해 보완하고, 차량 이동과 택배 배송 시 흔들림, 누수, 파손 위험을 최소화하는 기준을 만들겠습니다. <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 5, imgSrc: "슬라이드0005.jpg", title: "[5번 슬라이드: 따오 캐릭터와 상품 라인업]",
+                script: `<p>다음은 저희 상품의 매력 포인트인 캐릭터입니다. <span class="cue-action">[미소 지으며 1초 쉬고]</span></p><p>화면에 보이시는 캐릭터는 저희 온천꽃식물원이 직접 기획하고 이름 붙인 '따오'입니다.</p><p>따오기는 창녕 우포늪의 상징이고, 따오는 온천꽃식물원의 자체 캐릭터입니다. <span class="cue-pause">[1초 쉬고]</span></p><p><span class="cue-action">[고개 들고 심사위원 바라보며 환하게 웃으며]</span></p><p>"관광객들이 쉽고 친근하게 기억하실 수 있도록, '우포늪 방문했따오~' 처럼 따오기에서 따온 짧고 귀여운 이름으로 정했습니다." <span class="cue-pause">[1초 쉬고]</span></p><p>이 따오는 단순한 장식이 아닙니다. 창녕을 기억하게 하는 저희만의 로컬 콘텐츠 자산입니다.</p><p>이 캐릭터를 테라리움 완제품은 물론, 직접 만드는 키트, 스토리카드, 선물 패키지에도 반복해서 활용할 계획입니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 6, imgSrc: "슬라이드0006.jpg", title: "[6번 슬라이드: 체험형·배송형 상품 확장]",
+                script: `<p>안심이동 구조가 완성되면, 상품을 다양하게 확장하겠습니다. <span class="cue-pause">[1초 쉬고]</span></p><p>첫째, 고객이 생태 소품을 직접 조립하는 '체험형 키트'입니다.</p><p>둘째, 부품별로 안전하게 포장해 전국으로 보내는 '온라인 배송형 키트'입니다.</p><p>셋째, 지역 스토리카드와 관리카드를 함께 넣어 선물의 가치를 높이겠습니다. <span class="cue-pause">[1초 쉬고]</span></p><p>그리고 앞으로는 테라리움뿐만 아니라 누구나 키우기 쉬운 '다육이' 같은 식물로 종류를 넓히고, 우리 귀여운 '따오' 캐릭터를 화분에 꽂는 '식물 장식 픽(Pick)'이나 원예 소품으로 만들어서 다른 꽃집들에도 납품하는 진짜 로컬 브랜드로 키워가겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 7, imgSrc: "슬라이드0007.jpg", title: "[7번 슬라이드: 3단계 판로 확장]",
+                script: `<p>판매 전략은 3단계로 진행하겠습니다. <span class="cue-pause">[1초 쉬고]</span></p><p>1단계는 부곡온천 관광상권 실증입니다. 숙박업소 웰컴기프트와 연계하여 실제 구매 반응을 먼저 확인하겠습니다.</p><p>2단계는 창녕군 관광 및 기관 수요 확장입니다. 우포늪과 지역 행사, 관공서 답례품 수요와 연결해 창녕 대표 로컬 기프트로 자리 잡겠습니다.</p><p>3단계는 온라인 배송형 상품 전환입니다. 안전한 패키지를 무기로 스마트스토어와 SNS를 통한 전국 배송 판매를 검증하겠습니다.</p><p>부곡온천을 첫 번째 실증 거점으로 삼아 차근차근 확장하겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 8, imgSrc: "슬라이드0008.jpg", title: "[8번 슬라이드: 시장 검증]",
+                script: `<p>이 과정을 위해, 사업 기간 내에 철저히 시장을 검증하겠습니다. <span class="cue-pause">[1초 쉬고]</span></p><p>첫째, 안심이동 구조를 검증하기 위해 시범판매 30건 이상을 직접 추진하겠습니다.</p><p>둘째, 고객 반응 50건 이상을 수집하여 휴대 편의성과 누수 불안이 줄었는지 확인하겠습니다.</p><p>셋째, 숙박업소와 기관에 제휴 제안 10곳을 진행하고, 실제 연계처 3곳 이상을 확보하겠습니다.</p><p>개발 단계부터 판매 반응과 제휴 가능성을 함께 검증하겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 9, imgSrc: "슬라이드0009.jpg", title: "[9번 슬라이드: 예산 집행계획]",
+                script: `<p>총 사업비 1억 1,120만 원에 대한 집행 계획입니다. <span class="cue-action">[목소리에 힘을 주며]</span></p><p>정부지원금 1억 원은 상품 구조 개발과 판매 기반 구축에 맞춰 체계적으로 집행하겠습니다.</p><p>이 돈은 단순 포장재 구입비나 홍보비가 아닙니다. <span class="cue-pause">[1초 쉬고]</span></p><p>기술개발비는 테라리움 시제품 제작, 이동안정 구조 테스트, 캐릭터 개발, 그리고 누구나 똑같이 만들 수 있는 '제작 매뉴얼'을 구축하는 데 집중하겠습니다.</p><p>사업화비는 온라인 판매 기반 구축과 제휴 영업 자료 제작에 사용하여, 지원사업 종료 후에도 스스로 운영 가능한 지속적 반복 판매 구조를 만들겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 10, imgSrc: "슬라이드0010.jpg", title: "[10번 슬라이드: 수행역량]",
+                script: `<p>저의 실행 역량입니다. <span class="cue-action">[가슴을 펴고 당당하게]</span></p><p>저는 2000년부터 화훼 현장을 뛰었고, 2015년부터 식물원을 운영해 왔습니다.</p><p>어떤 식물이 관리가 쉽고, 고객이 어떤 포인트에서 구매를 결정하는지 현장 경험으로 잘 알고 있습니다. <span class="cue-pause">[1초 쉬고]</span></p><p>이번 사업에서는 이 20년의 경험을 제 개인의 노하우로만 남겨두지 않겠습니다.</p><p>제작과 포장 매뉴얼, 온라인 운영체계로 표준화하겠습니다.</p><p>대표 한 명에게 의존하는 꽃집을 넘어, 체계적으로 반복 제작과 판매가 가능한 조직으로 전환하겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 11, imgSrc: "슬라이드0011.jpg", title: "[11번 슬라이드: 기대효과]",
+                script: `<p>본 사업의 기대효과는 세 가지입니다.</p><p>첫째, 시즌성 한계를 벗어나 상시 판매 가능한 안심 상품군을 만들고,</p><p>둘째, 창녕 우포늪과 따오기를 알리는 로컬 상생을 실천하며,</p><p>셋째, 지원사업이 끝난 후에도 지속 운영 가능한 사업 확장성을 만들어가겠습니다.</p><p>단순 꽃 판매를 넘어, 생활문화형 로컬 브랜드로 성장하겠습니다. <span class="cue-pause">[길게 쉬고]</span> <span class="cue-action">[화면 넘김 클릭]</span></p>`
+            },
+            {
+                slideNum: 12, imgSrc: "슬라이드0012.jpg", title: "[12번 슬라이드: 마무리]",
+                script: `<p>정리하겠습니다. <span class="cue-pause">[1초 쉬고]</span></p><p>저희 온천꽃식물원은 기존 꽃집의 매출 한계와 배송의 불편을 개선하고자 합니다.</p><p>창녕의 자원을 담은 테라리움에 안심이동 구조를 결합해, 관광객, 기관, 온라인 고객이 모두 구매할 수 있는 '로컬 식물 기프트'로 전환하겠습니다. <span class="cue-pause">[1초 쉬고]</span></p><p><span class="cue-action">[고개 들고 심사위원 바라보며 힘차고 따뜻하게]</span></p><p>"창녕의 아름다운 자연을 전국 고객에게 안전하게 전달하겠습니다. 끝까지 경청해 주셔서 감사합니다."</p><p><span class="cue-action">(※ 정중하게 허리 숙여 인사)</span></p>`
+            }
+        ];
+
+        function renderSlide() {
+            // 슬라이드가 넘어갈 때 녹음 중지
+            if(mediaRecorder && mediaRecorder.state === "recording") stopRecording();
+
+            const data = presentationData[currentSlideIndex];
+            document.getElementById('currentSlideImg').src = data.imgSrc;
+            
+            // TTS 버튼과 대본 텍스트 안전하게 결합
+            let scriptHtml = `<button class="btn-tts" onclick="playCurrentSlideTTS()">🔊 대본 읽기</button>`;
+            scriptHtml += `<div class="slide-title">${data.title}</div>`;
+            scriptHtml += `<div>${data.script}</div>`;
+            document.getElementById('currentScriptText').innerHTML = scriptHtml;
+            
+            document.getElementById('slideCounter').innerText = `${data.slideNum} / 12`;
+            document.getElementById('btnPrev').disabled = (currentSlideIndex === 0);
+            document.getElementById('btnNext').disabled = (currentSlideIndex === presentationData.length - 1);
+
+            // Update slide counter in top practice bar if present
+            const counterTop = document.getElementById('slideCounterTop');
+            if (counterTop) {
+                counterTop.innerText = `${data.slideNum} / ${presentationData.length}`;
+            }
+
+            // 해당 슬라이드의 녹음 파일 로드
+            const audioPlayback = document.getElementById('audioPlayback');
+            if (slideAudioData[currentSlideIndex]) {
+                audioPlayback.src = slideAudioData[currentSlideIndex];
+            } else {
+                audioPlayback.src = '';
+            }
+        }
+
+        function changeSlide(direction) {
+            currentSlideIndex += direction;
+            if (currentSlideIndex < 0) currentSlideIndex = 0;
+            if (currentSlideIndex >= presentationData.length) currentSlideIndex = presentationData.length - 1;
+            renderSlide();
+        }
+
+        // --- Q&A 원본 답변 데이터 (21문항 전체) ---
+        const qnaDataMaster = [
+            { id: 1, type: "일반", title: "사업 동기", attack: "동네 꽃집 하시면서 왜 굳이 국비 1억씩이나 나오는 큰 사업에 지원하셨습니까?", mild: "이번 소상공인 지원사업에 참여하게 된 특별한 동기나 계기가 있으신가요?", answer: "제가 부곡에서 나고 자라 20년 넘게 이 동네에서 꽃집을 했습니다. 고향에 대한 애정이 각별한데, 늘 비수기나 배달 문제로 한계를 느꼈습니다. 마침 딸이 우리 동네 특색 살려서 이런 거 한번 제대로 해보자고 도와줘서 용기를 냈습니다. 이 사업으로 우리 '따오' 캐릭터가 잘 돼서 부곡온천이랑 같이 상생하는 로컬 브랜드를 꼭 만들어보고 싶습니다." },
+            { id: 2, type: "일반", title: "차별성", attack: "예쁜 테라리움은 시중에 널렸는데, 대표님 제품만의 진짜 경쟁력이 뭡니까?", mild: "기존 테라리움 상품들과 비교했을 때, 이 제품의 가장 큰 차별점은 무엇일까요?", answer: "맞습니다. 예쁜 화분은 세상에 정말 많습니다. 저희의 무기는 '안전성'입니다. 무거운 유리가 아니라 가벼운 '플라스틱 용기'를 쓰고, 흔들림을 줄여주는 5중 포장 구조에 창녕 스토리를 담은 겁니다. 그래서 관공서 인사이동 시즌에 흔한 호접란 대신, 기존 화분보다 이동 부담을 줄이고, 기관 선물이나 관광객 휴대 상품으로 확장할 수 있다는 점이 저희만의 차별점입니다." },
+            { id: 3, type: "일반", title: "필요성", attack: "소상공인이 이렇게 복잡한 기획까지 해가며 사업을 벌일 필요가 있습니까?", mild: "이 안심이동 기프트를 꼭 지금 개발하셔야 하는 이유가 있을까요?", answer: "요즘 동네 꽃집들이 참 많이 어렵습니다. 부곡온천에 수많은 분들이 놀러 와도 들고 가기 불편해서 식물을 못 사 가시는 걸 보며 늘 안타까웠습니다. 이 '안심 포장' 문제만 해결된다면, 관광객분들께 좋은 추억을 드리고 저 같은 소상공인도 사계절 내내 일할 수 있는 돌파구가 될 것이라 확신했습니다." },
+            { id: 4, type: "압박", title: "기술/파손 방어", attack: "솔직히 흙이랑 식물인데 택배로 막 던지면 다 깨지거나 엎어지는 거 아닙니까?", mild: "택배 배송을 할 때 흙이나 식물이 쏟아질 우려는 없을까요?", answer: "위원님 말씀이 맞습니다. 저희가 튼튼한 플라스틱 용기를 쓴다고 해도, 흙이랑 식물이 다 들어있는데 택배로 막 던지면 엎어질 수밖에 없죠. 그래서 저희가 내린 결론은, 관광객이 직접 들고 가거나 동네 납품은 '안심 포장 완제품'으로 가고, 택배로 멀리 가는 건 직접 만드는 'DIY 조립 키트'로만 파는 겁니다. 무리하게 완제품 택배를 고집하지 않고, 배송 위험을 근본적으로 줄이는 방향으로 단계적 확장을 하겠습니다." },
+            { id: 5, type: "압박", title: "방어 전략", attack: "박스 포장 구조, 조금만 눈썰미 있으면 다른 데서 금방 따라 할 텐데 방어 전략이 있습니까?", mild: "다른 업체에서 비슷한 포장을 출시하면 어떻게 대응하실 계획인가요?", answer: "박스 형태는 누구나 흉내 낼 수 있다는 지적 인정합니다. 그래서 저희가 '따오' 캐릭터와 상품명, 패키지 구조는 상표·디자인권·특허 출원을 검토해 권리화하겠습니다. 남들이 흉내 내기 전에, 저희가 먼저 부곡온천 호텔이나 관공서에 성실하게 납품하면서 '믿고 살 수 있는 곳'으로 꽉 잡아두는 것이 최고의 방어라고 생각합니다." },
+            { id: 6, type: "압박", title: "온라인 경쟁", attack: "이미 대형 온라인 꽃 배달 업체들이 많은데, 어떻게 경쟁하실 겁니까?", mild: "기존의 온라인 화훼 배송 서비스들과는 어떤 차별화된 전략으로 다가가실 건가요?", answer: "대형 업체들이 온라인을 꽉 잡고 있는 것은 사실입니다. 하지만 생태 테라리움은 식물과 흙이 포함되어 있어 일반 꽃 배송과 달리 포장 안정성 확보가 중요합니다. 저희는 가벼운 플라스틱 용기에 자체 개발한 포장 매뉴얼, 그리고 파손 위험 없는 'DIY 조립 키트'를 무기로 이 틈새시장을 파고들겠습니다." },
+            { id: 7, type: "압박", title: "지역 경쟁", attack: "다른 지역 꽃집에서 똑같이 지역 캐릭터 만들어서 키트 팔면 어떻게 이길 겁니까?", mild: "비슷한 로컬 굿즈들이 많이 나올 수 있는데, 식물원만의 경쟁력은 무엇일까요?", answer: "비슷한 상품이 나오는 건 장사하면서 늘 겪는 일입니다. 그래서 저희는 테라리움 하나에만 매달리지 않고, 귀여운 '따오 장식 픽', '따오 스티커', '다육이 화분' 등 여러 상품군을 만들 계획입니다. 나중엔 저희가 창녕 군내 다른 소품샵이나 꽃집들에 이 부자재를 납품하는 쪽으로 상생하면서 사업을 넓혀가겠습니다." },
+            { id: 8, type: "압박", title: "타깃 고객", attack: "창녕까지 오는 사람들이 굳이 테라리움을 살까요? 구체적으로 누구한테 팔 겁니까?", mild: "이 상품의 핵심 타깃 고객은 누구이며, 어떻게 홍보하실 계획인가요?", answer: "처음에는 저희 앞마당인 부곡온천 관광객이 1차 타깃입니다. 시범 판매로 손님들 반응을 꼼꼼히 살피면서 완성도를 높이겠습니다. 나중에 시범판매 반응이 확인되면, 검증된 상품 위주로 숙박업소·기관·온라인 채널에 단계적으로 확장하겠습니다." },
+            { id: 9, type: "압박", title: "시장 규모", attack: "부곡온천 상권 하나만 보고 1억 원짜리 사업을 하겠다는 건 시장이 너무 좁은 것 아닙니까?", mild: "부곡온천에서 시작하시는데, 앞으로 시장 규모나 수요는 어떻게 전망하시나요?", answer: "부곡온천만 하고 끝내겠다는 게 아닙니다. 동네 상권이라 작아 보일 수 있지만, 부곡은 온천에, 가족탕에, 스포츠파크 전지훈련과 각종 공연까지 사시사철 외부 유동인구가 엄청난 핵심 관광지입니다. 여기서 초기 검증을 단단히 마치고 관광객 휴대형 상품과 기관 선물 수요를 함께 검증하면, 부곡온천을 넘어 창녕 관광·기관·온라인 시장으로 확장할 근거를 만들 수 있습니다." },
+            { id: 10, type: "압박", title: "역량 방어", attack: "연세도 있으신데 상품 개발에 온라인 마케팅까지 대표님 혼자 감당이 되십니까?", mild: "다양한 업무가 필요할 텐데, 팀원이나 파트너 등 어떻게 실행해 나가실 계획인가요?", answer: "솔직히 50대 후반인 저 혼자 컴퓨터나 마케팅을 완벽하게 하기는 어렵습니다. 그래서 딸이 전폭적으로 돕고 있고, 제가 부족한 디자인이나 온라인 분야는 전문 업체에 맡기고 신규 직원을 채용해 해결할 겁니다. 대신 저는 20년 현장 경험으로 살려 상품 퀄리티를 높이고 동네 영업을 뛰는 데 전념하겠습니다." },
+            { id: 11, type: "일반", title: "정부지원금 필요성", attack: "지금 하시는 장사 잘 고도화하면 되는데, 꼭 국비 1억 원을 받아야만 가능한 사업입니까?", mild: "이번 사업에서 정부지원금이 대표님 사업 성장에 구체적으로 어떤 도움을 주게 되나요?", answer: "제 돈으로 그냥 재료 사서 몇개 더 파는 거면 지원금 안 받습니다. 흔들림을 막는 특수 포장틀을 제대로 설계하고, 누가 와도 똑같이 조립할 수 있는 '제작 매뉴얼' 시스템을 만들고 패키지 구조와 캐릭터, 상품명을 권리화하고 제작 매뉴얼까지 구축하려면 소상공인 혼자 힘으론 너무 벅차서 정부의 도움을 꼭 받고 싶습니다." },
+            { id: 12, type: "압박", title: "예산 사용처", attack: "1억 원 받아서 포장지 인쇄하고 끝나는 거 아닙니까? 어디에 어떻게 쓸 겁니까?", mild: "지원받으시는 예산은 주로 어떤 항목과 개발에 사용하실 예정이신가요?", answer: "단순 포장지 인쇄에 낭비하지 않겠습니다. 저희 플라스틱 용기에 딱 맞는 '알형 케이스'나 흔들림을 잡는 '둥지형 받침대' 같은 맞춤형 특수 포장틀을 제대로 설계해서 제작하고, 이 구조를 시제품으로 만들고 흔들림·누수·전도 위험을 검증한 뒤, 제작·포장 매뉴얼로 표준화하는 데 예산을 집중하겠습니다." },
+            { id: 13, type: "일반", title: "확장성", attack: "시장이 좁은데 테라리움 인기가 식으면 사업도 같이 끝나는 거 아닙니까?", mild: "테라리움 이후에 사업을 지속적으로 확장할 수 있는 후속 계획이 있으신가요?", answer: "그런 위험이 있어서 테라리움에만 의존하지 않을 계획입니다. 포장 구조와 '따오' 캐릭터가 자리 잡으면, 누구나 관리가 쉬운 '다육이' 화분 등으로도 상품을 늘릴 겁니다. 또 '따오 화분 픽'이나 부자재를 지역 내 다른 가게에 납품하면서 사업을 안정적으로 이어가겠습니다." },
+            { id: 14, type: "일반", title: "단기 목표", attack: "말은 거창한데, 당장 올해 안에 어디까지 해낼 수 있다는 겁니까? 올해의 목표는 무엇이죠?", mild: "이번 협약 기간(올해) 내에 달성하고자 하는 가장 구체적인 목표는 무엇인가요?", answer: "무턱대고 많이 파는 게 목표가 아닙니다. 흔들림을 최소화하는 '포장 매뉴얼'을 완성하는 게 최우선입니다. 시제품이 나오면 바로 30개를 시범 판매해서 손님들이 들고 가기 편한지 직접 확인하고 보완하겠습니다. 그리고 연말까지 근처 호텔이나 기관 3곳 이상에 단체 납품을 성사시키는 게 현실적인 목표입니다." },
+            { id: 15, type: "압박", title: "대표자 역량", attack: "대표님이 꼭 이 사업을 성공시킬 수 있다고 심사위원들을 설득해 보십시오.", mild: "대표님께서 이 사업을 가장 잘 해내실 수 있는 대표님만의 강점은 무엇인가요?", answer: "저는 이 지역에서 20년 넘게 꽃집을 해왔습니다. 우리 지역 사람들이 어떤 시즌에, 어떤 선물에 돈을 쓰는지 제가 현장에서 뼈저리게 겪었기에 누구보다 잘 안다고 자부합니다. 저에 대한 동네 사람들의 든든한 '신뢰'에 안전한 포장 시스템만 더해지면 차근차근 확실한 성과를 내겠습니다." },
+            { id: 16, type: "일반", title: "가격 및 규격", attack: "포장비까지 들이면 너무 비싸서 안 팔리지 않겠습니까? 사이즈랑 가격이 어떻게 됩니까?", mild: "실제 고객들이 구매할 때 가격대와 상품의 대략적인 크기는 어느 정도로 예상하시나요?", answer: "관광객들이 부담 없이 사시도록, 플라스틱 용기 크기는 '테이크아웃 커피잔'부터 '작은 수반' 정도로 맞추겠습니다. 가격도 관광객이 편하게 사는 소형이나 DIY 키트는 2~3만 원대, 관공서 납품용 고급형은 5만 원 전후로 딱 정해서 손님들 부담을 줄이면서도 마진을 확보하겠습니다." },
+            { id: 17, type: "일반", title: "상품 수명", attack: "생물인데 금방 시들거나 죽지 않습니까? 선물 받았는데 죽어 버리면 클레임 들어올 텐데요?", mild: "식물이라 관리가 어려울 수도 있을 것 같은데, 이 부분은 어떻게 보완하셨나요?", answer: "식물이니까 관리를 못 하면 죽을 수도 있죠. 하지만 테라리움은 일반 화분보다 관리가 수월하고 오래갑니다. 또 앞으로는 알아서 잘 자라는 '다육이'로도 확장할 거고요. 꼼꼼한 '관리 카드'를 꼭 동봉해 드리고, 식물 관리 리스크를 줄이기 위해 관리 난이도가 낮은 식물과 이끼·다육 소재를 우선 적용하고, 관리카드를 함께 제공하겠습니다. 시범판매 과정에서 고객이 어려워하는 부분을 확인해 상품 구성과 안내문을 계속 보완하겠습니다." },
+            { id: 18, type: "일반", title: "연령대 방어", attack: "부곡온천 가면 나이 드신 분들이 대충 씻고 가는 분들이 많은데, 이런 디자인 상품을 사 가겠습니까?", mild: "부곡온천을 찾는 다양한 연령층 중 특히 어떤 분들이 이 상품을 좋아할 것으로 기대하시나요?", answer: "부곡온천에 어르신들만 온다고 생각하시기 쉽지만, 사실 가족탕이나 키즈룸이 잘 되어 있어서 영유아를 데리고 오는 30~40대 학부모님들이 정말 많습니다. 또 스포츠파크가 있어서 10대 학생들과 가족 단위 수요도 엄청납니다. 귀여운 '따오' 캐릭터는 이런 가족 단위 고객에게 접근성을 높이는 요소가 될 수 있습니다." },
+            { id: 19, type: "압박", title: "불경기의 매출", attack: "요즘 불경기에 동네 꽃집에서 5만 원짜리 세트가 잘 팔리겠어요?", mild: "소비 심리가 위축된 상황에서, 고객들이 부담 없이 구매할 수 있는 전략이 있으신가요?", answer: "불경기에 지갑이 얇아진 건 사실입니다. 그래서 일반 관광객분들께는 2~3만 원대의 가벼운 상품과 DIY 키트 위주로 권해드릴 생각입니다. 5만 원대 프리미엄 상품은 개인 손님이 아니라, 예산이 미리 정해져 있는 관공서 인사이동 선물이나 호텔 VIP 답례품으로 돌려서 납품할 계획입니다." },
+            { id: 20, type: "압박", title: "카피 방어/신뢰", attack: "아이디어가 참 좋은데, 다른 꽃집들이 따오기 이름 붙여서 더 싸게 베껴 팔면 어쩔 겁니까?", mild: "유사한 콘셉트의 상품이 주변에 생겼을 때, 식물원만의 신뢰를 유지할 방법이 있을까요?", answer: "비슷한 게 나오는 건 어쩔 수 없겠죠. 하지만 제가 20년 동안 이 동네에서 활동하며 관공서나 이웃들과 쌓아온 '신뢰'는 하루아침에 베낄 수 없습니다. 품질만큼은 저를 믿고 주문해 주시기에 그 신뢰를 바탕으로 납품처를 단단히 다져놓고, 오히려 다른 꽃집에는 저희 부자재를 도매로 납품하는 쪽으로 긍정적인 상생을 해보겠습니다." },
+            { id: 21, type: "압박", title: "리스크 관리", attack: "1억 원 다 썼는데 안 팔리면 정부 지원금 그냥 허공에 날리는 거 아닙니까?", mild: "혹시 시장 반응이 예상과 다를 경우를 대비한 리스크 관리나 테스트 계획이 있으신가요?", answer: "무턱대고 수천 개씩 찍어내는 그런 방식은 위험하다고 생각합니다. 그래서 저희가 조심스럽게 돌다리를 두드려보려는 겁니다. 시제품 나오자마자 딱 30개만 시범 판매해서, 손님들한테 어디가 불편한지 꼼꼼하게 물어보고 고친 다음에 납품을 늘릴 겁니다. 귀한 지원금 헛되이 쓰지 않게 차근차근 검증하며 넓혀가겠습니다." }
+        ];
+
+        let state = {
+            'normal': { available: [], current: null },
+            'pressure': { available: [], current: null }
+        };
+
+        // 압박 심사위원 모드 시작 플래그
+        let pressureStarted = false;
+
+        // 압박 심사위원 모드를 시작하는 함수
+        function startPressureMode() {
+            if (pressureStarted) {
+                // 이미 시작되었으면 아무 작업도 하지 않습니다.
+                return;
+            }
+            pressureStarted = true;
+            // 압박 질문을 초기화합니다.
+            initQnA('pressure');
+            // 압박 시작 안내 음성을 출력하고, 음성이 끝난 후 첫 질문을 제시합니다.
+            const introUtterance = new SpeechSynthesisUtterance("지금부터 압박 심사위원 모드를 시작합니다. 질문을 듣고 바로 답변해 보세요.");
+            introUtterance.lang = 'ko-KR';
+            introUtterance.rate = 1.1;
+            introUtterance.onend = () => {
+                // 안내 음성이 끝나면 첫 질문을 호출합니다.
+                nextQuestion('pressure');
+                // 첫 질문이 업데이트된 후 바로 읽도록 호출합니다.
+                setTimeout(() => {
+                    const qEl = document.getElementById('q-text-pressure');
+                    if (qEl) {
+                        readText(qEl.innerText);
+                    }
+                }, 200);
+            };
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(introUtterance);
+            showToast('🔥 압박 모드를 시작합니다.');
+        }
+
+        function initQnA(mode) {
+            if (mode === 'normal') {
+                state.normal.available = [...qnaDataMaster];
+                document.getElementById('progress-normal').innerText = `남은 질문: 21개 / 전체 21개`;
+                document.getElementById('q-type-normal').innerText = "질문 대기 중";
+                document.getElementById('q-type-normal').style.backgroundColor = "#666";
+                document.getElementById('q-text-normal').innerText = "아래 '랜덤 질문 받기' 버튼을 눌러주세요.";
+                document.getElementById('a-text-normal').style.display = 'none';
+            } else {
+                state.pressure.available = qnaDataMaster.filter(q => q.type === "압박");
+                document.getElementById('progress-pressure').innerText = `핵심 압박 질문: 12개 / 전체 12개`;
+                document.getElementById('q-type-pressure').innerText = "압박 대기 중";
+                document.getElementById('q-type-pressure').style.backgroundColor = "#666";
+                document.getElementById('q-text-pressure').innerText = "아래 '압박 질문 받기' 버튼을 눌러주세요.";
+                document.getElementById('a-text-pressure').style.display = 'none';
+            }
+        }
+
+        function nextQuestion(mode) {
+            let s = state[mode];
+            document.getElementById(`a-text-${mode}`).style.display = 'none';
+            
+            if (s.available.length === 0) {
+                showToast("🎉 모든 질문 연습이 끝났습니다! 초기화 버튼을 눌러주세요.");
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * s.available.length);
+            s.current = s.available.splice(randomIndex, 1)[0];
+            
+            let total = mode === 'normal' ? 21 : 12;
+            document.getElementById(`progress-${mode}`).innerText = `남은 질문: ${s.available.length}개 / 전체 ${total}개`;
+            
+            const isAttack = mode === 'pressure' ? true : Math.random() < 0.5; // 압박모드는 100% 공격형
+            const badge = document.getElementById(`q-type-${mode}`);
+            const qText = document.getElementById(`q-text-${mode}`);
+            
+            let prefix = `<span class="q-number">[Q${s.current.id}. ${s.current.title}]</span><br>Q. `;
+            
+            if (isAttack) {
+                badge.innerText = "💥 공격형 질문";
+                badge.className = "type-badge type-attack";
+                qText.innerHTML = prefix + s.current.attack;
+            } else {
+                badge.innerText = "🕊️ 순둥형 질문";
+                badge.className = "type-badge type-mild";
+                qText.innerHTML = prefix + s.current.mild;
+            }
+
+            // 압박 모드가 시작된 경우에는 질문을 자동으로 읽어줍니다.
+            if (mode === 'pressure' && pressureStarted) {
+                // 잠시 후에 텍스트를 읽습니다. (DOM 업데이트 후)
+                setTimeout(() => {
+                    const qEl = document.getElementById('q-text-pressure');
+                    if (qEl) {
+                        readText(qEl.innerText);
+                    }
+                }, 200);
+            }
+        }
+
+        function showAnswer(mode) {
+            let s = state[mode];
+            if (!s.current) {
+                showToast("먼저 질문 받기 버튼을 눌러주세요."); return;
+            }
+            const aBox = document.getElementById(`a-text-${mode}`);
+            if(aBox.style.display === 'block') {
+                aBox.style.display = 'none'; // 토글(가리기) 기능
+            } else {
+                aBox.innerHTML = `<strong>💡 대표님 답변:</strong><br><br>${s.current.answer}`;
+                aBox.style.display = 'block';
+            }
+        }
+
+        // 화면 로드 시 초기 화면 렌더링
+        window.onload = function() {
+            renderSlide();
+            initQnA('normal');
+            initQnA('pressure');
+
+            // Load practice history from localStorage
+            const stored = localStorage.getItem('practiceRecords');
+            if (stored) {
+                try {
+                    records = JSON.parse(stored);
+                    const historyList = document.getElementById('historyList');
+                    if (historyList) historyList.innerHTML = records.map(r => `<li>${r}</li>`).join('');
+                } catch (e) { console.error('Failed to parse practice records', e); }
+            }
+
+            // Initialize mode and view
+            selectMode('practice');
+            setView('auto');
+
+            // Initialize timer display to 00:00
+            try { updateTimeDisplay(); } catch (e) {}
+        };
+
+        // -------------------- Mode & View Management --------------------
+        let currentMode = 'practice';
+        let currentView = 'auto';
+
+        function selectMode(mode) {
+            currentMode = mode;
+            // Update active button styling
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            if (mode === 'practice') {
+                document.querySelectorAll('.mode-btn')[0].classList.add('active');
+            } else if (mode === 'qa') {
+                document.querySelectorAll('.mode-btn')[1].classList.add('active');
+            } else if (mode === 'pressure') {
+                document.querySelectorAll('.mode-btn')[2].classList.add('active');
+            }
+            // Show/hide top practice bar
+            const topBar = document.getElementById('practiceTopBar');
+            if (mode === 'practice') {
+                if (topBar) topBar.classList.remove('hidden');
+            } else {
+                if (topBar) topBar.classList.add('hidden');
+            }
+            // Show/hide sections
+            const scriptTab = document.getElementById('scriptTab');
+            const qnaTab = document.getElementById('qnaTab');
+            const pressureTab = document.getElementById('pressureTab');
+            if (scriptTab && qnaTab && pressureTab) {
+                scriptTab.classList.add('hidden');
+                qnaTab.classList.add('hidden');
+                pressureTab.classList.add('hidden');
+                if (mode === 'practice') {
+                    scriptTab.classList.remove('hidden');
+                } else if (mode === 'qa') {
+                    qnaTab.classList.remove('hidden');
+                } else if (mode === 'pressure') {
+                    pressureTab.classList.remove('hidden');
+                }
+            }
+        }
+
+        function setView(view) {
+            currentView = view;
+            // Update active view button styling
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            if (view === 'auto') {
+                document.querySelectorAll('.view-btn')[0].classList.add('active');
+            } else if (view === 'desktop') {
+                document.querySelectorAll('.view-btn')[1].classList.add('active');
+            } else if (view === 'mobile') {
+                document.querySelectorAll('.view-btn')[2].classList.add('active');
+            }
+            updateView();
+        }
+
+        function updateView() {
+            const app = document.getElementById('app');
+            if (!app) return;
+            if (currentView === 'desktop') {
+                app.classList.add('desktop-mode');
+                app.classList.remove('mobile-mode');
+            } else if (currentView === 'mobile') {
+                app.classList.add('mobile-mode');
+                app.classList.remove('desktop-mode');
+            } else { // auto
+                // remove both
+                app.classList.remove('desktop-mode');
+                app.classList.remove('mobile-mode');
+                // determine based on window width
+                if (window.innerWidth >= 900) {
+                    app.classList.add('desktop-mode');
+                } else {
+                    app.classList.add('mobile-mode');
+                }
+            }
+        }
+        // Update view on window resize when in auto mode
+        window.addEventListener('resize', () => {
+            if (currentView === 'auto') updateView();
+        });
+
+        // -------------------- Timer Logic (count-up with 10-min reference) --------------------
+        let elapsedSeconds = 0;
+        let timerIntervalId = null;
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        }
+
+        function updateTimeDisplay() {
+            const timeEl = document.getElementById('time');
+            if (timeEl) {
+                timeEl.innerText = formatTime(elapsedSeconds);
+                // Change color when exceeding 10 minutes (600 sec)
+                if (elapsedSeconds >= 600) {
+                    timeEl.style.color = '#c0392b';
+                } else {
+                    timeEl.style.color = '#d9534f';
+                }
+            }
+        }
+
+        function startTimer() {
+            if (timerIntervalId !== null) return;
+            showToast('▶ 타이머 시작');
+            timerIntervalId = setInterval(() => {
+                elapsedSeconds++;
+                updateTimeDisplay();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (timerIntervalId !== null) {
+                clearInterval(timerIntervalId);
+                timerIntervalId = null;
+                showToast('⏸ 타이머 일시정지');
+            }
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            elapsedSeconds = 0;
+            updateTimeDisplay();
+            // Reset time color
+            const timeEl = document.getElementById('time');
+            if (timeEl) timeEl.style.color = '#d9534f';
+        }
+
+        function stopAndSaveTimer() {
+            pauseTimer();
+            if (elapsedSeconds === 0) {
+                showToast('진행된 시간이 없습니다.');
+                return;
+            }
+            const used = elapsedSeconds;
+            const now = new Date();
+            const timeStr = `${now.getHours()}시 ${now.getMinutes()}분`;
+            // Compute difference from 10 minutes (600 sec)
+            let diffSec = used - 600;
+            let diffStr;
+            if (diffSec > 0) {
+                const dm = Math.floor(diffSec / 60);
+                const ds = diffSec % 60;
+                diffStr = `+${dm > 0 ? dm + '분 ' : ''}${ds}초`;
+            } else if (diffSec < 0) {
+                diffSec = -diffSec;
+                const dm = Math.floor(diffSec / 60);
+                const ds = diffSec % 60;
+                diffStr = `-${dm > 0 ? dm + '분 ' : ''}${ds}초`;
+            } else {
+                diffStr = '±0초';
+            }
+            const m = Math.floor(used / 60);
+            const s = used % 60;
+            const recordStr = `[${timeStr}] 발표 ${m}분 ${s < 10 ? '0'+s : s}초 / 10분 대비 ${diffStr}`;
+            records.unshift(recordStr);
+            // Save to localStorage
+            localStorage.setItem('practiceRecords', JSON.stringify(records));
+            const historyList = document.getElementById('historyList');
+            if (historyList) historyList.innerHTML = records.map(r => `<li>${r}</li>`).join('');
+            showToast('💾 발표 기록이 저장되었습니다.');
+            // Reset for next
+            elapsedSeconds = 0;
+            updateTimeDisplay();
+            // Reset time color
+            const timeEl = document.getElementById('time');
+            if (timeEl) timeEl.style.color = '#d9534f';
+        }
+    </script>
+</body>
+</html>
