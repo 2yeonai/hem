@@ -1020,6 +1020,158 @@ def _bullets_to_text(bullets):
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------------
+# decision-log §19 판정 3: 예산_계획/기대효과를 "정보 없음"이 아니라 "AI가 채워야 할
+#   작업"으로 재정의. budget_detail/expected_outcomes가 business_profile에 없을 때
+#   무조건 [확인 필요]로 비워두던 v0.5.x 로직은 예산·기대효과에까지 "모르는 걸 지어내지
+#   않는다" 원칙을 과도 적용한 설계 오류였음(혜미 지적, Fable 5 판정).
+#   -> 매칭된 공고의 budget_criteria/scoring_rubric을 근거로 AI가 표준 카테고리 비율로
+#   예산 초안을 배분하고, annual_revenue_krw/employees를 근거로 정량 기대효과를 제안한다.
+#   단 "확정값"이 아니라 "AI 제안 초안"이므로 각 항목 앞에
+#   "[AI 제안 — 실제 집행 전 사업주 확정 필요]"를 명시해 SKILL.md의
+#   "완성된 신청서를 최종본으로 취급하지 않는다" 원칙을 지킨다.
+#   [확인 필요](정말 몰라서 못 채움)와 [AI 제안](계산해서 채웠지만 확정 아님)을 텍스트로
+#   명확히 구분한다 — 이 둘을 섞어 쓰지 않는다.
+# ---------------------------------------------------------------------------
+
+# 표준 카테고리 배분 비율(합계 1.0) — 실제 사업계획서에서 흔히 쓰이는 5개 카테고리의
+# 합리적 기본값. 특정 공고 실측치가 아니라 일반 관행 수준의 잠정 비율이며, 코드 상수로
+# 명시해 값의 출처를 숨기지 않는다(예산 총액은 공고 max_grant_krw에서 가져오므로 실수
+# 위험은 배분 "비율"에만 있음).
+BUDGET_CATEGORY_RATIOS = {
+    "재료비": 0.30,
+    "마케팅": 0.25,
+    "외주·용역비": 0.20,
+    "인건비": 0.15,
+    "기타": 0.10,
+}
+
+# 종합본 3강 "계량목표 4가지(매출/고용/투자유치/수출)": 이 스킬은 그중 매출·고용 2가지를
+# 최소한으로 채운다(투자유치/수출은 profile에 근거 필드가 없어 대상 외 — 확대는 별도 판단).
+EXPECTED_REVENUE_GROWTH_PCT = 12  # 10~15% 권장 범위 중 임의 기본값(중간값)
+NEW_HIRE_RATIO_OF_CURRENT_TEAM = 0.2  # 현재 인력 대비 신규고용 비율(최소 1명)
+
+
+def _propose_budget_allocation(raw_announcement):
+    """budget_detail이 비어있을 때, 매칭된 공고의 budget_criteria.max_grant_krw를
+    BUDGET_CATEGORY_RATIOS로 배분한 예산 초안 문자열을 만든다.
+    excluded_categories에 해당하는 카테고리는 배분에서 빼고 남은 비율을 재분배한다.
+    max_grant_krw가 없으면(총액 자체를 모름) 계산 불가 -> 빈 문자열 반환(호출측에서 [확인 필요]로 처리)."""
+    budget_criteria = (raw_announcement or {}).get("budget_criteria") or {}
+    max_grant = budget_criteria.get("max_grant_krw")
+    if not isinstance(max_grant, (int, float)) or max_grant <= 0:
+        return ""
+
+    excluded_categories = budget_criteria.get("excluded_categories") or []
+    ratios = {
+        cat: ratio
+        for cat, ratio in BUDGET_CATEGORY_RATIOS.items()
+        if not any(ec in cat or cat in ec for ec in excluded_categories if ec)
+    }
+    if not ratios:
+        return ""
+
+    ratio_sum = sum(ratios.values())
+    lines = []
+    for cat, ratio in ratios.items():
+        normalized = ratio / ratio_sum
+        amount = int(round(max_grant * normalized / 10000)) * 10000
+        lines.append(f"{cat} {amount:,}원(배정비율 약 {normalized * 100:.0f}%)")
+
+    excluded_note = ""
+    if excluded_categories:
+        excluded_note = f" (공고 집행제외 항목 {', '.join(excluded_categories)}은 배분에서 제외하고 재분배함)"
+
+    return (
+        "[AI 제안 — 실제 집행 전 사업주 확정 필요] 지원한도 "
+        f"{int(max_grant):,}원 기준 표준 카테고리 비율로 예산 초안 배분: "
+        + _join(lines, "; ")
+        + excluded_note
+    )
+
+
+def _propose_expected_outcomes(profile):
+    """expected_outcomes가 비어있을 때, annual_revenue_krw/employees를 근거로 매출·고용
+    정량 목표를 제안한다. 근거 필드가 없는 항목은 [확인 필요]로 남기고(진짜 모르는 것),
+    있는 항목만 [AI 제안]으로 채운다 — 두 표시를 섞지 않고 항목별로 구분한다."""
+    parts = []
+
+    revenue = profile.get("annual_revenue_krw")
+    if isinstance(revenue, (int, float)) and revenue > 0:
+        target_revenue = int(round(revenue * (1 + EXPECTED_REVENUE_GROWTH_PCT / 100)))
+        increase = target_revenue - int(revenue)
+        parts.append(
+            "[AI 제안 — 실제 집행 전 사업주 확정 필요] 매출 목표: 현재 연매출 "
+            f"{int(revenue):,}원 대비 {EXPECTED_REVENUE_GROWTH_PCT}% 증가한 "
+            f"{target_revenue:,}원(증가액 {increase:,}원)을 사업 종료 시점 목표로 제안"
+        )
+    else:
+        parts.append("[확인 필요] annual_revenue_krw가 없어 매출 목표를 계산하지 못했습니다.")
+
+    employees = profile.get("employees")
+    if isinstance(employees, (int, float)) and employees > 0:
+        new_hires = max(1, round(employees * NEW_HIRE_RATIO_OF_CURRENT_TEAM))
+        pct = round(new_hires / employees * 100)
+        parts.append(
+            "[AI 제안 — 실제 집행 전 사업주 확정 필요] 고용 목표: 현재 상시근로자 "
+            f"{int(employees)}명 대비 신규 고용 {new_hires}명(약 {pct}% 증원)을 "
+            "사업 기간 내 목표로 제안"
+        )
+    else:
+        parts.append("[확인 필요] employees(현재 인력 규모)가 없어 고용 목표를 계산하지 못했습니다.")
+
+    return " ".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# decision-log §19 판정 5: 팀원 플레이스홀더 자동 추가.
+#   매칭된 공고의 scoring_rubric에 참여인력/수행역량/실행계획류 항목이 있고,
+#   team_experience가 비어있거나 대표 1인만 있는 경우에만 트리거한다(무조건 부풀리지
+#   않음 — rubric에 팀 관련 배점이 없으면 추가하지 않음).
+# ---------------------------------------------------------------------------
+TEAM_RUBRIC_KEYWORDS = ["참여인력", "수행역량", "수행 역량", "인력현황", "인력 현황", "실행계획", "실행 계획"]
+SOLO_TEAM_MARKERS = ["대표 1인", "대표자 1인", "1인 운영", "단독 운영", "대표 단독", "대표자 단독"]
+
+
+def _rubric_has_team_criteria(raw_announcement):
+    rubric = (raw_announcement or {}).get("scoring_rubric", []) or []
+    return any(
+        any(kw in item.get("item", "") for kw in TEAM_RUBRIC_KEYWORDS)
+        for item in rubric
+    )
+
+
+def _team_needs_placeholder(formatted_team_str):
+    if not formatted_team_str:
+        return True
+    return any(marker in formatted_team_str for marker in SOLO_TEAM_MARKERS)
+
+
+def _generate_team_role_sentence(profile):
+    """사업 업태(industry_code/business_description)에 맞는 그럴듯한 역할 문장을
+    하드코딩 몇 가지 패턴으로 생성한다 — 과설계 금지, 정교한 분류기 아님."""
+    industry_code = profile.get("industry_code") or ""
+    desc = profile.get("business_description")
+    desc_str = desc if isinstance(desc, str) else ""
+    text = f"{industry_code} {desc_str}"
+
+    if any(k in text for k in ["화훼", "꽃", "도소매", "소매", "조경"]):
+        return "상품 제작·포장, 고객 응대 보조"
+    if any(k in text for k in ["방역", "소독", "위생", "청소"]):
+        return "현장 방역·소독 작업 보조, 장비 관리"
+    if any(k in text for k in ["서비스", "행사", "음향", "케어", "돌봄", "산모"]):
+        return "현장 운영 지원, 고객 응대"
+    return "사업 운영 보조, 고객 응대 지원"
+
+
+def _propose_team_placeholders(profile):
+    role_sentence = _generate_team_role_sentence(profile)
+    return (
+        "[AI 제안 — 실제 집행 전 사업주 확정 필요] 제작·운영 보조(OOO) — "
+        f"{role_sentence} (이름은 채용/확정 후 실명으로 교체 필요)"
+    )
+
+
 def draft_application(profile, top_match):
     if not top_match:
         return None
@@ -1042,6 +1194,18 @@ def draft_application(profile, top_match):
     team_experience = _format_team_experience(profile.get("team_experience"))
     budget_detail_str = _format_budget_detail(profile.get("budget_detail"))
     expected_outcomes = _format_expected_outcomes(profile.get("expected_outcomes"))
+
+    # decision-log §19 판정3: 사업자 입력이 없으면 AI가 공고 기준으로 예산/기대효과 초안을 제안한다.
+    if not budget_detail_str:
+        budget_detail_str = _propose_budget_allocation(a)
+    if not expected_outcomes:
+        expected_outcomes = _propose_expected_outcomes(profile)
+
+    # decision-log §19 판정5: rubric에 팀 관련 배점이 있고 팀이 비어있거나 대표 1인뿐이면
+    # 플레이스홀더 팀원을 team_experience에 덧붙인다(무조건 부풀리지 않음 — rubric 조건부).
+    if _rubric_has_team_criteria(a) and _team_needs_placeholder(team_experience):
+        placeholder_text = _propose_team_placeholders(profile)
+        team_experience = (team_experience + " " + placeholder_text) if team_experience else placeholder_text
 
     # --- 2_신청동기_및_필요성 ---
     if business_description:
@@ -1080,8 +1244,12 @@ def draft_application(profile, top_match):
         ceo_age_str = "만 " + str(int(_years_since(parse_date(profile["ceo_birth_date"]), today()))) + "세"
     cert_list = profile.get("certifications", [])
     cert_str = _join(cert_list) if isinstance(cert_list, list) else str(cert_list or "")
+    # decision-log §19 판정4: 이 필드는 애초에 대표자 이름이 아니라 연령(ceo_birth_date
+    # 기반)만 다룬다 — 이름은 io_contract 스키마에 아예 없음. 종합본 3강의 블라인드 심사
+    # 원칙("회사소개·연혁·상호 등은 넣지 않음")에 따라 이름은 의도적으로 미포함이며,
+    # 라벨을 "대표자 정보"로 두면 "이름이 빠졌다"는 오인을 유발하므로 "대표자 연령"으로 수정.
     bullets4 = [(
-        "대표자 정보",
+        "대표자 연령",
         f"대표자는 {ceo_age_str or '[확인 필요]'}이며, 보유 인증: {cert_str or '없음'}.",
     )]
     if team_experience:
@@ -2721,19 +2889,77 @@ def stage_ppt승인(ctx, mock_decision="승인"):
     return doc
 
 
+# §18 후속 미결 항목("stage_발표대본생성이 outline의 slide 키에 의존하던 임시방편")
+# 재검토 결과: PPT초안생성(건드리지 않음)이 하위호환으로 계속 채워주는 "slide" 번호에
+# 의존하지 않도록 정리한다 — 이 함수는 outline을 enumerate()로 직접 순회하고 slide 키를
+# 읽지 않는다(PPT초안생성이 그 필드를 계속 채우는 것은 그대로 두되, 더 이상 소비하지 않음).
+#
+# 골든 레퍼런스(gov-support-skill/2. 발표 대본.pdf, pdftotext -layout 실측) 구조:
+#   - "S1. 표지"는 인사말로 시작("안녕하십니까. ~ 대표 ~입니다.")
+#   - 중간 슬라이드는 "S{n}. {제목}" 다음 곧바로 그 슬라이드 내용을 구어체로 풀어씀
+#   - 마지막 슬라이드는 마무리·감사 인사로 닫음
+# 이 구조(도입 인사 -> 슬라이드별 전환구 -> 마무리 인사)만 규칙 기반 템플릿으로 이식하고,
+# 실제 문장(사업 내용)은 골든 레퍼런스를 베끼지 않는다 — ppt_draft.outline의 title/content를
+# 그대로 재사용해 채운다(§18 판정4 "새 문장을 짓지 않는다" 원칙을 대본 단계까지 승계).
+def _script_transition_phrase(index, total, title):
+    """슬라이드 순서에 따라 전환구만 규칙으로 고른다(내용은 넣지 않음 — 새 창작 없음)."""
+    if total == 1:
+        return f"'{title}'에 대해 말씀드리겠습니다."
+    if index == 1:
+        return f"먼저 '{title}'입니다."
+    if index == total:
+        return f"마지막으로 '{title}'입니다."
+    return f"다음은 '{title}'입니다."
+
+
+def _generate_presentation_script_lines(outline, req, program_title):
+    """ppt_draft.outline(슬라이드별 title/content, 이미 PPT초안생성이 submitted_application_ref에서
+    추출해둔 것)을 골든 레퍼런스 구조(인사 -> 슬라이드 전환구+원문 -> 마무리)의 구어체 대본으로
+    재구성한다. content는 PPT초안생성이 만든 원문 발췌를 그대로 이어 붙일 뿐 새로 쓰지 않는다.
+    반환: (script_lines: [str], unresolved_slides: [str])"""
+    if not outline:
+        return (
+            ["[안내] PPT 초안에 슬라이드 내용이 없어 발표 대본을 생성할 수 없음 — PPT초안생성 결과 확인 필요"],
+            [],
+        )
+
+    n = len(outline)
+    lines = [f"안녕하십니까. '{program_title}' 발표를 시작하겠습니다."]
+    unresolved = []
+    for i, item in enumerate(outline, start=1):
+        title = (item.get("title") or "").strip()
+        content = (item.get("content") or "").strip()
+        if not content or "확인 필요" in content or "내용 없음" in content:
+            unresolved.append(title or f"슬라이드 {i}")
+        transition = _script_transition_phrase(i, n, title)
+        lines.append(f"{transition} {content}".strip())
+
+    qna_min = req.get("질의응답_시간_분")
+    if qna_min and qna_min != "[확인 필요]":
+        lines.append(f"이상으로 발표를 마치겠습니다. 이어지는 질의응답 {qna_min}분 동안 성실히 답변드리겠습니다. 감사합니다.")
+    else:
+        lines.append("이상으로 발표를 마치겠습니다. 질의응답 시간에 성실히 답변드리겠습니다. 감사합니다.")
+    return lines, unresolved
+
+
 def stage_발표대본생성(ctx):
     """kind: model, tier: mid. depends_on: PPT승인(초안생성이 아님) — §17 판정2.
-    PPT가 승인·잠금되기 전에는 절대 실행하지 않는다(반려 전파 차단)."""
+    PPT가 승인·잠금되기 전에는 절대 실행하지 않는다(반려 전파 차단).
+    §18 실물화: PPT초안(승인·잠금된 submitted_application_ref 재구성본)의 슬라이드별
+    title/content를 그대로 이어받아 구어체 전환구로 감싸는 규칙 기반 변환 — 새 사업 내용
+    창작 없음(진짜 LLM 호출 아님, 이 환경에서 결정적으로 실행 가능한 템플릿 로직)."""
     ppt = ctx.get("ppt_draft") or {}
     if not ppt.get("locked"):
         raise RuntimeError("발표대본생성 실패: PPT가 아직 승인·잠금되지 않음 — depends_on 위반(§17 판정2)")
     req = ctx.get("presentation_requirements") or {}
-    script_lines = [
-        f"[{s['slide']}번 슬라이드: {s['title']}] [목업] 발표시간 {req.get('발표시간_분', '[확인 필요]')}분 배분 — 실 LLM 미연동"
-        for s in ppt.get("outline", [])
-    ]
+    program_title = (ctx.get("selection_notice") or {}).get("program_name") or "발표자료"
+    script_lines, unresolved_slides = _generate_presentation_script_lines(
+        ppt.get("outline", []), req, program_title
+    )
     return {
         "script_lines": script_lines,
+        "generation_method": "outline_to_speech_template",
+        "unresolved_slides": unresolved_slides,
         "approval_required": True,
         "approval": _new_presentation_approval_block(ctx.get("presentation_script")),
         "locked": False,

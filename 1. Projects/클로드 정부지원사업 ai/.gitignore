@@ -6,3 +6,4 @@ __pycache__/
 *_prev.md
 *.truncated-*
 gov-support-skill/
+scripts/collector/config.yaml

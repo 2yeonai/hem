@@ -44,6 +44,7 @@ Two schema versions exist for this contract:
 - `1. Projects/완전자동화_실행계획.md` — the current step-by-step execution plan with copy-paste prompts.
 - `2. Areas/Claude 세션로그/` — daily session logs auto-written at 22:30 by a scheduled task (+ weekly synthesis on Sundays). To resume interrupted work, read the latest note here.
 - `ai공장짓기/AI_OS_설계서.md` (v2, 2026-07-14) — meta-layer for how Claude sessions organize work across all factories/tools (ChatGPT/Claude Code/Codex/Cowork/Gemini orchestration, PRD→TASK-PACKET→RESULT-CARD, `prompts/routing-policy.md`, `ops/usage.md`, `templates/`). Separate layer from each factory's manifest.yaml pipeline. Entry point: `START-HERE.md` (vault root). **Correction log (2026-07-15)**: an earlier same-day session mistakenly believed this doc set was lost and fabricated a placeholder "v1 reconstruction" under different filenames — that guess was wrong and has been superseded/quarantined (`_inbox/삭제후보_AI운영체제_v1재구성오류_2026-07-15/`) after 혜미 supplied the real originals. Trust `AI_OS_설계서.md`/`START-HERE.md`/`ORCHESTRATION-LAYER.md`/`prompts/routing-policy.md`/`templates/TASK-PACKET.md`/`templates/RESULT-CARD.md`/`ops/usage.md` only.
+  **Footnote (2026-07-17, decision-log §19 판정2)**: `prompts/routing-policy.md`, `ops/usage.md`, and `ops/tasks/README.md` deliberately stay at the vault root even though the "프로젝트 시작 위치 고정" rule (below, under "Working with 혜미") says new deliverables belong under `1. Projects/`. These three are shared infrastructure referenced by `AI_OS_설계서.md`/other factories by root-relative path — moving them would break those links. This is a documented exception, not a violation to fix.
 - `0. Docs/혜미_자동화_운영표.md` (2026-07-16) — single operating table: per-업무 executor tier, 혜미's share, approval gates, session protocol, and the long-material intake pipeline (§4).
 
 ## Commands
@@ -106,6 +107,8 @@ Note: Dataview and Templater query examples appear throughout these docs, but as
 ## Working with 혜미 (owner) — communication & routing rules
 
 - **프로젝트 시작 위치 고정 (2026-07-16 신설).** 다른 지시가 없으면 **모든 새 프로젝트·산출물은 HEM 볼트(`C:\Users\82106\Desktop\hem`) 안에서 시작한다.** 새 프로젝트 폴더는 `1. Projects/` 아래, 산출물은 해당 프로젝트 폴더에 저장. 임시 작업만 스크래치 폴더 사용 후 최종본은 볼트로. 업무별 실행 담당(모델 티어)·혜미 몫·승인 게이트는 `0. Docs/혜미_자동화_운영표.md`(단일 운영표)를 따른다. 혜미가 긴 외부 자료(설치 가이드·트렌드 글 등)를 붙여넣으면 운영표 §4 인테이크 파이프라인(평가→보관→채택분만 반영)으로 처리한다.
+
+- **다중계정 동시작업 규칙 (2026-07-17 신설).** 이 볼트를 여러 계정/세션이 동시에 건드리는 경우(실제로 발생 확인됨 — 같은 날 세션들이 서로 모르게 같은 파일을 고쳐 git index 충돌·내용 충돌이 났었음), `0. Docs/동시작업_계정규칙.md`를 따른다. 핵심만 요약: ①공유 로그성 문서(decision-log/HANDOFF/실행계획 T-테이블)의 새 기록에는 `[계정태그]`를 붙인다(예: `[gombeck1]`, 계정 이메일 앞부분) ②같은 문서를 고칠 때는 기존 섹션을 지우지 않고 새 섹션만 append ③핵심 스킬 파일(run.py 등)을 크게 고치기 전엔 `ai공장짓기/현재작업현황.md`에 한 줄 선언하고 끝나면 지운다 ④저장 직전엔 항상 파일을 다시 읽어 최신본 기준으로 병합한다(다른 세션이 먼저 손댔을 수 있음).
 
 - **간단 명령어 사전 (2026-07-12 신설).** 혜미의 짧은 명령("마시땅 글 써줘", "PPT 만들어줘", "게시해줘", "이어서 해줘" 등)은 `0. Docs/명령어_사전.md`에 정의돼 있다 — 해당 명령을 받으면 사전대로 즉시 실행하고, 되돌릴 수 없는 일(게시/발송)만 승인 게이트를 거친다. 콘텐츠 계정 매핑: @maasittang=진주 맛집, @2yeon_sz=육아·아기코디, 네이버 블로그=eunoia9496 (상세: `1. Projects/클로드 콘텐츠 ai/channel_config.yaml`).
 

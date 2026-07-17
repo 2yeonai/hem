@@ -1,0 +1,28 @@
+{
+  "_note": "블라인드 테스트용 입력 (2026-07-16). 온천꽃식물원의 실제 합격 사업계획서(test/real_program_3rd_input.json, '창녕 안심이동 생태 테라리움 기프트')는 절대 참조하지 않았음 — 이 파일은 오직 business_profiles.yaml의 객관적 사업자 정보(사업자등록 정보·업태·종목)만으로 구성됨. AI가 실제 합격 아이디어를 모르는 상태를 가정한 블라인드 초안 생성 테스트.",
+  "business_profile": {
+    "biz_type": "개인",
+    "industry_code": "도소매업 — 생화·조경수 (화훼 소매)",
+    "founded_date": "2015-02-01",
+    "region": "경상남도 창녕군",
+    "annual_revenue_krw": 60000000,
+    "employees": 1,
+    "ceo_birth_date": null,
+    "gender": null,
+    "career_interruption_status": null,
+    "certifications": [],
+    "disqualification_flags": [],
+    "business_description": "온천꽃식물원은 2015년부터 경상남도 창녕군 부곡면에서 생화·꽃다발·꽃바구니·화환 등 화훼 판매와 조경수·수목 공급 등 조경 관련 상품을 판매하는 개인사업자다. 전화·방문 주문을 받아 꽃과 화환을 배송한다.",
+    "team_experience": "대표 1인 운영. 필요 시 직원 채용으로 인력 보충 가능.",
+    "budget_detail": [],
+    "documents_status": {
+      "prepared_documents": [],
+      "not_prepared_or_needs_check": []
+    },
+    "_source_note": "business_profiles.yaml의 oncheon_flower 프로필(사업자등록 정보+matching_fields)만 사용. 구체적 신사업 아이디어·예산·팀 구성은 AI가 모르는 상태로 두어 draft_application()이 자체적으로 생성하게 함."
+  },
+  "target_period": {
+    "start_date": "2026-05-18",
+    "end_date": "2026-06-08"
+  }
+}
