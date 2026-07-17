@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>정부지원 신청서·발표자료 승인화면 (프로토타입)</title>
+<style>
+  :root{
+    --bg:#0f1220;
+    --card:#1a1f35;
+    --card-hover:#232a4a;
+    --text:#e8ecff;
+    --text-dim:#9aa3c7;
+    --accent:#7fd4ff;
+    --primary:#2f6fed;
+    --ok:#3a9d5f;
+    --warn:#d9a53a;
+    --fail:#e05a5a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Pretendard","Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:15px;
+    line-height:1.7;
+    padding-bottom:48px;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px;}
+  header.topbar{
+    position:sticky;top:0;z-index:10;
+    background:var(--bg);
+    border-bottom:1px solid #262c4a;
+    padding:14px 16px;
+    display:flex;align-items:center;gap:12px;
+  }
+  header.topbar button.back{
+    background:none;border:none;color:var(--text);
+    font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px;
+  }
+  header.topbar button.back:hover{background:var(--card-hover);}
+  header.topbar h1{font-size:20px;font-weight:700;margin:0;}
+  .subtitle{color:var(--text-dim);font-size:13px;margin:2px 0 0;}
+
+  section.screen{padding:16px;}
+  h2.section-title{font-size:19px;font-weight:700;margin:0 0 4px;}
+  p.section-desc{color:var(--text-dim);font-size:13.5px;margin:0 0 14px;}
+  h3.card-title{margin:0 0 12px;font-size:16.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+  /* ---- 배지 ---- */
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 10px;border-radius:999px;
+    font-size:12.5px;font-weight:700;white-space:nowrap;
+  }
+  .badge .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .badge-ok{background:rgba(58,157,95,0.16);color:#7cd99c;}
+  .badge-ok .dot{background:var(--ok);}
+  .badge-warn{background:rgba(217,165,58,0.16);color:#f0c877;}
+  .badge-warn .dot{background:var(--warn);}
+  .badge-fail{background:rgba(224,90,90,0.16);color:#ff9c9c;}
+  .badge-fail .dot{background:var(--fail);}
+  .badge-accent{background:rgba(127,212,255,0.14);color:var(--accent);}
+  .badge-accent .dot{background:var(--accent);}
+  .badge-ai{background:#262c4a;color:var(--text-dim);font-weight:600;}
+  .badge-lock{background:rgba(58,157,95,0.18);color:#7cd99c;}
+  .badge-reject{background:rgba(224,90,90,0.2);color:#ff9c9c;}
+
+  .inline-tag{
+    display:inline-block;padding:1px 7px;border-radius:6px;
+    font-size:12px;font-weight:700;margin:0 2px;
+  }
+  .inline-warn{background:rgba(217,165,58,0.22);color:#f0c877;}
+  .inline-accent{background:rgba(127,212,255,0.2);color:var(--accent);}
+
+  /* ---- 큐 ---- */
+  .queue-summary{color:var(--text-dim);font-size:13.5px;margin-bottom:14px;}
+  .q-card{
+    background:var(--card);border:1px solid #262c4a;border-radius:14px;
+    padding:16px;margin-bottom:12px;cursor:pointer;transition:background .15s;
+  }
+  .q-card:hover, .q-card:active{background:var(--card-hover);}
+  .q-card .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;}
+  .q-card .kind-tag{color:var(--text-dim);font-size:12.5px;font-weight:700;letter-spacing:.02em;}
+  .q-card .headline{font-size:17px;font-weight:700;margin:2px 0 6px;}
+  .q-card .meta{color:var(--text-dim);font-size:13.5px;}
+  .q-card .badges-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+
+  /* ---- 카드/필드 ---- */
+  .field-card{
+    background:var(--card);border:1px solid #262c4a;border-radius:14px;
+    padding:16px;margin-bottom:14px;
+  }
+  .info-banner{
+    border-radius:12px;padding:14px;margin-bottom:14px;font-size:14px;line-height:1.65;
+  }
+  .info-banner.warn{background:rgba(217,165,58,0.12);border:1px solid rgba(217,165,58,0.4);color:#f0c877;}
+  .info-banner.ok{background:rgba(58,157,95,0.12);border:1px solid rgba(58,157,95,0.4);color:#7cd99c;}
+  .info-banner .ib-title{font-weight:700;margin-bottom:4px;}
+
+  .bullet-line{margin-bottom:8px;font-size:14.5px;}
+  .bullet-line:last-child{margin-bottom:0;}
+  .bullet-line strong{color:var(--accent);}
+
+  .doc-row{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:9px 0;border-bottom:1px solid #232848;font-size:14px;
+  }
+  .doc-row:last-child{border-bottom:none;}
+  .doc-row .doc-name{flex:1;}
+  .doc-note{color:var(--text-dim);font-size:12.5px;margin-top:4px;}
+
+  .psst-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;}
+  .psst-box{background:#12162a;border:1px solid #262c4a;border-radius:10px;padding:10px;}
+  .psst-box .psst-label{font-weight:700;font-size:13.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+  .psst-box .psst-reason{color:var(--text-dim);font-size:12.5px;line-height:1.5;}
+
+  .judge-item{
+    background:#12162a;border:1px solid #262c4a;border-radius:10px;
+    padding:10px 12px;margin-bottom:8px;
+  }
+  .judge-item:last-child{margin-bottom:0;}
+  .judge-item .jrow1{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;}
+  .judge-item .jname{font-weight:700;font-size:14px;}
+  .judge-item .jscore{font-size:13px;font-weight:700;}
+  .judge-item .jq{color:var(--text-dim);font-size:12.5px;margin-bottom:4px;}
+  .judge-item .jreason{font-size:13px;line-height:1.55;}
+  .score-bar{height:5px;border-radius:3px;background:#262c4a;overflow:hidden;margin-bottom:6px;}
+  .score-bar-fill{height:100%;border-radius:3px;}
+
+  .raw-toggle{
+    width:100%;text-align:left;background:var(--card);
+    border:1px solid #262c4a;border-radius:14px;
+    padding:13px 16px;color:var(--text);font-size:14.5px;font-weight:700;
+    cursor:pointer;margin-bottom:14px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .raw-box{display:none;margin-top:-6px;margin-bottom:14px;}
+  .raw-box.open{display:block;}
+  .raw-item{
+    background:#12162a;border:1px solid #262c4a;border-radius:10px;
+    padding:12px;margin-bottom:10px;font-size:13.5px;line-height:1.6;
+  }
+  .raw-item:last-child{margin-bottom:0;}
+  .raw-item .raw-label{color:var(--accent);font-size:12.5px;font-weight:700;margin-bottom:6px;}
+  .raw-item .raw-text{white-space:pre-wrap;word-break:break-word;}
+
+  .ppt-outline-box{
+    background:#12162a;border:1px solid #262c4a;border-radius:10px;
+    padding:10px 12px;margin-bottom:8px;max-height:180px;overflow-y:auto;
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;color:var(--text-dim);
+  }
+
+  .vh-item{padding:7px 0;border-top:1px solid #232848;font-size:12.5px;color:var(--text-dim);line-height:1.55;}
+  .version-history strong{color:var(--text);}
+
+  /* ---- 버튼 ---- */
+  .btn{
+    display:block;width:100%;border:none;border-radius:12px;
+    padding:14px 16px;font-size:16px;font-weight:700;
+    cursor:pointer;margin-bottom:10px;font-family:inherit;
+  }
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-confirm{background:var(--ok);color:#06170c;}
+  .btn-reject{background:transparent;border:1.5px solid var(--fail);color:#ff9c9c;}
+  .btn-secondary{background:#2a3050;color:var(--text);}
+  .btn-toggle{background:#2a3050;color:var(--text);font-size:13.5px;padding:9px 12px;width:auto;margin:0;}
+  .btn-row-note{font-size:12.5px;color:var(--text-dim);margin:-2px 0 14px;text-align:center;}
+
+  .locked-banner{
+    background:rgba(58,157,95,0.14);border:1px solid rgba(58,157,95,0.5);
+    border-radius:12px;padding:14px;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;font-weight:700;color:#7cd99c;font-size:14px;
+  }
+  .fixed-notice{
+    background:#12162a;border:1px dashed #3a4370;border-radius:10px;
+    padding:10px 12px;font-size:12.5px;color:var(--text-dim);margin-top:10px;line-height:1.6;
+  }
+
+  /* ---- 모달 ---- */
+  .modal-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+    align-items:flex-end;justify-content:center;z-index:100;
+  }
+  .modal-backdrop.open{display:flex;}
+  .modal{
+    background:var(--card);border-radius:18px 18px 0 0;
+    padding:20px 18px 24px;width:100%;max-width:720px;
+    max-height:88vh;overflow-y:auto;
+  }
+  .modal h3{margin:0 0 6px;font-size:18px;}
+  .modal p.hint{color:var(--text-dim);font-size:13.5px;margin:0 0 16px;}
+  .modal label{display:block;font-size:13.5px;font-weight:700;color:var(--text-dim);margin-bottom:6px;margin-top:14px;}
+  .modal textarea{
+    width:100%;background:#12162a;border:1.5px solid var(--warn);border-radius:10px;
+    padding:12px;font-size:15px;color:var(--text);font-family:inherit;
+  }
+  .modal .modal-actions{display:flex;gap:10px;margin-top:20px;}
+  .modal .modal-actions .btn{margin-bottom:0;}
+
+  .hidden{display:none !important;}
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+    background:#1a1f35;border:1px solid var(--accent);color:var(--text);
+    padding:14px 18px;border-radius:12px;font-size:14.5px;max-width:90vw;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:200;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="back hidden" id="backBtn" onclick="backToQueue()">←</button>
+  <div>
+    <h1 id="topTitle">정부지원 검수</h1>
+    <p class="subtitle" id="topSubtitle">클로드 정부지원사업 ai · 대표자검수 화면 (프로토타입)</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <section id="queueView" class="screen"></section>
+  <section id="detailView" class="screen hidden"></section>
+</div>
+
+<!-- 반려 모달 -->
+<div class="modal-backdrop" id="rejectModal">
+  <div class="modal">
+    <h3 id="rejectModalTitle">반려</h3>
+    <p class="hint">반려 사유는 필수입니다. 반려하면 이 화면에 기록만 되고, 자동으로 초안이 다시 만들어지지는 않습니다 —
+      정부지원 파이프라인은 아직 "반려 후 어느 단계로 되돌아갈지"가 정해져 있지 않습니다
+      (정부지원_manifest_v2.yaml open_issues 1번 참고). 재작성은 별도로 요청해주세요.</p>
+    <label for="rejectReason">반려 사유 (필수, 5자 이상)</label>
+    <textarea id="rejectReason" rows="3" placeholder="예: 4_팀_역량 섹션이 플레이스홀더뿐입니다. 실제 채용 계획으로 다시 채워주세요"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeRejectModal()">취소</button>
+      <button class="btn btn-reject" style="flex:1;border-color:var(--fail)" onclick="submitReject()">반려 확정</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* =====================================================================
+   데이터 — 아래 두 종류 전부 지어낸 값이 아니라 실제 데이터를 그대로 옮김.
+   1) CASE_DRAFT1: 이 프로토타입 작업 중 실제로
+      `python3 scripts/run.py test/blind_test_oncheon_saenghwalmunhwa.json scripts/sample_announcements.json`
+      을 target_period만 미래로 넓혀 재실행해서 얻은 실제 run.py 출력(온천꽃식물원, 화훼 소매,
+      실사업자 프로필 기반 — business_description 등은 test/blind_test_oncheon_saenghwalmunhwa.json 원문 그대로).
+   2) CASE_DRAFT2: test/sample_output_ideal.json (회귀테스트 fixture, 회사명 없음 — 이 스킬은
+      애초에 회사명을 스키마에 넣지 않는다, draft_application() bullets4 주석 참고).
+   3) CASE_PRES1: test/backend_result_2026-07-17.json (발표 뒷단 8-stage mock 실행 결과,
+      온천꽃식물원의 "2026년 소상공인 생활문화 혁신지원" 트랙 — PPT/대본 반려→재작업 이력 포함).
+   ===================================================================== */
+const CASE_DRAFT1 = {"matched_programs": [{"program_name": "2026년 창업성장기술개발사업(디딤돌창업과제)", "eligibility_confidence": 0.67, "required_documents": ["사업계획서 (지정양식)", "사업자등록증 사본", "중소기업(소상공인) 확인서", "4대보험 가입자 명부", "국세/지방세 완납증명서"], "deadline": "2026-08-20", "disqualification_risks": []}], "excluded_programs": [{"program_name": "2025년 청년창업사관학교 8기 모집공고", "exclusion_reason": "마감일 경과 (2025-02-28)"}, {"program_name": "2026년 지역특화산업 육성 바우처사업", "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"}], "draft_application": {"program_name": "2026년 창업성장기술개발사업(디딤돌창업과제)", "sections": {"1_사업개요": "○ 업력 및 형태 : 신청기업은 도소매업 — 생화·조경수 (화훼 소매) 분야에서 11.5년간 사업을 영위해온 개인입니다.\n○ 소재지 규모 : 소재지는 경상남도 창녕군이며, 상시근로자 1명 규모입니다.", "2_신청동기_및_필요성": "○ 신청 동기 : 온천꽃식물원은 2015년부터 경상남도 창녕군 부곡면에서 생화·꽃다발·꽃바구니·화환 등 화훼 판매와 조경수·수목 공급 등 조경 관련 상품을 판매하는 개인사업자다. 전화·방문 주문을 받아 꽃과 화환을 배송한다.", "3_사업화_계획": "○ 예산 상한 : 100,000,000원(자기부담률 0.0) 기준 내에서 사업화를 추진합니다.\n○ 사업 아이템 : 온천꽃식물원은 2015년부터 경상남도 창녕군 부곡면에서 생화·꽃다발·꽃바구니·화환 등 화훼 판매와 조경수·수목 공급 등 조경 관련 상품을 판매하는 개인사업자다. 전화·방문 주문을 받아 꽃과 화환을 배송한다.\n○ 예산 집행계획 : [AI 제안 — 실제 집행 전 사업주 확정 필요] 지원한도 100,000,000원 기준 표준 카테고리 비율로 예산 초안 배분: 재료비 30,000,000원(배정비율 약 30%); 마케팅 25,000,000원(배정비율 약 25%); 외주·용역비 20,000,000원(배정비율 약 20%); 인건비 15,000,000원(배정비율 약 15%); 기타 10,000,000원(배정비율 약 10%)", "4_팀_역량": "○ 대표자 연령 : 대표자는 [확인 필요]이며, 보유 인증: 없음.\n○ 팀 역량 : 대표 1인 운영. 필요 시 직원 채용으로 인력 보충 가능.", "5_예산_계획": "○ 세부 예산 : [AI 제안 — 실제 집행 전 사업주 확정 필요] 지원한도 100,000,000원 기준 표준 카테고리 비율로 예산 초안 배분: 재료비 30,000,000원(배정비율 약 30%); 마케팅 25,000,000원(배정비율 약 25%); 외주·용역비 20,000,000원(배정비율 약 20%); 인건비 15,000,000원(배정비율 약 15%); 기타 10,000,000원(배정비율 약 10%).", "6_기대효과": "○ 기대효과 : [AI 제안 — 실제 집행 전 사업주 확정 필요] 매출 목표: 현재 연매출 60,000,000원 대비 12% 증가한 67,200,000원(증가액 7,200,000원)을 사업 종료 시점 목표로 제안 [AI 제안 — 실제 집행 전 사업주 확정 필요] 고용 목표: 현재 상시근로자 1명 대비 신규 고용 1명(약 100% 증원)을 사업 기간 내 목표로 제안"}, "matched_scoring_rubric": "기술성 및 사업화 가능성(40점), 시장성 및 성장전략(30점), 팀 역량 및 실행력(20점), 고용창출 및 사회적 가치(10점)", "page_limit": 15, "required_documents_checklist": [{"document": "사업계획서 (지정양식)", "prepared": false, "match_type": "unmatched", "matched_against": null}, {"document": "사업자등록증 사본", "prepared": false, "match_type": "unmatched", "matched_against": null}, {"document": "중소기업(소상공인) 확인서", "prepared": false, "match_type": "unmatched", "matched_against": null}, {"document": "4대보험 가입자 명부", "prepared": false, "match_type": "unmatched", "matched_against": null}, {"document": "국세/지방세 완납증명서", "prepared": false, "match_type": "unmatched", "matched_against": null}], "document_match_notes": ["'사업계획서 (지정양식)': 매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 (동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)", "'사업자등록증 사본': 매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 (동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)", "'중소기업(소상공인) 확인서': 매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 (동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)", "'4대보험 가입자 명부': 매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 (동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)", "'국세/지방세 완납증명서': 매칭 실패 — documents_status에 완전일치/정규화일치/등록된 동의어 후보가 없음 (동의어 테이블에 없는 표현일 가능성 -> 실제로 서류가 있다면 동의어 테이블 보강 검토)"]}, "judge_review": {"rejection_risks": ["심사배점 항목 '시장성 및 성장전략'(30점)이 초안에서 명확히 다뤄지지 않음 -> 배점 손실 위험", "심사배점 항목 '고용창출 및 사회적 가치'(10점)이 초안에서 명확히 다뤄지지 않음 -> 배점 손실 위험", "필수서류 5건이 아직 '준비완료'로 체크되지 않음: 사업계획서 (지정양식), 사업자등록증 사본, 중소기업(소상공인) 확인서, 4대보험 가입자 명부, 국세/지방세 완납증명서"], "exaggeration_flags": ["검토 완료: 명백한 과장 표현 없음 (단, 실제 제출 전 재검수 권장)"], "unsupported_claims": ["다음 섹션은 구체적 근거 없이 템플릿으로만 채워짐 -> 제출 전 반드시 실제 데이터로 대체: 4_팀_역량"], "overall_pass_recommendation": false, "psst_review": {"problem": {"result": "pass", "reason": "문제 서술에서 측정값(숫자+단위)을 확인함"}, "solution": {"result": "fail", "reason": "budget_detail(실행 계획/예산)이 없어 기능이 실제 실행 항목으로 연결되는지 확인 불가 -> 기능 나열만 있고 문제 대응 맵이 없는 상태로 판단"}, "support": {"result": "fail", "reason": "필수서류 5건 중 준비완료로 확인된 서류가 0건 -> 사진·견적·실측·기존 데이터 등 증빙이 연결되지 않은 상태로 판단"}, "traction": {"result": "pass", "reason": "기대효과 서술에서 측정 가능한 목표 수치를 확인함"}}, "judge_panel_review": {"panel": [{"judge": "공고적합성 심사위원", "key_question": "이 아이템이 공고 목적과 직접 맞는가", "score": 5, "warning": false, "reason": "공고 목적과 무관한 과도한 확장 서술 없음", "mapped_rubric_items": []}, {"judge": "자격·규정 심사위원", "key_question": "자격·제외요건·중복수혜·체납·업종 배제가 해결됐는가", "score": 1, "warning": true, "reason": "자격기준 미확정 0건 / 미준비서류 5건 / 결격위험 0건 -> 서류 미확보 또는 확인 필요 방치 상태", "mapped_rubric_items": []}, {"judge": "문제정의 심사위원", "key_question": "문제를 수치와 현장맥락으로 입증했는가", "score": 5, "warning": false, "reason": "문제정의(PSST-Problem) 검수 통과: 측정값 기반 문제 서술 확인", "mapped_rubric_items": ["기술성 및 사업화 가능성(40점)"]}, {"judge": "AI 필요성 심사위원", "key_question": "왜 AI여야 하며 기존 수작업/일반툴과 무엇이 다른가", "score": 5, "warning": false, "reason": "'AI가 다 해준다'류 과장 표현 없음", "mapped_rubric_items": ["기술성 및 사업화 가능성(40점)"]}, {"judge": "실행계획 심사위원", "key_question": "6개월 내 범위가 현실적인가", "score": 1, "warning": true, "reason": "실행계획(PSST-Solution) 검수 미통과: budget_detail(실행 계획/예산)이 없어 기능이 실제 실행 항목으로 연결되는지 확인 불가 -> 기능 나열만 있고 문제 대응 맵이 없는 상태로 판단", "mapped_rubric_items": ["기술성 및 사업화 가능성(40점)", "팀 역량 및 실행력(20점)"]}, {"judge": "예산·증빙 심사위원", "key_question": "돈의 사용처와 산출물·견적이 연결되는가", "score": 5, "warning": false, "reason": "예산 정합성 문제 및 장비구매성 위험표현 없음", "mapped_rubric_items": []}, {"judge": "성과·확장 심사위원", "key_question": "도입 성과를 측정할 수 있는가", "score": 5, "warning": false, "reason": "성과확장(PSST-Traction) 검수 통과: 측정 가능한 목표치 확인", "mapped_rubric_items": ["고용창출 및 사회적 가치(10점)"]}, {"judge": "발표·Q&A 심사위원", "key_question": "왜 지금, 왜 너, 왜 이 방식인지 방어 가능한가", "score": 1, "warning": true, "reason": "문제정의 또는 실행계획(PSST) 근거 부족 -> 왜 지금/왜 이 방식인지 방어 불가 위험", "mapped_rubric_items": []}, {"judge": "홍재우 (9번째 심사위원)", "key_question": "이 아이템이 애초에 붙을 그릇인가 (서사 설득력·차별화 실체)", "score": 4, "warning": false, "reason": "홍재우 #3(문제->해결->AI 순서): 'AI'가 문제 정의 키워드보다 먼저 등장하거나 문제 정의 자체가 텍스트에서 확인되지 않음 -> AI를 앞세우지 말고 기존 서비스 문제부터 재정의할 것", "mapped_rubric_items": [], "verdict": "일단 합격(조건부)", "violations": ["문제 정의보다 AI 먼저 등장"]}], "immediate_warnings": ["자격·규정 심사위원: 자격기준 미확정 0건 / 미준비서류 5건 / 결격위험 0건 -> 서류 미확보 또는 확인 필요 방치 상태", "실행계획 심사위원: 실행계획(PSST-Solution) 검수 미통과: budget_detail(실행 계획/예산)이 없어 기능이 실제 실행 항목으로 연결되는지 확인 불가 -> 기능 나열만 있고 문제 대응 맵이 없는 상태로 판단", "발표·Q&A 심사위원: 문제정의 또는 실행계획(PSST) 근거 부족 -> 왜 지금/왜 이 방식인지 방어 불가 위험"], "warning_count": 3, "hong_jaewoo_verdict": "일단 합격(조건부)", "hong_jaewoo_violations": ["문제 정의보다 AI 먼저 등장"]}, "deduction_map": {"triggered_issues": [{"issue": "예산 근거 누락", "direct_deduction": {"criterion": "예산", "amount": -5}, "propagated_deductions": [{"criterion": "실행", "amount": -3}, {"criterion": "성과", "amount": -2}, {"criterion": "발표", "amount": -2}], "interpretation": "\"돈을 왜 쓰는지\"를 못 막으면 실현성·성과·발표가 동시 약화"}, {"issue": "자격 증빙 미확보", "direct_deduction": {"criterion": "자격", "amount": "BLOCK"}, "propagated_deductions": [{"criterion": "실행", "amount": -3}, {"criterion": "발표", "amount": -3}], "interpretation": "아예 제출금지 수준"}], "note": "감점전파는 quality_gate_result.overall_confidence를 다시 깎지 않는다. 이 이슈가 어느 항목까지 번지는지 설명하는 용도로만 사용한다."}, "budget_breakdown": null}, "quality_gate_result": {"overall_confidence": 0.52, "confidence_threshold": 0.85, "confidence_passed": false, "judge_pass_recommendation": false, "lock_state": "DRAFT", "routed_to": "human_review", "reasons": ["[미통과] quality_gate(숫자 기준): overall_confidence(0.52) < confidence_threshold(0.85) (base=0.67, 감점위험 3건 반영)", "[미통과] 심사위원 모드(질적 기준): overall_pass_recommendation=false - '[확인 필요]' 표시가 남은 섹션 1개: 4_팀_역량; 필수서류 미준비 5건: 사업계획서 (지정양식), 사업자등록증 사본, 중소기업(소상공인) 확인서, 4대보험 가입자 명부, 국세/지방세 완납증명서; 기타 감점 위험 2건: 심사배점 항목 '시장성 및 성장전략'(30점)이 초안에서 명확히 다뤄지지 않음 -> 배점 손실 위험 | 심사배점 항목 '고용창출 및 사회적 가치'(10점)이 초안에서 명확히 다뤄지지 않음 -> 배점 손실 위험; PSST 미통과 구간 2개: solution, support; 8인 심사위원 즉시경고 3건: 자격·규정 심사위원: 자격기준 미확정 0건 / 미준비서류 5건 / 결격위험 0건 -> 서류 미확보 또는 확인 필요 방치 상태 | 실행계획 심사위원: 실행계획(PSST-Solution) 검수 미통과: budget_detail(실행 계획/예산)이 없어 기능이 실제 실행 항목으로 연결되는지 확인 불가 -> 기능 나열만 있고 문제 대응 맵이 없는 상태로 판단 | 발표·Q&A 심사위원: 문제정의 또는 실행계획(PSST) 근거 부족 -> 왜 지금/왜 이 방식인지 방어 불가 위험", "최종 판정: quality_gate 통과 여부와 심사위원 overall_pass_recommendation을 모두 만족해야 READY_FOR_APPROVAL로 전환됨. 하나 이상 미충족이므로 DRAFT 유지, human_review로 라우팅."]}, "lock_state": "DRAFT", "needs_confirmation": ["[2025년 청년창업사관학교 8기 모집공고] [가정값-확인필요] 마감일이 지난 공고를 자동제외 로직 테스트용으로 포함.", "[2026년 지역특화산업 육성 바우처사업] [가정값-확인필요] 원문에서 제출서류 목록을 확인하지 못한 상황을 재현 — required_documents 비어있음 → 매칭 실패 처리 테스트용.", "[2026년 창업성장기술개발사업(디딤돌창업과제)] [가정값-확인필요] 실제 공고문 원문 미수집. 과거 유사 공고 구조를 참고해 합리적으로 구성한 목업 데이터.", "[2026년 창업성장기술개발사업(디딤돌창업과제)] 다음 지원제외 조건은 자기신고 데이터로 검증 불가(세금체납 등 공적 확인 필요): 국세 또는 지방세를 체납 중인 기업, 동일 사업으로 정부 R&D 지원사업에 중복 선정된 기업, 휴업 또는 폐업 상태인 기업"], "run_meta": {"ref_date": "2026-07-17", "target_period": {"start_date": "2026-07-17", "end_date": "2026-09-30"}}};
+const CASE_DRAFT2 = {"matched_programs": [{"program_name": "2026년 창업성장기술개발사업(디딤돌창업과제)", "eligibility_confidence": 1.0, "required_documents": ["사업계획서 (지정양식)", "사업자등록증 사본", "중소기업(소상공인) 확인서", "4대보험 가입자 명부", "국세/지방세 완납증명서"], "deadline": "2026-08-20", "disqualification_risks": []}], "excluded_programs": [{"program_name": "2025년 청년창업사관학교 8기 모집공고", "exclusion_reason": "마감일 경과 (2025-02-28)"}, {"program_name": "2026년 지역특화산업 육성 바우처사업", "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"}], "draft_application": {"program_name": "2026년 창업성장기술개발사업(디딤돌창업과제)", "sections": {"1_사업개요": "신청기업은 62010 (소프트웨어 개발 및 공급업) 분야에서 3.3년간 사업을 영위해온 법인입니다. 소재지는 서울특별시이며, 상시근로자 4명 규모입니다.", "2_신청동기_및_필요성": "본 사업은 중소 제조기업 대상 설비 이상탐지 SaaS로, 진동·전류 센서 데이터를 실시간 분석해 고장을 사전에 예측하는 자체 개발 알고리즘을 핵심 기술성으로 보유하고 있습니다. 기존 정기점검 방식 대비 비계획 정지시간을 줄이는 것이 사업화 가능성의 핵심이며, 국내 중소 제조업 300만 개 사업장을 잠재 시장으로 보는 시장성과 구독형 과금 확장 전략(성장전략)을 갖추고 있습니다.", "3_사업화_계획": "예산 상한 100,000,000원(자기부담률 0.0) 기준 내에서 사업화를 추진합니다. 사업 아이템: 본 사업은 중소 제조기업 대상 설비 이상탐지 SaaS로, 진동·전류 센서 데이터를 실시간 분석해 고장을 사전에 예측하는 자체 개발 알고리즘을 핵심 기술성으로 보유하고 있습니다. 기존 정기점검 방식 대비 비계획 정지시간을 줄이는 것이 사업화 가능성의 핵심이며, 국내 중소 제조업 300만 개 사업장을 잠재 시장으로 보는 시장성과 구독형 과금 확장 전략(성장전략)을 갖추고 있습니다. 예산 집행 계획: 인건비 60,000,000원(개발인력 2명 6개월분), 재료비 15,000,000원(센서 모듈 및 테스트 장비), 외주용역비 20,000,000원(UI/UX 디자인 및 QA 외주), 마케팅비 5,000,000원(베타 고객 확보용 온라인 마케팅)", "4_팀_역량": "대표자는 만 39세이며, 보유 인증: 벤처기업확인(2024). 대표이사는 제조 자동화 분야 8년 경력 후 2023년 창업했으며, CTO는 산업용 IoT 스타트업에서 5년간 임베디드 개발을 담당했습니다. 개발팀 2명은 각각 데이터엔지니어링·백엔드 경력 3년 이상을 보유해 팀 역량과 실행력을 뒷받침합니다.", "5_예산_계획": "세부 예산 항목: 인건비 60,000,000원(개발인력 2명 6개월분), 재료비 15,000,000원(센서 모듈 및 테스트 장비), 외주용역비 20,000,000원(UI/UX 디자인 및 QA 외주), 마케팅비 5,000,000원(베타 고객 확보용 온라인 마케팅).", "6_기대효과": "사업 종료 시점 기준 베타 고객사 10개사 확보, 매출 1.5억원 창출을 목표로 하며, 이 과정에서 개발인력 2명 신규 고용을 통한 고용창출과 제조 현장 안전사고 감소라는 사회적 가치를 함께 추구합니다. (목표치는 유사 SaaS 스타트업의 12개월차 평균 고객확보 속도를 참고한 보수적 추정이며, 실제 확정 시 재검토 필요)"}, "matched_scoring_rubric": "기술성 및 사업화 가능성(40점), 시장성 및 성장전략(30점), 팀 역량 및 실행력(20점), 고용창출 및 사회적 가치(10점)", "page_limit": 15, "required_documents_checklist": [{"document": "사업계획서 (지정양식)", "prepared": true}, {"document": "사업자등록증 사본", "prepared": true}, {"document": "중소기업(소상공인) 확인서", "prepared": true}, {"document": "4대보험 가입자 명부", "prepared": true}, {"document": "국세/지방세 완납증명서", "prepared": true}]}, "judge_review": {"rejection_risks": ["검토 완료: 구조적/형식적 감점 요인 없음 (자격기준, 필수서류, 심사배점 커버리지, 페이지제한, 예산 정합성 모두 충족). 단, 이는 형식 요건 충족 여부만 확인한 것이며 내용의 설득력·기술적 타당성은 사람이 최종 검토해야 함"], "exaggeration_flags": ["검토 완료: 명백한 과장 표현 없음 (단, 실제 제출 전 재검수 권장)"], "unsupported_claims": ["검토 완료: 템플릿 잔여 문구 없음 (모든 섹션이 실제 입력값으로 채워짐)"], "overall_pass_recommendation": true}, "quality_gate_result": {"overall_confidence": 1.0, "confidence_threshold": 0.85, "confidence_passed": true, "judge_pass_recommendation": true, "lock_state": "READY_FOR_APPROVAL", "routed_to": "auto_complete", "reasons": ["[통과] quality_gate(숫자 기준): overall_confidence(1.0) >= confidence_threshold(0.85) (base=1.0, 감점위험 0건 반영)", "[통과] 심사위원 모드(질적 기준): overall_pass_recommendation=true", "최종 판정: 숫자 기준과 질적 기준을 모두 만족하여 READY_FOR_APPROVAL로 전환됨."]}, "lock_state": "READY_FOR_APPROVAL", "needs_confirmation": ["[2025년 청년창업사관학교 8기 모집공고] [가정값-확인필요] 마감일이 지난 공고를 자동제외 로직 테스트용으로 포함.", "[2026년 지역특화산업 육성 바우처사업] [가정값-확인필요] 원문에서 제출서류 목록을 확인하지 못한 상황을 재현 — required_documents 비어있음 → 매칭 실패 처리 테스트용.", "[2026년 창업성장기술개발사업(디딤돌창업과제)] [가정값-확인필요] 실제 공고문 원문 미수집. 과거 유사 공고 구조를 참고해 합리적으로 구성한 목업 데이터.", "[2026년 창업성장기술개발사업(디딤돌창업과제)] 다음 지원제외 조건은 자기신고 데이터로 검증 불가(세금체납 등 공적 확인 필요): 국세 또는 지방세를 체납 중인 기업, 동일 사업으로 정부 R&D 지원사업에 중복 선정된 기업, 휴업 또는 폐업 상태인 기업"], "run_meta": {"ref_date": "2026-07-06", "target_period": {"start_date": "2026-07-06", "end_date": "2026-09-30"}}};
+const CASE_PRES1 = {"halted": false, "trace": ["선정접수", "발표요건추출", "PPT초안생성+PPT승인(attempt 1) -> 반려", "PPT초안생성+PPT승인(attempt 2) -> 승인완료", "발표대본생성+예상QNA생성", "발표패키지승인(attempt 1) -> {'presentation_script': '반려', 'expected_qna': '승인완료'}", "발표대본생성 재작업(attempt 2)", "발표패키지승인(attempt 2) -> {'presentation_script': '승인완료', 'expected_qna': '승인완료'}", "발표패키지저장"], "ctx": {"_ref_datetime": "2026-07-16T00:00:00", "selection_notice": {"has_presentation": true, "presentation_minutes": 10, "slide_limit": 10, "qna_minutes": 5, "scoring_rubric_note": "발표 심사기준표 참고 — 소상공인 생활문화 발표 심사기준표.png(gov-support-skill/)"}, "submitted_application_ref": "gov-support-skill/2026년_소상공인_생활문화_혁신지원_참여소상공인_신청서.pdf", "presentation_requirements": {"발표평가_존재": true, "발표시간_분": 10, "슬라이드_제한": 10, "질의응답_시간_분": 5, "발표평가_배점표": "발표 심사기준표 참고 — 소상공인 생활문화 발표 심사기준표.png(gov-support-skill/)"}, "ppt_draft": {"outline": [{"title": "제품·서비스 소개", "content": "ex) 한복제조업(X) / 미디어 콘텐츠를 활용한 새로운 한복문화 창조 ‘OOO한복’ (O) 사업 개요 및 * 계획한 사업의 개요 및 추진하려는 이유와 이를 통해 달성하고자 하는 구체적인 목표 필요성 , 해당 사업이 왜 시장에서 필요한 지, 사업의 정당성과 요구를 뒷받침하는 내용을 상세히 기재 우리 사업에 대한 기술개발 및 사업화 달성 목표 작성 (해당시) 협력기관과의 협업계획 사업 목표 및 * 단독 지원하는 경우에도, 추후 민간 협력기관 매칭 후 사업기간 내 협업 계획 작성 必 추진방안 * 아이디어 선정 시 지원금 사용 계획 포함 (민간 협력기관과의 연관성 必) * 사업을 확장하거나 혁신을 촉진할 수 있도록 효과적으로 정부지원금을 집행하기 위한", "slide": 1}, {"title": "추진전략", "content": "계획, 지원분야별, 사업비목별 활용 계획 구분 세부 내용 금액(원) 기술개발 상호 체결 구조 설계 및 시제품 제작 20,000,000 기술개발 활성탄 탈취층 및 흡수구조 성능 개선 10,000,000 사업비 기술개발 친환경 차수필름·생분해 소재 적용 테스트 13,000,000 비목별 시험분석 흡수력·탈취력·누수·내구성 시험 및 분석 8,000,000 집행계획 산업재산권 특허·디자인 출원 및 지식재산권 확보 11,000,000 (간략히) 디자인·브랜딩 브랜드 개발 및 패키지 디자인 8,000,000 사업화 상세페이지·홍보 콘텐츠·제품 촬영 제작 9,000,000 마케팅 쿠팡·스마트스토어 중심 온라인 마케팅 8,000,000 사용자 검증 체험단 운영 및 소비자 사용성 테스트 5,000,000 협력기관 연계 시제품 생산 및 제조 협업 비용 8,000,000 합계 100,000,000 참여인력 * 사업 …(제출확정본 원문 일부 생략)", "slide": 2}, {"title": "사업비 집행계획", "content": "(세부) (단위 : 백만원) 구분 세 부 내 역 예 산 산 출 근 거 기 술 개 발 소 계 사 업 화 소 계 계 - 4 - <서식 3> 개인정보 수집· 이용 및 제공 동의서 (참여기관 모두 작성) 개인정보 수집·이용 안내 개인정보의 수집·이용 및 제공에 관한 고지사항 개인정보보호법 제15조 제1항 제3호(법령 등에서 정하는 소관업무 수행), 제4호(계약 체결 및 이행) 에 따라 정보주체의 동의 없이 개인정보를 수집·이용합니다. ￭ 개인정보의 수집·이용 목적 ‐ 소상공인시장진흥공단 소상공인 생활문화 혁신지원 사업 운영·관리 ￭ 개인정보의 수집 항목 ‐ 성명, 생년월일, 성별, 휴대폰번호, 이메일, 사업자등록번호 ￭ 개인정보의 보유 및 이용 기간 ‐ 5년 ￭ 수집 근거 ‐ 개인정보보호법 제15조 제1항 제3호(법령 등에서 정하는 소관업무 수행) 소상공인 보호 및 지원에 관한 법률 제8조(소상공인 창 …(제출확정본 원문 일부 생략)", "slide": 3}], "extraction_method": "psst_anchor_split", "pptx_path": "/sessions/amazing-magical-darwin/mnt/hem/1. Projects/클로드 정부지원사업 ai/test/ppt_output/ppt_draft_발표자료_초안_2026-07-16T000000.pptx", "render_error": null, "slide_limit_note": 10, "approval_required": true, "approval": {"status": "승인완료", "version": 2, "approved_by": "[테스트모드 mock] 대표자", "approved_at": "2026-07-16T00:00:00", "rejection_reason": null, "rejection_target": null, "version_history": [{"version": 1, "status": "반려", "rejection_reason": "[테스트모드 mock] 슬라이드 10장 초과", "rejection_target": "PPT문제"}]}, "locked": true}, "presentation_script": {"script_lines": ["안녕하십니까. '발표자료' 발표를 시작하겠습니다.", "먼저 '제품·서비스 소개'입니다. ex) 한복제조업(X) / 미디어 콘텐츠를 활용한 새로운 한복문화 창조 ‘OOO한복’ (O) 사업 개요 및 * 계획한 사업의 개요 및 추진하려는 이유와 이를 통해 달성하고자 하는 구체적인 목표 필요성 , 해당 사업이 왜 시장에서 필요한 지, 사업의 정당성과 요구를 뒷받침하는 내용을 상세히 기재 우리 사업에 대한 기술개발 및 사업화 달성 목표 작성 (해당시) 협력기관과의 협업계획 사업 목표 및 * 단독 지원하는 경우에도, 추후 민간 협력기관 매칭 후 사업기간 내 협업 계획 작성 必 추진방안 * 아이디어 선정 시 지원금 사용 계획 포함 (민간 협력기관과의 연관성 必) * 사업을 확장하거나 혁신을 촉진할 수 있도록 효과적으로 정부지원금을 집행하기 위한", "다음은 '추진전략'입니다. 계획, 지원분야별, 사업비목별 활용 계획 구분 세부 내용 금액(원) 기술개발 상호 체결 구조 설계 및 시제품 제작 20,000,000 기술개발 활성탄 탈취층 및 흡수구조 성능 개선 10,000,000 사업비 기술개발 친환경 차수필름·생분해 소재 적용 테스트 13,000,000 비목별 시험분석 흡수력·탈취력·누수·내구성 시험 및 분석 8,000,000 집행계획 산업재산권 특허·디자인 출원 및 지식재산권 확보 11,000,000 (간략히) 디자인·브랜딩 브랜드 개발 및 패키지 디자인 8,000,000 사업화 상세페이지·홍보 콘텐츠·제품 촬영 제작 9,000,000 마케팅 쿠팡·스마트스토어 중심 온라인 마케팅 8,000,000 사용자 검증 체험단 운영 및 소비자 사용성 테스트 5,000,000 협력기관 연계 시제품 생산 및 제조 협업 비용 8,000,000 합계 100,000,000 참여인력 * 사업 …(제출확정본 원문 일부 생략)", "마지막으로 '사업비 집행계획'입니다. (세부) (단위 : 백만원) 구분 세 부 내 역 예 산 산 출 근 거 기 술 개 발 소 계 사 업 화 소 계 계 - 4 - <서식 3> 개인정보 수집· 이용 및 제공 동의서 (참여기관 모두 작성) 개인정보 수집·이용 안내 개인정보의 수집·이용 및 제공에 관한 고지사항 개인정보보호법 제15조 제1항 제3호(법령 등에서 정하는 소관업무 수행), 제4호(계약 체결 및 이행) 에 따라 정보주체의 동의 없이 개인정보를 수집·이용합니다. ￭ 개인정보의 수집·이용 목적 ‐ 소상공인시장진흥공단 소상공인 생활문화 혁신지원 사업 운영·관리 ￭ 개인정보의 수집 항목 ‐ 성명, 생년월일, 성별, 휴대폰번호, 이메일, 사업자등록번호 ￭ 개인정보의 보유 및 이용 기간 ‐ 5년 ￭ 수집 근거 ‐ 개인정보보호법 제15조 제1항 제3호(법령 등에서 정하는 소관업무 수행) 소상공인 보호 및 지원에 관한 법률 제8조(소상공인 창 …(제출확정본 원문 일부 생략)", "이상으로 발표를 마치겠습니다. 이어지는 질의응답 5분 동안 성실히 답변드리겠습니다. 감사합니다."], "generation_method": "outline_to_speech_template", "unresolved_slides": [], "approval_required": true, "approval": {"status": "승인완료", "version": 2, "approved_by": "[테스트모드 mock] 대표자", "approved_at": "2026-07-16T00:00:00", "rejection_reason": null, "rejection_target": null, "version_history": [{"version": 1, "status": "반려", "rejection_reason": "[테스트모드 mock] 발표시간 배분 오류", "rejection_target": "대본문제"}]}, "locked": true}, "expected_qna": {"qna_templates": [{"template_id": 1, "label": "상품·차별성", "answer": "[목업] submitted_application_ref의 상품/차별성 서술을 요약해 채워야 함 — 실 LLM 미연동", "mapped_questions": []}, {"template_id": 2, "label": "기술·검증", "answer": "[목업] submitted_application_ref의 실행계획/검증 방법 서술을 요약해 채워야 함 — 실 LLM 미연동", "mapped_questions": []}, {"template_id": 3, "label": "시장·수요·판로", "answer": "[목업] submitted_application_ref의 시장/수요/판로 서술을 요약해 채워야 함 — 실 LLM 미연동", "mapped_questions": []}, {"template_id": 4, "label": "예산·지원금", "answer": "[목업] submitted_application_ref의 예산 집행계획 서술을 요약해 채워야 함 — 실 LLM 미연동", "mapped_questions": []}, {"template_id": 5, "label": "실행·대표역량·모르는질문", "answer": "[목업] submitted_application_ref의 대표 역량/실행 주체 서술을 요약해 채워야 함 — 실 LLM 미연동", "mapped_questions": ["[목업 질문] '[확인 필요 목록 없음 — 일반 질문만 생성]'에 대해 어떻게 대응하시겠습니까?"]}], "approval_required": true, "approval": {"status": "승인완료", "version": 1, "approved_by": "[테스트모드 mock] 대표자", "approved_at": "2026-07-16T00:00:00", "rejection_reason": null, "rejection_target": null, "version_history": []}, "locked": true}, "presentation_package_record": {"saved_at": "2026-07-16T00:00:00", "versions": {"ppt_draft": 2, "presentation_script": 2, "expected_qna": 1}, "note": "저장까지만 수행 — 실제 발표 현장 사용/제출은 반드시 사람(헌장 §3 절대 자동화 금지)"}}};
+
+const SECTION_TITLES = {
+  "1_사업개요": "① 사업개요",
+  "2_신청동기_및_필요성": "② 신청동기 및 필요성",
+  "3_사업화_계획": "③ 사업화 계획",
+  "4_팀_역량": "④ 팀 역량",
+  "5_예산_계획": "⑤ 예산 계획",
+  "6_기대효과": "⑥ 기대효과",
+};
+
+const QUEUE = [
+  {
+    id: "draft1",
+    kind: "draft",
+    business: "온천꽃식물원",
+    subline: "화훼 도소매 · 경상남도 창녕군",
+    data: CASE_DRAFT1,
+  },
+  {
+    id: "draft2",
+    kind: "draft",
+    business: "신청기업 A (회귀테스트 fixture)",
+    subline: "회사명 미기재 — 이 스킬은 블라인드 심사 원칙상 상호·이름을 스키마에 넣지 않음",
+    data: CASE_DRAFT2,
+  },
+  {
+    id: "pres1",
+    kind: "presentation",
+    business: "온천꽃식물원",
+    subline: "2026년 소상공인 생활문화 혁신지원사업 · 선정접수 완료(별도 지원 트랙) → 발표자료 준비 단계",
+    data: CASE_PRES1,
+  },
+];
+
+// 사업계획서 승인 상태(시뮬레이션 전용 — 새로고침하면 초기화됨). draft1/draft2는
+// 아직 사람이 본 적 없는 상태(승인대기)로 시작 — AI 판정과 무관하게 항상 사람이 처음부터 본다.
+const APPROVAL = {};
+QUEUE.forEach(function (c) {
+  if (c.kind === "draft") {
+    APPROVAL[c.id] = {
+      status: "승인대기",
+      version: 1,
+      approved_by: null,
+      rejection_reason: null,
+      version_history: [],
+    };
+  } else {
+    // 발표패키지는 backend_result_2026-07-17.json에 이미 실제 approval 블록이 있으므로
+    // 그 값을 그대로 초기 상태로 씀(이미 처리 완료된 실제 이력을 보여주는 화면).
+    const ctx = c.data.ctx;
+    APPROVAL[c.id] = {
+      ppt_draft: JSON.parse(JSON.stringify(ctx.ppt_draft.approval)),
+      presentation_script: JSON.parse(JSON.stringify(ctx.presentation_script.approval)),
+      expected_qna: JSON.parse(JSON.stringify(ctx.expected_qna.approval)),
+    };
+  }
+});
+
+let currentCaseId = null;
+let rawBoxOpen = {};
+let rejectContext = null; // {caseId, docKey|null}
+
+function nowStr() {
+  const d = new Date();
+  const pad = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+
+function escapeHtml(s) {
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function fmtWon(n) {
+  if (typeof n !== "number") return escapeHtml(n);
+  return n.toLocaleString("ko-KR") + "원";
+}
+
+function getCase(id) {
+  return QUEUE.find(function (c) { return c.id === id; });
+}
+
+function daysUntil(refDateStr, deadlineStr) {
+  if (!refDateStr || !deadlineStr) return null;
+  const ref = new Date(refDateStr + "T00:00:00");
+  const dl = new Date(deadlineStr + "T00:00:00");
+  return Math.round((dl - ref) / 86400000);
+}
+
+function ddayBadge(refDateStr, deadlineStr) {
+  const d = daysUntil(refDateStr, deadlineStr);
+  if (d === null) return '<span class="badge badge-warn"><span class="dot"></span>마감일 확인 필요</span>';
+  if (d < 0) return '<span class="badge badge-fail"><span class="dot"></span>마감 지남</span>';
+  if (d <= 3) return '<span class="badge badge-fail"><span class="dot"></span>D-' + d + ' (마감임박)</span>';
+  if (d <= 7) return '<span class="badge badge-warn"><span class="dot"></span>D-' + d + '</span>';
+  return '<span class="badge badge-accent"><span class="dot"></span>D-' + d + '</span>';
+}
+
+function lockStateBadge(lockState) {
+  if (lockState === "READY_FOR_APPROVAL") {
+    return '<span class="badge badge-ok"><span class="dot"></span>AI 자체검수 통과</span>';
+  }
+  return '<span class="badge badge-warn"><span class="dot"></span>AI 자체검수 미통과</span>';
+}
+
+function confidenceBadge(v) {
+  const pct = Math.round((v || 0) * 100);
+  let cls = "badge-fail";
+  if (v >= 0.85) cls = "badge-ok";
+  else if (v >= 0.5) cls = "badge-warn";
+  return '<span class="badge ' + cls + '"><span class="dot"></span>적합도 ' + pct + '%</span>';
+}
+
+/* ---------------- 큐 렌더링 ---------------- */
+function renderQueue() {
+  document.getElementById("backBtn").classList.add("hidden");
+  document.getElementById("topTitle").textContent = "정부지원 검수 대기";
+  document.getElementById("topSubtitle").textContent = "클로드 정부지원사업 ai · 대표자검수 화면 (프로토타입)";
+
+  const html = [];
+  html.push('<h2 class="section-title">검수 대기 (' + QUEUE.length + '건)</h2>');
+  html.push('<p class="section-desc">사업계획서 초안과 발표자료는 반드시 대표자가 직접 확인 후 승인/반려합니다. AI는 초안만 만들 뿐, 실제 제출·발송은 절대 대행하지 않습니다.</p>');
+
+  QUEUE.forEach(function (c) {
+    if (c.kind === "draft") {
+      html.push(renderDraftQueueCard(c));
+    } else {
+      html.push(renderPresentationQueueCard(c));
+    }
+  });
+
+  document.getElementById("queueView").innerHTML = html.join("");
+}
+
+function renderDraftQueueCard(c) {
+  const d = c.data;
+  const top = (d.matched_programs || [])[0];
+  const ap = APPROVAL[c.id];
+  const lockBadge = lockStateBadge(d.lock_state);
+
+  let statusBadge = "";
+  if (ap.status === "승인완료") statusBadge = '<span class="badge badge-lock">🔒 승인완료</span>';
+  else if (ap.status === "반려") statusBadge = '<span class="badge badge-reject">반려됨</span>';
+
+  let headline, meta, ddayHtml, confHtml;
+  if (top) {
+    headline = top.program_name;
+    meta = "사업계획서 초안 · 필수서류 " + (top.required_documents || []).length + "종";
+    ddayHtml = ddayBadge(d.run_meta.ref_date, top.deadline);
+    confHtml = confidenceBadge(top.eligibility_confidence);
+  } else {
+    headline = "매칭된 지원사업 없음";
+    meta = "사업계획서 초안 · 매칭 실패 — 확인 필요 항목만 있음";
+    ddayHtml = "";
+    confHtml = "";
+  }
+
+  return (
+    '<div class="q-card" onclick="openDetail(\'' + c.id + '\')">' +
+      '<div class="row1">' +
+        '<div><div class="kind-tag">사업계획서 초안 승인 · ' + escapeHtml(c.business) + '</div>' +
+        '<div class="headline">' + escapeHtml(headline) + '</div></div>' +
+      '</div>' +
+      '<div class="meta">' + escapeHtml(meta) + '</div>' +
+      '<div class="meta" style="margin-top:2px">' + escapeHtml(c.subline) + '</div>' +
+      '<div class="badges-row">' + lockBadge + ddayHtml + confHtml + statusBadge + '</div>' +
+    '</div>'
+  );
+}
+
+function renderPresentationQueueCard(c) {
+  const ap = APPROVAL[c.id];
+  const statuses = [
+    ["PPT초안", ap.ppt_draft.status],
+    ["발표대본", ap.presentation_script.status],
+    ["예상QNA", ap.expected_qna.status],
+  ];
+  const allLocked = statuses.every(function (s) { return s[1] === "승인완료"; });
+  const badgesRow = statuses.map(function (s) {
+    const cls = s[1] === "승인완료" ? "badge-ok" : (s[1] === "반려" ? "badge-fail" : "badge-warn");
+    return '<span class="badge ' + cls + '"><span class="dot"></span>' + s[0] + ' ' + escapeHtml(s[1]) + '</span>';
+  }).join("");
+
+  return (
+    '<div class="q-card" onclick="openDetail(\'' + c.id + '\')">' +
+      '<div class="row1">' +
+        '<div><div class="kind-tag">발표자료 패키지 승인 · ' + escapeHtml(c.business) + '</div>' +
+        '<div class="headline">PPT초안 · 발표대본 · 예상QNA (3종 일괄 검수)</div></div>' +
+      '</div>' +
+      '<div class="meta">' + escapeHtml(c.subline) + '</div>' +
+      '<div class="badges-row">' + badgesRow + (allLocked ? '<span class="badge badge-lock">🔒 저장 완료</span>' : '') + '</div>' +
+    '</div>'
+  );
+}
+
+/* ---------------- 상세 화면 진입/복귀 ---------------- */
+function openDetail(id) {
+  currentCaseId = id;
+  rawBoxOpen = {};
+  document.getElementById("queueView").classList.add("hidden");
+  document.getElementById("detailView").classList.remove("hidden");
+  document.getElementById("backBtn").classList.remove("hidden");
+  const c = getCase(id);
+  document.getElementById("topTitle").textContent = c.kind === "draft" ? "사업계획서 초안 검수" : "발표자료 패키지 검수";
+  document.getElementById("topSubtitle").textContent = c.business + " · " + c.subline;
+  renderDetail();
+}
+
+function backToQueue() {
+  currentCaseId = null;
+  document.getElementById("detailView").classList.add("hidden");
+  document.getElementById("queueView").classList.remove("hidden");
+  renderQueue();
+}
+
+function renderDetail() {
+  const c = getCase(currentCaseId);
+  document.getElementById("detailView").innerHTML = c.kind === "draft" ? renderDraftDetail(c) : renderPresentationDetail(c);
+}
+
+function toggleRaw(key) {
+  rawBoxOpen[key] = !rawBoxOpen[key];
+  renderDetail();
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.remove("hidden");
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(function () { t.classList.add("hidden"); }, 3600);
+}
+
+/* ---------------- 텍스트 렌더 도우미 ---------------- */
+function highlightMarkers(text) {
+  let s = escapeHtml(text);
+  s = s.split("[확인 필요]").join('<span class="inline-tag inline-warn">확인 필요</span>');
+  s = s.split("[AI 제안 — 실제 집행 전 사업주 확정 필요]").join('<span class="inline-tag inline-accent">AI 제안 · 확정 필요</span>');
+  return s;
+}
+
+function renderSectionText(text) {
+  if (!text) return '<div class="bullet-line" style="color:var(--text-dim)">(내용 없음)</div>';
+  const lines = text.split("\n");
+  return lines.map(function (line) {
+    const m = line.match(/^○\s*([^:：]+)[:：]\s*(.*)$/);
+    if (m) {
+      return '<div class="bullet-line"><strong>○ ' + escapeHtml(m[1]) + '</strong> : ' + highlightMarkers(m[2]) + '</div>';
+    }
+    return '<div class="bullet-line">' + highlightMarkers(line) + '</div>';
+  }).join("");
+}
+
+function sectionBadges(text) {
+  const badges = [];
+  if (!text) return '<span class="badge badge-warn"><span class="dot"></span>⚠ 확인 필요</span>';
+  if (text.indexOf("[확인 필요]") !== -1) badges.push('<span class="badge badge-warn"><span class="dot"></span>⚠ 확인 필요 있음</span>');
+  if (text.indexOf("[AI 제안") !== -1) badges.push('<span class="badge badge-accent"><span class="dot"></span>AI 제안 포함</span>');
+  if (badges.length === 0) badges.push('<span class="badge badge-ai">AI 초안</span>');
+  return badges.join(" ");
+}
+
+/* ---------------- 사업계획서 상세 ---------------- */
+function renderDraftDetail(c) {
+  const d = c.data;
+  const ap = APPROVAL[c.id];
+  const top = (d.matched_programs || [])[0];
+  const locked = ap.status === "승인완료";
+  let html = "";
+
+  if (locked) {
+    html += '<div class="locked-banner">🔒 승인완료 — 이 초안은 확정되어 값을 다시 고칠 수 없습니다 (v' + ap.version + ')</div>';
+  }
+  if (ap.status === "반려") {
+    html += '<div class="info-banner warn"><div class="ib-title">반려됨</div>사유: ' + escapeHtml(ap.rejection_reason || "") + '</div>';
+  }
+
+  // AI 자동판정 배너
+  const qg = d.quality_gate_result;
+  if (qg) {
+    const bannerCls = qg.lock_state === "READY_FOR_APPROVAL" ? "ok" : "warn";
+    const bannerTitle = qg.lock_state === "READY_FOR_APPROVAL"
+      ? "AI 자체검수 통과 — 그래도 최종 확인은 대표자님 몫입니다"
+      : "AI 자체검수 미통과 — AI는 아직 승인을 권하지 않습니다";
+    html += '<div class="info-banner ' + bannerCls + '">' +
+      '<div class="ib-title">' + bannerTitle + '</div>' +
+      '적합도(숫자 기준) ' + Math.round((qg.overall_confidence || 0) * 100) + '% (기준 ' + Math.round((qg.confidence_threshold || 0) * 100) + '%↑) · ' +
+      '심사위원 모드(질적 기준) ' + (qg.judge_pass_recommendation ? "통과" : "미통과") +
+      '<div style="margin-top:8px"><button class="btn btn-toggle" onclick="toggleRaw(\'reasons\')">판정 근거 자세히 ' + (rawBoxOpen["reasons"] ? "접기" : "보기") + '</button></div>' +
+      (rawBoxOpen["reasons"] ? '<div class="raw-box open" style="margin-top:10px"><div class="raw-item"><div class="raw-text">' + (qg.reasons || []).map(escapeHtml).join("\n\n") + '</div></div></div>' : '') +
+      '</div>';
+  }
+
+  if (!top) {
+    html += '<div class="field-card"><h3 class="card-title">매칭 결과</h3>' +
+      '<p>이번 조회 기간 안에서 자격을 충족한 공고가 없습니다. 아래 [확인 필요] 항목을 참고해 사업자 정보나 조회 기간을 보완해주세요.</p></div>';
+  } else {
+    html += '<div class="field-card"><h3 class="card-title">매칭 결과 <span class="badge badge-ai">' + escapeHtml(top.program_name) + '</span></h3>' +
+      '<div class="badges-row" style="margin-bottom:10px">' + ddayBadge(d.run_meta.ref_date, top.deadline) + confidenceBadge(top.eligibility_confidence) + '</div>' +
+      '<div class="doc-row"><div class="doc-name">마감일</div><div>' + escapeHtml(top.deadline) + '</div></div>' +
+      '<div class="doc-row"><div class="doc-name">기준일(오늘로 가정)</div><div>' + escapeHtml(d.run_meta.ref_date) + '</div></div>' +
+      '</div>';
+  }
+
+  // 제외된 공고
+  if ((d.excluded_programs || []).length > 0) {
+    html += '<button class="raw-toggle" onclick="toggleRaw(\'excluded\')">제외된 공고 ' + d.excluded_programs.length + '건 <span>' + (rawBoxOpen["excluded"] ? "▴" : "▾") + '</span></button>';
+    html += '<div class="raw-box' + (rawBoxOpen["excluded"] ? " open" : "") + '">';
+    d.excluded_programs.forEach(function (e) {
+      html += '<div class="raw-item"><div class="raw-label">' + escapeHtml(e.program_name) + '</div><div class="raw-text">' + escapeHtml(e.exclusion_reason) + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // 섹션별 초안
+  if (d.draft_application) {
+    const draft = d.draft_application;
+    html += '<div class="field-card"><h3 class="card-title">신청서 초안 — 섹션별 내용</h3>';
+    Object.keys(SECTION_TITLES).forEach(function (key) {
+      const text = draft.sections[key];
+      html += '<div style="margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid #232848">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">' +
+        '<strong style="font-size:15px">' + SECTION_TITLES[key] + '</strong>' + sectionBadges(text) + '</div>' +
+        renderSectionText(text) +
+        '</div>';
+    });
+    html += '<div class="doc-row"><div class="doc-name">심사배점표</div><div style="text-align:right;color:var(--text-dim);font-size:13px;max-width:60%">' + escapeHtml(draft.matched_scoring_rubric || "확인 필요") + '</div></div>';
+    html += '<div class="doc-row"><div class="doc-name">페이지 제한</div><div>' + (draft.page_limit ? draft.page_limit + '쪽' : '확인 필요') + '</div></div>';
+    html += '</div>';
+
+    // 필수서류 체크리스트
+    html += '<div class="field-card"><h3 class="card-title">필수서류 준비 현황</h3>';
+    (draft.required_documents_checklist || []).forEach(function (doc) {
+      const badge = doc.prepared
+        ? '<span class="badge badge-ok"><span class="dot"></span>준비완료</span>'
+        : '<span class="badge badge-warn"><span class="dot"></span>미준비</span>';
+      html += '<div class="doc-row"><div class="doc-name">' + escapeHtml(doc.document) + '</div><div>' + badge + '</div></div>';
+    });
+    if ((draft.document_match_notes || []).length > 0) {
+      html += '<div class="doc-note">' + draft.document_match_notes.map(escapeHtml).join("<br>") + '</div>';
+    }
+    html += '</div>';
+  }
+
+  // judge_review
+  if (d.judge_review) {
+    const jr = d.judge_review;
+    html += '<div class="field-card"><h3 class="card-title">AI 심사위원 모드 자기검수 ' +
+      (jr.overall_pass_recommendation
+        ? '<span class="badge badge-ok"><span class="dot"></span>제출 권장</span>'
+        : '<span class="badge badge-warn"><span class="dot"></span>제출 비권장</span>') +
+      '</h3>';
+
+    html += '<div class="doc-note" style="margin-bottom:10px"><strong style="color:var(--text)">감점 위험</strong><br>' + (jr.rejection_risks || []).map(escapeHtml).join("<br>") + '</div>';
+    html += '<div class="doc-note" style="margin-bottom:10px"><strong style="color:var(--text)">과장 표현 점검</strong><br>' + (jr.exaggeration_flags || []).map(escapeHtml).join("<br>") + '</div>';
+    html += '<div class="doc-note" style="margin-bottom:14px"><strong style="color:var(--text)">근거 없는 서술 점검</strong><br>' + (jr.unsupported_claims || []).map(escapeHtml).join("<br>") + '</div>';
+
+    if (jr.psst_review) {
+      html += '<div style="font-weight:700;font-size:13.5px;margin-bottom:6px">PSST 자동검수 (문제·해결·증빙·성과)</div>';
+      html += '<div class="psst-grid">';
+      [["problem", "Problem 문제정의"], ["solution", "Solution 해결방안"], ["support", "Support 증빙"], ["traction", "Traction 성과"]].forEach(function (p) {
+        const item = jr.psst_review[p[0]];
+        const cls = item.result === "pass" ? "badge-ok" : (item.result === "fail" ? "badge-fail" : "badge-ai");
+        const label = item.result === "pass" ? "통과" : (item.result === "fail" ? "미통과" : "대상 아님");
+        html += '<div class="psst-box"><div class="psst-label">' + p[1] + ' <span class="badge ' + cls + '">' + label + '</span></div><div class="psst-reason">' + escapeHtml(item.reason) + '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    if (jr.judge_panel_review && (jr.judge_panel_review.panel || []).length > 0) {
+      html += '<div style="font-weight:700;font-size:13.5px;margin:16px 0 8px">가상 심사위원 패널 (' + jr.judge_panel_review.panel.length + '인 · 즉시경고 ' + jr.judge_panel_review.warning_count + '건)</div>';
+      jr.judge_panel_review.panel.forEach(function (p) {
+        const pct = (p.score / 5) * 100;
+        const barColor = p.score >= 4 ? "var(--ok)" : (p.score >= 2 ? "var(--warn)" : "var(--fail))");
+        html += '<div class="judge-item">' +
+          '<div class="jrow1"><span class="jname">' + escapeHtml(p.judge) + (p.warning ? ' ⚠' : '') + '</span><span class="jscore">' + p.score + '/5</span></div>' +
+          '<div class="score-bar"><div class="score-bar-fill" style="width:' + pct + '%;background:' + barColor + '"></div></div>' +
+          '<div class="jq">' + escapeHtml(p.key_question) + '</div>' +
+          '<div class="jreason">' + escapeHtml(p.reason) + '</div>' +
+          (p.verdict ? '<div class="doc-note" style="margin-top:6px">판정: ' + escapeHtml(p.verdict) + (p.violations && p.violations.length ? ' — ' + p.violations.map(escapeHtml).join(", ") : '') + '</div>' : '') +
+          '</div>';
+      });
+    }
+
+    if (jr.deduction_map && (jr.deduction_map.triggered_issues || []).length > 0) {
+      html += '<div style="font-weight:700;font-size:13.5px;margin:16px 0 8px">감점 전파 (설명 전용 — 최종 점수를 다시 깎지 않음)</div>';
+      jr.deduction_map.triggered_issues.forEach(function (t) {
+        html += '<div class="doc-note" style="margin-bottom:8px"><strong style="color:var(--text)">' + escapeHtml(t.issue) + '</strong> — ' + escapeHtml(t.interpretation) + '</div>';
+      });
+    }
+    html += '</div>';
+  }
+
+  // 확인 필요 목록
+  if ((d.needs_confirmation || []).length > 0) {
+    html += '<button class="raw-toggle" onclick="toggleRaw(\'needs\')">확인 필요 항목 ' + d.needs_confirmation.length + '건 <span>' + (rawBoxOpen["needs"] ? "▴" : "▾") + '</span></button>';
+    html += '<div class="raw-box' + (rawBoxOpen["needs"] ? " open" : "") + '">';
+    d.needs_confirmation.forEach(function (n) {
+      html += '<div class="raw-item"><div class="raw-text">' + escapeHtml(n) + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // 승인 처리
+  html += '<div class="field-card"><h3 class="card-title">승인 처리</h3>';
+  if (!locked && ap.status !== "반려") {
+    html += '<button class="btn btn-confirm" onclick="approveDraft(\'' + c.id + '\')">승인</button>';
+    html += '<button class="btn btn-reject" onclick="openRejectModal(\'' + c.id + '\', null)">반려</button>';
+  } else if (ap.status === "반려") {
+    html += '<button class="btn btn-confirm" onclick="approveDraft(\'' + c.id + '\')">그대로 승인</button>';
+    html += '<button class="btn btn-reject" onclick="openRejectModal(\'' + c.id + '\', null)">다시 반려</button>';
+    html += '<div class="btn-row-note">반려된 건도 대표자가 검토 후 그대로 승인하거나 다시 반려할 수 있습니다.</div>';
+  } else {
+    html += '<div class="fixed-notice">이 초안은 승인 완료(잠금) 상태입니다. 실제 제출은 자동화하지 않습니다 — 제출은 반드시 대표자가 직접 합니다(회사 헌장 §3).</div>';
+  }
+  html += '<div class="fixed-notice">이 화면의 승인/반려는 UI 시뮬레이션입니다. run.py 파이프라인에는 아직 "승인 후 자동 재개"가 연결돼 있지 않습니다.</div>';
+
+  if (ap.version_history.length > 0) {
+    html += '<div class="version-history" style="margin-top:14px"><strong>처리 이력</strong>';
+    ap.version_history.slice().reverse().forEach(function (v) {
+      html += '<div class="vh-item">v' + v.version + ' · ' + escapeHtml(v.action) + ' · ' + escapeHtml(v.by) + ' · ' + escapeHtml(v.at) + (v.detail ? " · " + escapeHtml(v.detail) : "") + '</div>';
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+
+  return html;
+}
+
+function approveDraft(id) {
+  const ap = APPROVAL[id];
+  ap.status = "승인완료";
+  ap.approved_by = "혜미 (시뮬레이션)";
+  ap.rejection_reason = null;
+  ap.version += 1;
+  ap.version_history.push({ version: ap.version, action: "승인완료", by: ap.approved_by, at: nowStr(), detail: "이후 값이 잠깁니다" });
+  showToast("승인 처리했습니다. 실제 제출은 대표자가 직접 진행해주세요.");
+  renderDetail();
+}
+
+/* ---------------- 발표자료 패키지 상세 ---------------- */
+function docStatusBadge(status) {
+  if (status === "승인완료") return '<span class="badge badge-ok"><span class="dot"></span>승인완료</span>';
+  if (status === "반려") return '<span class="badge badge-reject">반려됨</span>';
+  return '<span class="badge badge-warn"><span class="dot"></span>승인대기</span>';
+}
+
+function renderPresentationDetail(c) {
+  const ctx = c.data.ctx;
+  const ap = APPROVAL[c.id];
+  let html = "";
+
+  const notice = ctx.presentation_requirements || {};
+  html += '<div class="field-card"><h3 class="card-title">발표 요건</h3>' +
+    '<div class="doc-row"><div class="doc-name">발표평가 존재</div><div>' + (notice.발표평가_존재 === true ? "있음" : escapeHtml(notice.발표평가_존재)) + '</div></div>' +
+    '<div class="doc-row"><div class="doc-name">발표시간</div><div>' + escapeHtml(notice.발표시간_분) + '분</div></div>' +
+    '<div class="doc-row"><div class="doc-name">슬라이드 제한</div><div>' + escapeHtml(notice.슬라이드_제한) + '장</div></div>' +
+    '<div class="doc-row"><div class="doc-name">질의응답 시간</div><div>' + escapeHtml(notice.질의응답_시간_분) + '분</div></div>' +
+    '<div class="doc-note" style="margin-top:8px">심사기준: ' + escapeHtml(notice.발표평가_배점표) + '</div>' +
+    '<div class="doc-note">제출확정본 참조: ' + escapeHtml(ctx.submitted_application_ref) + '</div>' +
+    '</div>';
+
+  html += renderPresDoc(c.id, "ppt_draft", "PPT초안", ap.ppt_draft, function () {
+    let b = "";
+    (ctx.ppt_draft.outline || []).forEach(function (s) {
+      b += '<div class="doc-note" style="margin-bottom:4px"><strong style="color:var(--text)">' + (s.slide) + '번 슬라이드 · ' + escapeHtml(s.title) + '</strong></div>' +
+        '<div class="ppt-outline-box">' + escapeHtml(s.content) + '</div>';
+    });
+    b += '<div class="doc-note">추출 방식: ' + escapeHtml(ctx.ppt_draft.extraction_method) + ' — 제출확정본 PDF에서 구간을 그대로 잘라낸 것이라 안내문·개인정보동의서 문구가 섞여 있을 수 있습니다(정제 필요, 기능_인덱스.md에 기록된 알려진 한계).</div>';
+    return b;
+  });
+
+  html += renderPresDoc(c.id, "presentation_script", "발표대본", ap.presentation_script, function () {
+    let b = "";
+    (ctx.presentation_script.script_lines || []).forEach(function (line, i) {
+      b += '<div class="doc-note" style="margin-bottom:6px">' + (i + 1) + '. ' + escapeHtml(line) + '</div>';
+    });
+    return b;
+  });
+
+  html += renderPresDoc(c.id, "expected_qna", "예상 QNA", ap.expected_qna, function () {
+    let b = "";
+    (ctx.expected_qna.qna_templates || []).forEach(function (q) {
+      b += '<div class="doc-note" style="margin-bottom:8px"><strong style="color:var(--text)">' + q.template_id + '. ' + escapeHtml(q.label) + '</strong><br>' + escapeHtml(q.answer) +
+        (q.mapped_questions && q.mapped_questions.length ? '<br>연계 질문: ' + q.mapped_questions.map(escapeHtml).join(", ") : '') + '</div>';
+    });
+    return b;
+  });
+
+  const allLocked = ap.ppt_draft.status === "승인완료" && ap.presentation_script.status === "승인완료" && ap.expected_qna.status === "승인완료";
+  if (allLocked && ctx.presentation_package_record) {
+    const rec = ctx.presentation_package_record;
+    html += '<div class="locked-banner">🔒 발표패키지저장 완료 (' + escapeHtml(rec.saved_at) + ')</div>';
+    html += '<div class="fixed-notice">' + escapeHtml(rec.note) + '</div>';
+  } else {
+    html += '<div class="info-banner warn"><div class="ib-title">아직 저장 전</div>3종 문서(PPT초안·발표대본·예상QNA)가 모두 승인완료 상태여야 발표패키지저장이 진행됩니다.</div>';
+  }
+
+  return html;
+}
+
+function renderPresDoc(caseId, docKey, label, docAp, contentFn) {
+  const opened = rawBoxOpen[docKey];
+  let html = '<div class="field-card">';
+  html += '<h3 class="card-title">' + label + ' ' + docStatusBadge(docAp.status) + '<span class="badge badge-ai">v' + docAp.version + '</span></h3>';
+  if (docAp.approved_by) {
+    html += '<div class="doc-row"><div class="doc-name">승인자</div><div>' + escapeHtml(docAp.approved_by) + '</div></div>';
+  }
+  if (docAp.approved_at) {
+    html += '<div class="doc-row"><div class="doc-name">승인일시</div><div>' + escapeHtml(docAp.approved_at) + '</div></div>';
+  }
+  html += '<button class="btn btn-toggle" style="margin:10px 0" onclick="toggleRaw(\'' + docKey + '\')">내용 ' + (opened ? "접기" : "보기") + '</button>';
+  if (opened) {
+    html += contentFn();
+  }
+
+  if ((docAp.version_history || []).length > 0) {
+    html += '<div class="version-history" style="margin-top:10px"><strong>이전 처리 이력</strong>';
+    docAp.version_history.slice().reverse().forEach(function (v) {
+      html += '<div class="vh-item">v' + v.version + ' · ' + escapeHtml(v.status) + (v.rejection_reason ? ' · 사유: ' + escapeHtml(v.rejection_reason) : '') + (v.rejection_target ? ' · 대상: ' + escapeHtml(v.rejection_target) : '') + '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (docAp.status === "승인완료") {
+    html += '<div class="fixed-notice" style="margin-top:10px">승인완료(잠금) — 이 프로토타입에서는 이미 처리된 이력을 보여줍니다. 다시 반려하려면 아래 버튼을 쓰세요.</div>';
+    html += '<button class="btn btn-reject" style="margin-top:8px" onclick="openRejectModal(\'' + caseId + '\', \'' + docKey + '\')">다시 반려</button>';
+  } else if (docAp.status === "반려") {
+    html += '<div class="info-banner warn" style="margin-top:10px"><div class="ib-title">반려됨</div>사유: ' + escapeHtml(docAp.rejection_reason || "") + '</div>';
+    html += '<button class="btn btn-confirm" style="margin-top:4px" onclick="approvePresDoc(\'' + caseId + '\', \'' + docKey + '\')">승인</button>';
+  } else {
+    html += '<button class="btn btn-confirm" style="margin-top:10px" onclick="approvePresDoc(\'' + caseId + '\', \'' + docKey + '\')">승인</button>';
+    html += '<button class="btn btn-reject" onclick="openRejectModal(\'' + caseId + '\', \'' + docKey + '\')">반려</button>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function approvePresDoc(caseId, docKey) {
+  const docAp = APPROVAL[caseId][docKey];
+  docAp.status = "승인완료";
+  docAp.approved_by = "혜미 (시뮬레이션)";
+  docAp.approved_at = nowStr();
+  docAp.rejection_reason = null;
+  docAp.version += 1;
+  docAp.version_history.push({ version: docAp.version, status: "승인완료" });
+  showToast("승인 처리했습니다.");
+  renderDetail();
+}
+
+/* ---------------- 반려 모달 (공통) ---------------- */
+function openRejectModal(caseId, docKey) {
+  rejectContext = { caseId: caseId, docKey: docKey };
+  document.getElementById("rejectReason").value = "";
+  document.getElementById("rejectModalTitle").textContent = docKey ? "반려 — " + docKey : "반려 — 사업계획서 초안";
+  document.getElementById("rejectModal").classList.add("open");
+}
+function closeRejectModal() {
+  document.getElementById("rejectModal").classList.remove("open");
+  rejectContext = null;
+}
+function submitReject() {
+  const reason = document.getElementById("rejectReason").value.trim();
+  if (reason.length < 5) { showToast("반려 사유를 5자 이상 입력해주세요."); return; }
+  if (!rejectContext) return;
+
+  if (rejectContext.docKey) {
+    const docAp = APPROVAL[rejectContext.caseId][rejectContext.docKey];
+    docAp.status = "반려";
+    docAp.rejection_reason = reason;
+    docAp.version += 1;
+    docAp.version_history.push({ version: docAp.version, status: "반려", rejection_reason: reason });
+  } else {
+    const ap = APPROVAL[rejectContext.caseId];
+    ap.status = "반려";
+    ap.rejection_reason = reason;
+    ap.version += 1;
+    ap.version_history.push({ version: ap.version, action: "반려", by: "혜미 (시뮬레이션)", at: nowStr(), detail: "사유: " + reason });
+  }
+
+  closeRejectModal();
+  showToast("반려 처리했습니다. 재작성은 이 화면 밖에서 별도로 진행해주세요.");
+  renderDetail();
+}
+
+/* ---------------- 초기 렌더 ---------------- */
+renderQueue();
+</script>
+</body>
+</html>
