@@ -251,8 +251,8 @@
 
     html += '<div class="section-title">빠른 이동</div>';
     html += '<div class="grid">';
-    html += '<a href="#/assessments"><div class="tile">🩺<b>검사 라이브러리</b><small>16종</small></div></a>';
-    html += '<a href="#/techniques"><div class="tile">✋<b>테크닉 라이브러리</b><small>13종</small></div></a>';
+    html += '<a href="#/assessments"><div class="tile">🩺<b>검사 라이브러리</b><small>' + DATA.assessments.length + '종</small></div></a>';
+    html += '<a href="#/techniques"><div class="tile">✋<b>테크닉 라이브러리</b><small>' + DATA.techniques.length + '종</small></div></a>';
     html += '<a href="#/quiz"><div class="tile">📝<b>퀴즈</b><small>체인 복습</small></div></a>';
     html += '<a href="#/review"><div class="tile">📌<b>오답노트</b><small>' + wl.filter(function (w) { return w.wrong > 0; }).length + '건</small></div></a>';
     html += '</div>';
