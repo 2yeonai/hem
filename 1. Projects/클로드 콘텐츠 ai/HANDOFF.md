@@ -54,4 +54,21 @@ created: 2026-07-12
 - [[1. Projects/클로드 콘텐츠 ai/콘텐츠_작업스타일|콘텐츠_작업스타일]]
 - [[2. Areas/Claude 세션로그/2026-07-12|2026-07-12]]
 
+## 마케팅팀 v1 승격 (2026-07-19, [hyemi])
+
+decision-log §25 F7 판정("마케팅팀은 새로 만들지 않고 콘텐츠 공장을 승격한다")에 따른 작업. **파이프라인 stage 구조는 전혀 바꾸지 않았다** — 설정이 놓이는 위치만 규격화했다.
+
+- **channel-packs/ 신설** (제3의 팩): `naver-blog.yaml`, `threads.yaml`. 채널 규칙은 업종·고객과 직교하므로 industry-pack/client-pack 어느 쪽에도 넣지 않는다(브랜드마다 복사되면 서로 어긋나기 때문). 기존 `channel_config.yaml`은 삭제하지 않고 상단에 "정본은 channel-packs/"라는 안내만 추가해 이력 보존.
+- **brand-packs/ 신설**: `hyemi-ai-company.yaml` — 마케팅팀 1호 고객은 혜미의 AI 자동화 사업 자신(§25 F7-5, "업무 결과→콘텐츠→문의→판매" 순환의 첫 바퀴). 사업 소개·고객 유형·핵심 상품 3종(진단/매칭 리포트/업종팩 구축)·금지 표현·콘텐츠 소재 출처 기재.
+- **manifest.yaml**: `packs:` 블록만 추가(brand/channel 팩 경로, default_brand). stage·shared_context 등 기존 내용 무수정. `validate_manifest.py` **FAIL 0 / WARN 0** 통과.
+- **혜미가 채워야 할 [확인 필요] 8곳**: 사업체명, 브랜드 문체 톤, 추가 금지 표현, 문의 받을 곳(카톡채널/폼/전화), 사업용 연락처, 매칭 리포트 최종 가격, 스레드 글자수·해시태그 규칙. **이 값들이 비어 있는 동안에는 게시용 콘텐츠 생성에 쓰지 말 것**(brand-pack status가 `초안`인 이유).
+
+### ⚠️ 실측으로 드러난 미결정 1건 — AI 사업용 스레드 계정 없음
+기존 스레드 계정 2개는 `@maasittang`(진주 맛집), `@2yeon_sz`(육아)로 **둘 다 주제가 고정된 별개 계정**이라 AI 자동화 사업 홍보에 쓸 수 없다. 선택지 ①새 계정 신설 ②AI 사업은 네이버 블로그만 쓰고 스레드 보류 ③기존 계정 용도 확장(권장하지 않음 — 계정 정체성 훼손). **결정 전까지 brand-pack의 threads는 `사용: false`로 비활성**이며, 상세는 `channel-packs/threads.yaml`의 `unresolved` 항목에 기록돼 있다.
+
+### 다음 할 일
+- 혜미가 [확인 필요] 8곳을 채우면 brand-pack status를 `초안`→`확정`으로 올린다.
+- 스레드 계정 결정 후 `threads.yaml`의 unresolved 해소 + brand-pack `사용: true` 전환.
+- 게시 연결(Chrome 확장 로그인)은 여전히 별건으로 대기 중 — 승인 완료된 테스트 글 3건이 그때 나간다.
+
 <!-- ok -->

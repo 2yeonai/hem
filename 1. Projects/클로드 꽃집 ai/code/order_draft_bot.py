@@ -16,11 +16,20 @@ order_draft_bot.py - 주문정리봇 (규칙기반 임시 버전)
   그보다 앞에 나온 직함/기관명 매칭은 recipient, 뒤에 나온 매칭은 sender로
   배정한다. 이 관습을 따르지 않는 문자/통화는 오분류될 수 있다(알려진 한계).
 
-이름(recipient_name/sender_name)은 의도적으로 추출을 시도하지 않는다 — 레이블
-없이 나열된 2~4음절 한글 이름은 수신/발신 순서를 안전하게 구분할 근거가 없다
-(golden_set 001에서 스크린샷 버전과 타이핑 버전 사이에 이름이 실제로 뒤바뀐
-사례 참고). 항상 None으로 남기고 missing_fields에 담아 사람 확인으로 넘긴다 —
-이건 버그가 아니라 "값을 임의로 채우지 않는다" 원칙을 지키기 위한 의도적 설계.
+이름(recipient_name/sender_name) — [2026-07-20 정책 변경, 혜미 승인]:
+과거에는 레이블 없이 나열된 2~4음절 한글 이름은 수신/발신 순서를 안전하게
+구분할 근거가 없다는 이유로(golden_set 001에서 스크린샷/타이핑 버전 사이에
+이름이 실제로 뒤바뀐 실사고 참고) LLM 경로에서도 코드로 강제 null 처리했다.
+2026-07-20 세션에서 혜미가 "이름도 자동 추출하되, 이미 있는 사람 승인 단계를
+안전장치로 삼자"고 명시적으로 승인해, LLM 경로(_draft_llm)는 이제 다른 필드와
+같은 위치 휴리스틱(pivot 앞=recipient, 뒤=sender)으로 이름도 추출을 "시도"한다.
+단, 애매하면(후보 3개 이상, 순서 불명확 등) 여전히 null + missing_fields로
+남기도록 프롬프트에 명시했고, field_confidence를 정직하게 낮게 매기게 해서
+webapp 검수 화면에서 사람이 낮은 확신도를 보고 다시 확인할 수 있게 했다
+(자세한 내용은 decision-log_12to14봇.md 해당 날짜 항목 참고).
+규칙기반 폴백(_draft_rule_based)은 여전히 이름을 시도하지 않는다 — 정규식으로
+한글 이름 후보를 안전하게 판별할 방법이 없어 그대로 두는 것이 알려진 한계다
+(LLM 호출 실패 시에만 타는 경로라 실사용 빈도는 낮음).
 
 알려진 한계 (숨기지 않고 명시):
   - 위치 휴리스틱은 golden_set의 관습적 어순을 가정한 것 — 그 가정이 깨지는
@@ -59,12 +68,19 @@ _SYSTEM_PROMPT = """당신은 꽃집(온천꽃식물원) 주문 문자/통화의
 recipient_org, recipient_name, recipient_title, sender_org, sender_name, sender_title,
 event, amount_krw(정수, 원 단위), product, ribbon_phrase_raw.
 
-가장 중요한 절대 원칙 (반드시 지킬 것 - 실제 사고 이력이 있는 규칙입니다):
-- recipient_name과 sender_name은 **절대로 채우지 마세요. 항상 null로 남기세요.**
-  텍스트에 레이블 없이 한글 이름이 나열돼 있으면(예: "OOO OOO"), 어느 것이
-  수신자 이름이고 어느 것이 발신자 이름인지 순서를 안전하게 구분할 근거가 없습니다.
-  과거에 이 순서를 잘못 판단해 이름이 실제로 뒤바뀐 실사고가 있었습니다. 문맥상
-  "확실해 보여도" 절대 채우지 말고 missing_fields에 넣으세요.
+가장 중요한 원칙 (반드시 지킬 것):
+- recipient_name/sender_name도 이제 채워보세요 — 다른 필드와 같은 위치 관례를
+  적용합니다: pivot(금액/이벤트 키워드) 앞에 나온 레이블 없는 한글 이름은
+  recipient_name, pivot 뒤에 나온 이름은 sender_name일 가능성이 높습니다.
+  단, 아래 경우엔 절대 채우지 말고 missing_fields에 넣으세요:
+  (a) 레이블 없는 한글 이름 후보가 3개 이상이라 역할 배정이 애매할 때,
+  (b) pivot 앞뒤 위치만으로 판단하기 어렵거나 문맥이 이 관례를 안 따를 때,
+  (c) 조금이라도 확신이 없을 때 — 절대 무리해서 채우지 마세요.
+  과거(golden_set 001)에 이름 순서를 잘못 판단해 이름이 실제로 뒤바뀐 사고가
+  있었으니, 채우더라도 field_confidence를 정직하게 낮게 매기고 field_sources에
+  왜 이 순서로 배정했는지 근거를 구체적으로 남기세요 — 이 값은 사람이 승인
+  화면에서 반드시 확인 후 승인하니(자동 발송 아님), 확신이 낮아도 후보를
+  제시하는 것 자체는 도움이 됩니다.
 - ribbon_phrase_raw 후보가 2개 이상이면(예: "면접축하"와 "승진축하" 둘 다 등장)
   어느 것이 맞는지 확정하지 말고 null로 남기세요.
 - 그 외 필드도 확신이 없으면 null + missing_fields로 남기고 지어내지 마세요.
@@ -73,8 +89,8 @@ event, amount_krw(정수, 원 단위), product, ribbon_phrase_raw.
 
 반드시 아래 JSON 형식으로만 답하세요:
 {
-  "order_draft": {"recipient_org": null|"...", "recipient_name": null, "recipient_title": null|"...",
-                   "sender_org": null|"...", "sender_name": null, "sender_title": null|"...",
+  "order_draft": {"recipient_org": null|"...", "recipient_name": null|"...", "recipient_title": null|"...",
+                   "sender_org": null|"...", "sender_name": null|"...", "sender_title": null|"...",
                    "event": null|"...", "amount_krw": null|<정수>, "product": null|"...",
                    "ribbon_phrase_raw": null|"..."},
   "field_confidence": {"<필드명>": <0.0~1.0>, ...},
@@ -273,17 +289,20 @@ def _draft_llm(text: str) -> dict:
     draft = result.get("order_draft")
     if not isinstance(draft, dict):
         raise llm_client.LLMUnavailableError(f"order_draft 형식이 이상함: {draft!r}")
-    # 절대 원칙 재확인: 모델이 지시를 어기고 이름을 채웠어도 여기서 강제로 비운다
-    # (프롬프트만 믿지 않고 코드로도 한 번 더 막는 이중 안전망 - 실사고 이력이 있는 규칙이라 강화).
-    for name_field in ("recipient_name", "sender_name"):
-        if draft.get(name_field) is not None:
-            draft[name_field] = None
-            (result.setdefault("field_sources", {}))[name_field] = (
-                "이름 추출 시도 안 함(레이블 없는 한글 이름은 순서 신뢰 불가 - 확인 필요, "
-                "모델이 채우려 해도 코드에서 강제로 비움 - 이중 안전망)"
-            )
     result.setdefault("field_confidence", {})
     result.setdefault("field_sources", {})
+    # [2026-07-20 정책 변경] 예전엔 모델이 이름을 채우면 코드로 강제 null 처리했다.
+    # 이제는 모델의 판단을 신뢰하되(혜미 승인, 사람 승인 단계가 안전장치), 안전을
+    # 위해 이름 필드에 confidence가 안 왔으면(모델이 깜빡함) 임의로 안전한 값을
+    # 지어내지 않도록 보수적으로 낮은 값(0.4)을 매겨 webapp 검수 화면에서 "확인
+    # 필요" 표시가 뜨게 한다 — field_sources도 마찬가지로 기본값을 채운다.
+    for name_field in ("recipient_name", "sender_name"):
+        if draft.get(name_field) is not None:
+            result["field_confidence"].setdefault(name_field, 0.4)
+            result["field_sources"].setdefault(
+                name_field,
+                "위치 관례(pivot 앞/뒤)로 추정한 값 - 이름은 특히 뒤바뀔 수 있으니 꼭 확인",
+            )
     missing = [f for f in FIELDS if draft.get(f) is None]
     result["missing_fields"] = missing
     result["order_draft"] = draft

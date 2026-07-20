@@ -47,7 +47,12 @@ _load_env_file(_ENV_PATH)
 # manifest.yaml model_routing이 쓰는 티어명 -> 실제 모델 ID. 이 파일 밖으로는
 # 절대 모델명을 노출하지 않는다(모델명 하드코딩 금지 원칙, model_routing 주석 참고).
 TIER_MODEL_MAP = {
-    "low_cost": "claude-haiku-4-5",
+    # [2026-07-20 수정] "claude-haiku-4-5"는 날짜 접미사가 빠진 잘못된 모델 ID였음
+    # (정확한 문자열은 "claude-haiku-4-5-20251001") - 이 오타 때문에 low_cost
+    # tier를 쓰는 모든 봇(order_draft_bot 포함)의 API 호출이 매번 실패해 규칙기반
+    # 폴백으로 조용히 넘어가고 있었다. 혜미가 API 키를 등록했는데도 이름 자동추출이
+    # 반영 안 되는 것처럼 보인 원인이 이것으로 추정됨 - 실사용 재확인 필요.
+    "low_cost": "claude-haiku-4-5-20251001",
     "mid": "claude-sonnet-5",
     "high": "claude-opus-4-8",  # 이 스킬의 6개 model stage 중 실제로 high를 쓰는 곳은 없음
 }

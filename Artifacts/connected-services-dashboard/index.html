@@ -1,0 +1,286 @@
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Connected Services Dashboard",
+  "schemaVersion": 1,
+  "description": "Notion·Gmail·캘린더·Slack 연결 상태를 매번 열 때마다 새로 불러오는 실시간 대시보드. hem 볼트 섹션만 로컬 파일이라 정적 스냅샷.",
+  "mcpTools": [
+    "mcp__c840ec88-137f-4243-ac52-ef5313c973ab__notion-search",
+    "mcp__2a02ca68-7986-4e85-8693-d3c6d9f82c20__list_events",
+    "mcp__cad60973-d14a-4d3f-b291-f0b7716f69d2__search_threads",
+    "mcp__4b7ef627-6576-4d21-b436-86aa2a8b350e__slack_search_channels"
+  ],
+  "mcpServerNames": [
+    "Notion",
+    "Google Calendar",
+    "Gmail",
+    "Slack"
+  ]
+}
+</script>
+<div id="app">
+<style>
+  :root { color-scheme: light; }
+  #app {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, sans-serif;
+    background: #f7f7f5;
+    color: #1a1a1a;
+    padding: 16px;
+    box-sizing: border-box;
+  }
+  #app * { box-sizing: border-box; }
+  .db-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .db-title { font-size: 18px; font-weight: 700; }
+  .db-sub { font-size: 12px; color: #888; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e6e6e2;
+    border-radius: 10px;
+    padding: 14px;
+    min-height: 140px;
+  }
+  .card h2 {
+    font-size: 14px;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block;
+    background: #ccc;
+  }
+  .dot.ok { background: #2e7d32; }
+  .dot.empty { background: #d9a441; }
+  .dot.err { background: #c0392b; }
+  .item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0ee;
+    font-size: 13px;
+  }
+  .item:last-child { border-bottom: none; }
+  .item a { color: #1a1a1a; text-decoration: none; font-weight: 600; }
+  .item a:hover { text-decoration: underline; }
+  .item .meta { color: #999; font-size: 11px; margin-top: 2px; }
+  .item .snippet { color: #555; font-size: 12px; margin-top: 3px; line-height: 1.4; }
+  .unread .meta::before { content: "● 안읽음  "; color: #c0392b; }
+  .empty-msg, .err-msg, .loading-msg {
+    font-size: 12px; color: #999; padding: 20px 0; text-align: center;
+  }
+  .err-msg { color: #c0392b; }
+  .snapshot-tag {
+    display: inline-block; font-size: 10px; background: #fdf1d6; color: #8a6300;
+    border-radius: 4px; padding: 2px 6px; margin-left: 6px; font-weight: 500;
+  }
+  .snapshot-list { list-style: none; margin: 0; padding: 0; }
+  .snapshot-list li { font-size: 12px; padding: 4px 0; color: #444; }
+  .snapshot-list li b { color: #1a1a1a; }
+  .refresh-hint { font-size: 11px; color: #aaa; margin-top: 10px; }
+</style>
+
+<div class="db-header">
+  <div class="db-title">혜미의 연결 서비스 대시보드</div>
+  <div class="db-sub" id="lastLoaded">불러오는 중...</div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2><span class="dot" id="dot-notion"></span> Notion</h2>
+    <div id="notion-body" class="loading-msg">불러오는 중...</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot" id="dot-gmail"></span> Gmail — 받은편지함</h2>
+    <div id="gmail-body" class="loading-msg">불러오는 중...</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot" id="dot-cal"></span> 캘린더 — 앞으로 14일</h2>
+    <div id="cal-body" class="loading-msg">불러오는 중...</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot" id="dot-slack"></span> Slack</h2>
+    <div id="slack-body" class="loading-msg">불러오는 중...</div>
+  </div>
+
+  <div class="card" style="grid-column: 1 / -1;">
+    <h2>hem 볼트 (로컬 파일) <span class="snapshot-tag">정적 스냅샷 · 2026-07-11 기준</span></h2>
+    <ul class="snapshot-list">
+      <li><b>최근 변경:</b> ai공장짓기/설계노트/ 폴더 신규 — "ai 공장 종합 기획" 문서가 0~8번 하위 노트로 분할됨 (관련_문서.md 포함)</li>
+      <li><b>진행 중:</b> 볼트 md 노트 위키링크 정리 — 36개 문서에 "## 관련 문서" 섹션 추가 완료 (총 91+7개 링크)</li>
+      <li><b>자동화 상태:</b> 매일 22:33 세션 로그 자동 기록 정상 작동 (마지막 기록: 2026-07-10)</li>
+      <li><b>다음 우선순위(감사_로드맵 R1):</b> 방역 골든셋 실제 사례 입력 — 유일한 병목</li>
+      <li><b>발견된 이슈:</b> 루트에 빈(0바이트) 노트 2개(클로드 꽃집 ai.md, 클로드 정부지원사업 ai.md) — 핵심맥락.md의 폴더명 링크가 만든 죽은 링크로 추정</li>
+    </ul>
+    <div class="refresh-hint">로컬 파일은 실시간 연동이 안 돼요. 최신 상태를 다시 보려면 채팅에서 "hem 폴더 상태 다시 확인해줘"라고 요청하세요.</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+(function () {
+  function unwrap(r) {
+    if (!r) return null;
+    if (r.structuredContent) return r.structuredContent;
+    try { return JSON.parse(r.content[0].text); } catch (e) { return null; }
+  }
+  function setDot(id, state) {
+    var el = document.getElementById(id);
+    if (el) el.className = "dot " + state;
+  }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    try {
+      var d = new Date(iso);
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") +
+        " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+    } catch (e) { return iso; }
+  }
+  function escapeHtml(s) {
+    if (!s) return "";
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  async function loadNotion() {
+    var body = document.getElementById("notion-body");
+    try {
+      var r = await window.cowork.callMcpTool("mcp__c840ec88-137f-4243-ac52-ef5313c973ab__notion-search", {
+        query: "최근",
+        page_size: 8,
+        max_highlight_length: 120
+      });
+      var data = unwrap(r);
+      var results = (data && data.results) || [];
+      if (r && r.isError) throw new Error("tool error");
+      if (results.length === 0) {
+        body.innerHTML = '<div class="empty-msg">최근 항목 없음</div>';
+        setDot("dot-notion", "empty");
+        return;
+      }
+      results.sort(function(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+      var html = results.slice(0, 6).map(function(it) {
+        return '<div class="item"><a href="' + it.url + '" target="_blank">' + escapeHtml(it.title || "(제목 없음)") + '</a>' +
+          '<div class="meta">' + fmtDate(it.timestamp) + '</div>' +
+          (it.highlight ? '<div class="snippet">' + escapeHtml(it.highlight) + '</div>' : '') +
+          '</div>';
+      }).join("");
+      body.innerHTML = html;
+      setDot("dot-notion", "ok");
+    } catch (e) {
+      body.innerHTML = '<div class="err-msg">불러오기 실패</div>';
+      setDot("dot-notion", "err");
+    }
+  }
+
+  async function loadGmail() {
+    var body = document.getElementById("gmail-body");
+    try {
+      var r = await window.cowork.callMcpTool("mcp__cad60973-d14a-4d3f-b291-f0b7716f69d2__search_threads", {
+        query: "in:inbox",
+        pageSize: 8,
+        view: "THREAD_VIEW_MINIMAL"
+      });
+      var data = unwrap(r);
+      var threads = (data && data.threads) || [];
+      if (r && r.isError) throw new Error("tool error");
+      if (threads.length === 0) {
+        body.innerHTML = '<div class="empty-msg">받은편지함 비어있음</div>';
+        setDot("dot-gmail", "empty");
+        return;
+      }
+      var html = threads.slice(0, 6).map(function(t) {
+        var m = (t.messages && t.messages[0]) || {};
+        var unread = (m.labelIds || []).indexOf("UNREAD") !== -1;
+        return '<div class="item' + (unread ? ' unread' : '') + '"><a>' + escapeHtml(m.subject || "(제목 없음)") + '</a>' +
+          '<div class="meta">' + escapeHtml(m.sender || "") + ' · ' + fmtDate(m.date) + '</div>' +
+          '<div class="snippet">' + escapeHtml((m.snippet || "").slice(0, 90)) + '</div>' +
+          '</div>';
+      }).join("");
+      body.innerHTML = html;
+      setDot("dot-gmail", "ok");
+    } catch (e) {
+      body.innerHTML = '<div class="err-msg">불러오기 실패</div>';
+      setDot("dot-gmail", "err");
+    }
+  }
+
+  async function loadCalendar() {
+    var body = document.getElementById("cal-body");
+    try {
+      var now = new Date();
+      var end = new Date(now.getTime() + 14 * 24 * 3600 * 1000);
+      var r = await window.cowork.callMcpTool("mcp__2a02ca68-7986-4e85-8693-d3c6d9f82c20__list_events", {
+        pageSize: 10,
+        orderBy: "startTime",
+        startTime: now.toISOString(),
+        endTime: end.toISOString()
+      });
+      var data = unwrap(r);
+      var items = (data && data.items) || [];
+      if (r && r.isError) throw new Error("tool error");
+      if (items.length === 0) {
+        body.innerHTML = '<div class="empty-msg">앞으로 14일간 예정된 일정 없음</div>';
+        setDot("dot-cal", "empty");
+        return;
+      }
+      var html = items.slice(0, 6).map(function(ev) {
+        var start = (ev.start && (ev.start.dateTime || ev.start.date)) || "";
+        return '<div class="item"><a>' + escapeHtml(ev.summary || "(제목 없음)") + '</a>' +
+          '<div class="meta">' + fmtDate(start) + '</div></div>';
+      }).join("");
+      body.innerHTML = html;
+      setDot("dot-cal", "ok");
+    } catch (e) {
+      body.innerHTML = '<div class="err-msg">불러오기 실패</div>';
+      setDot("dot-cal", "err");
+    }
+  }
+
+  async function loadSlack() {
+    var body = document.getElementById("slack-body");
+    try {
+      var r = await window.cowork.callMcpTool("mcp__4b7ef627-6576-4d21-b436-86aa2a8b350e__slack_search_channels", {
+        query: "a",
+        limit: 10
+      });
+      var data = unwrap(r);
+      var text = (data && data.results) || "";
+      if (r && r.isError) throw new Error("tool error");
+      if (!text || text.indexOf("No results found") !== -1) {
+        body.innerHTML = '<div class="empty-msg">연결은 됐지만 채널/메시지 없음 (Slack 체험판 시작 직후로 보임)</div>';
+        setDot("dot-slack", "empty");
+        return;
+      }
+      body.innerHTML = '<div class="item"><div class="snippet">' + escapeHtml(text.slice(0, 500)) + '</div></div>';
+      setDot("dot-slack", "ok");
+    } catch (e) {
+      body.innerHTML = '<div class="err-msg">불러오기 실패</div>';
+      setDot("dot-slack", "err");
+    }
+  }
+
+  function setLoaded() {
+    var el = document.getElementById("lastLoaded");
+    var d = new Date();
+    el.textContent = "마지막 새로고침: " + d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0") +
+      " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+
+  Promise.all([loadNotion(), loadGmail(), loadCalendar(), loadSlack()]).then(setLoaded).catch(setLoaded);
+})();
+</script>

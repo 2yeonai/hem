@@ -38,6 +38,23 @@ def load_yaml(path):
         return yaml.safe_load(f)
 
 
+def find_shared_factory_dir(base_dir, factory_dirname="ai공장짓기", max_levels=6):
+    """base_dir에서 위로 올라가며(부모 폴더마다) 형제 폴더 '<factory_dirname>/'가
+    있는지 찾아 그 경로를 반환한다. 못 찾으면 None.
+    (스킬 폴더가 몇 단계 깊이에 있든 os.path 기반으로 안전하게 탐색하기 위함 — 하드코딩 경로 나열 금지)
+    """
+    current = os.path.abspath(base_dir)
+    for _ in range(max_levels):
+        parent = os.path.dirname(current)
+        if not parent or parent == current:
+            break
+        candidate = os.path.join(parent, factory_dirname)
+        if os.path.isdir(candidate):
+            return candidate
+        current = parent
+    return None
+
+
 def resolve_schema_ref(ref, base_dir):
     """'상대경로/파일.yaml#a.b.c' 형태를 best-effort로 풀어서 (파일존재, 키경로존재) 반환"""
     if "#" not in ref:
@@ -49,6 +66,14 @@ def resolve_schema_ref(ref, base_dir):
         os.path.join(base_dir, os.path.basename(file_part)),
         os.path.join(os.path.dirname(base_dir), file_part),
     ]
+    # base_dir(manifest.yaml이 있는 스킬 폴더) 기준으로 못 찾으면, 형제 폴더
+    # 'ai공장짓기/'(공유 스키마 허브) 아래에서도 같은 파일명을 찾아본다.
+    # (예: '1. Projects/클로드 꽃집 ai/manifest.yaml'의 base_dir 기준으로
+    #  'manifest.schema.v2.yaml#...'을 못 찾으면, 형제 '1. Projects/ai공장짓기/manifest.schema.v2.yaml'을 확인)
+    factory_dir = find_shared_factory_dir(base_dir)
+    if factory_dir:
+        candidates.append(os.path.join(factory_dir, file_part))
+        candidates.append(os.path.join(factory_dir, os.path.basename(file_part)))
     data = None
     found_path = None
     for c in candidates:

@@ -22,18 +22,30 @@ created: 2026-07-17
 3. 이메일 인증만 하면 끝 — 카드 번호 입력 화면이 나오면 건너뛰어도 무료 요금제는 그대로 씀
 
 ## 2단계 — 새 웹 서비스 만들기 (혜미님이 직접, 5분)
+
+**[2026-07-20 실제 배포 경험으로 수정]** Render의 Root Directory 입력칸이 한글이 섞인 경로(`1. Projects/클로드 꽃집 ai/webapp`)를 거부하는 문제가 실제로 있었다. 그래서 Root Directory는 비워두고, Build/Start Command 안에서 `cd`로 폴더를 직접 이동하는 방식으로 우회한다. 아래는 이 우회법 기준.
+
 1. Render 대시보드에서 **"New +"** → **"Web Service"** 클릭
 2. GitHub 저장소 목록에서 이 볼트(hem 저장소) 선택 → "Connect"
 3. 아래 칸들을 이렇게 채우기:
    - **Name**: `flower-shop-webapp` (아무 이름이나 가능)
-   - **Root Directory**: `1. Projects/클로드 꽃집 ai/webapp`
+   - **Root Directory**: (비워둠 — 한글 경로 입력 시 오류가 나서 우회함)
    - **Runtime**: `Python 3`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn -w 1 -b 0.0.0.0:$PORT app:app`
+   - **Build Command**: `cd "1. Projects/클로드 꽃집 ai/webapp" && pip install -r requirements.txt`
+   - **Start Command**: `cd "1. Projects/클로드 꽃집 ai/webapp" && gunicorn -w 1 -b 0.0.0.0:$PORT app:app`
    - **Instance Type**: `Free` 선택
+
+   Build/Start Command 칸에 붙여넣을 때 위 두 줄을 각각 **정확히 한 줄씩만** 넣을 것 — 마크다운 코드블록 테두리(백틱) 같은 장식까지 같이 붙여넣으면 `bash: unexpected EOF` 에러로 배포가 실패한다(2026-07-20 실제 발생, 재현·해결 확인됨).
 4. **"Environment Variables"** 섹션에서 "Add Environment Variable" 클릭:
    - Key: `ANTHROPIC_API_KEY`
    - Value: (발급받은 진짜 키 값 — 여기 이 문서에는 절대 적지 마세요, Render 화면에만 입력)
+   - **[2026-07-20 추가]** 통화녹음 파일을 자동으로 텍스트로 바꾸는 기능을 쓰려면
+     "Add Environment Variable"을 한 번 더 눌러서 Key: `OPENAI_API_KEY`도 추가해야
+     합니다(ANTHROPIC_API_KEY와는 완전히 다른 회사·다른 키 - OpenAI 계정을 새로
+     만들고 https://platform.openai.com 에서 발급받아야 함). 이 키가 없으면
+     녹음파일 첨부 기능만 "음성인식 실패" 메시지를 띄우고, 나머지 기능(문자
+     입력)은 그대로 작동합니다 - 필수 아님, 선택 기능.
+     비용은 분당 약 8원(10분 통화 약 80원) 수준으로 예상됩니다.
 5. **"Create Web Service"** 클릭 → 몇 분 기다리면 배포 완료
 6. 완성되면 화면 위에 `https://flower-shop-webapp.onrender.com` 같은 주소가 생김 —
    **이 주소를 휴대폰 브라우저 즐겨찾기(또는 홈 화면에 추가)해두면 앱처럼 쓸 수 있습니다.**

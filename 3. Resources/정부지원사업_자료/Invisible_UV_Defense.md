@@ -5,14 +5,14 @@ status: converted
 source_format: pdf
 source: "Invisible_UV_Defense.pdf"
 converted: 2026-07-13
-tags: [문서변환, 인박스, 옵시디언]
+tags: []
 ---
 
 # Invisible_UV_Defense
 
 > [!info] 변환 정보
 > 변환 방식: 로컬 문서 본문 추출  
-> [[Invisible_UV_Defense.pdf|원본 파일]] · [[옵시디언 변환본/_원문/Invisible_UV_Defense__원문.md|추출 원문 전체]]
+> [[Invisible_UV_Defense.pdf|원본 파일]] · [[3. Resources/정부지원사업_자료/_원문/Invisible_UV_Defense__원문.md|추출 원문 전체]]
 > - 복잡한 표·도형·서식은 단순화될 수 있습니다.
 
 ## AI 빠른 읽기
@@ -30,6 +30,6 @@ tags: [문서변환, 인박스, 옵시디언]
 
 ## 핵심어
 
-#투명UV패치, #자외선차단, #저자극, #하이드로겔, #야외활동, #스포츠, #시제품, #정부지원사업
+투명UV패치, 자외선차단, 저자극, 하이드로겔, 야외활동, 스포츠, 시제품, 정부지원사업
 
 <!-- ok -->

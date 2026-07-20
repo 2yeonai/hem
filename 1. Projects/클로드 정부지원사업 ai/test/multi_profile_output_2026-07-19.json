@@ -1,0 +1,353 @@
+{
+  "oncheon_flower": {
+    "profile_id": "oncheon_flower",
+    "display_name": "온천꽃식물원",
+    "matched_programs": [],
+    "excluded_programs": [
+      {
+        "program_name": "제11회 소상공인 쇼케이스데이 발표 희망기업 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 소상공인 무료 법률ㆍ세무ㆍ노무 간편상담 지원사업 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 2차 유통플랫폼 MD 상담회 소상공인 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 찾아가는 1:1 디지털 교육 소상공인 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 소상공인 온라인판로 지원사업 참여기업 모집공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "소상공인 경영안정 바우처 지원사업 시행 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 중소벤처기업부 소상공인 지원사업 통합 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      }
+    ],
+    "draft_application": null,
+    "judge_review": {
+      "rejection_risks": [
+        "매칭된 사업이 없어 초안 자체가 존재하지 않음 -> 심사 대상 아님"
+      ],
+      "exaggeration_flags": [],
+      "unsupported_claims": [],
+      "overall_pass_recommendation": false,
+      "psst_review": {
+        "problem": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "solution": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "support": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "traction": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        }
+      },
+      "judge_panel_review": {
+        "panel": [],
+        "immediate_warnings": [
+          "매칭된 사업이 없어 심사위원 패널 평가 대상 자체가 없음"
+        ],
+        "warning_count": 0
+      },
+      "deduction_map": {
+        "triggered_issues": [],
+        "note": "매칭된 사업이 없어 감점 전파 분석 대상 자체가 없음"
+      },
+      "budget_breakdown": null
+    },
+    "quality_gate_result": {
+      "overall_confidence": 0.0,
+      "confidence_threshold": 0.85,
+      "confidence_passed": false,
+      "judge_pass_recommendation": false,
+      "lock_state": "DRAFT",
+      "routed_to": "human_review",
+      "reasons": [
+        "매칭된 지원사업 없음 -> quality_gate/심사위원 검수 대상 자체가 없음"
+      ]
+    },
+    "lock_state": "DRAFT",
+    "needs_confirmation": [
+      "[2026년 2차 유통플랫폼 MD 상담회 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 무료 법률ㆍ세무ㆍ노무 간편상담 지원사업 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 온라인판로 지원사업 참여기업 모집공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 온라인판로 지원사업 참여기업 모집공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 중소벤처기업부 소상공인 지원사업 통합 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 중소벤처기업부 소상공인 지원사업 통합 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 찾아가는 1:1 디지털 교육 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[소상공인 경영안정 바우처 지원사업 시행 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[소상공인 경영안정 바우처 지원사업 시행 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[제11회 소상공인 쇼케이스데이 발표 희망기업 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것."
+    ],
+    "run_meta": {
+      "ref_date": "2026-07-19",
+      "target_period": {
+        "start_date": "2026-07-19",
+        "end_date": "2027-01-15"
+      }
+    }
+  },
+  "daeryuk": {
+    "profile_id": "daeryuk",
+    "display_name": "대륙창업",
+    "matched_programs": [],
+    "excluded_programs": [
+      {
+        "program_name": "제11회 소상공인 쇼케이스데이 발표 희망기업 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 소상공인 무료 법률ㆍ세무ㆍ노무 간편상담 지원사업 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 2차 유통플랫폼 MD 상담회 소상공인 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 찾아가는 1:1 디지털 교육 소상공인 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 소상공인 온라인판로 지원사업 참여기업 모집공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "소상공인 경영안정 바우처 지원사업 시행 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 중소벤처기업부 소상공인 지원사업 통합 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      }
+    ],
+    "draft_application": null,
+    "judge_review": {
+      "rejection_risks": [
+        "매칭된 사업이 없어 초안 자체가 존재하지 않음 -> 심사 대상 아님"
+      ],
+      "exaggeration_flags": [],
+      "unsupported_claims": [],
+      "overall_pass_recommendation": false,
+      "psst_review": {
+        "problem": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "solution": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "support": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "traction": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        }
+      },
+      "judge_panel_review": {
+        "panel": [],
+        "immediate_warnings": [
+          "매칭된 사업이 없어 심사위원 패널 평가 대상 자체가 없음"
+        ],
+        "warning_count": 0
+      },
+      "deduction_map": {
+        "triggered_issues": [],
+        "note": "매칭된 사업이 없어 감점 전파 분석 대상 자체가 없음"
+      },
+      "budget_breakdown": null
+    },
+    "quality_gate_result": {
+      "overall_confidence": 0.0,
+      "confidence_threshold": 0.85,
+      "confidence_passed": false,
+      "judge_pass_recommendation": false,
+      "lock_state": "DRAFT",
+      "routed_to": "human_review",
+      "reasons": [
+        "매칭된 지원사업 없음 -> quality_gate/심사위원 검수 대상 자체가 없음"
+      ]
+    },
+    "lock_state": "DRAFT",
+    "needs_confirmation": [
+      "[2026년 2차 유통플랫폼 MD 상담회 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 무료 법률ㆍ세무ㆍ노무 간편상담 지원사업 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 온라인판로 지원사업 참여기업 모집공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 온라인판로 지원사업 참여기업 모집공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 중소벤처기업부 소상공인 지원사업 통합 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 중소벤처기업부 소상공인 지원사업 통합 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 찾아가는 1:1 디지털 교육 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[소상공인 경영안정 바우처 지원사업 시행 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[소상공인 경영안정 바우처 지원사업 시행 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[제11회 소상공인 쇼케이스데이 발표 희망기업 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것."
+    ],
+    "run_meta": {
+      "ref_date": "2026-07-19",
+      "target_period": {
+        "start_date": "2026-07-19",
+        "end_date": "2027-01-15"
+      }
+    }
+  },
+  "moon": {
+    "profile_id": "moon",
+    "display_name": "mo,on(모온)",
+    "matched_programs": [],
+    "excluded_programs": [
+      {
+        "program_name": "제11회 소상공인 쇼케이스데이 발표 희망기업 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 소상공인 무료 법률ㆍ세무ㆍ노무 간편상담 지원사업 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 2차 유통플랫폼 MD 상담회 소상공인 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "2026년 찾아가는 1:1 디지털 교육 소상공인 모집 공고",
+        "exclusion_reason": "필수 제출서류 목록을 원문에서 확인하지 못함 -> 자동 실패 처리 (manifest self_check_rules 적용)"
+      },
+      {
+        "program_name": "[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 소상공인 온라인판로 지원사업 참여기업 모집공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "소상공인 경영안정 바우처 지원사업 시행 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      },
+      {
+        "program_name": "2026년 중소벤처기업부 소상공인 지원사업 통합 공고",
+        "exclusion_reason": "마감일 정보 없음 -> 확인 필요"
+      }
+    ],
+    "draft_application": null,
+    "judge_review": {
+      "rejection_risks": [
+        "매칭된 사업이 없어 초안 자체가 존재하지 않음 -> 심사 대상 아님"
+      ],
+      "exaggeration_flags": [],
+      "unsupported_claims": [],
+      "overall_pass_recommendation": false,
+      "psst_review": {
+        "problem": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "solution": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "support": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        },
+        "traction": {
+          "result": "not_applicable",
+          "reason": "매칭된 사업이 없어 신청서 초안 자체가 없음 -> 검수 대상 아님"
+        }
+      },
+      "judge_panel_review": {
+        "panel": [],
+        "immediate_warnings": [
+          "매칭된 사업이 없어 심사위원 패널 평가 대상 자체가 없음"
+        ],
+        "warning_count": 0
+      },
+      "deduction_map": {
+        "triggered_issues": [],
+        "note": "매칭된 사업이 없어 감점 전파 분석 대상 자체가 없음"
+      },
+      "budget_breakdown": null
+    },
+    "quality_gate_result": {
+      "overall_confidence": 0.0,
+      "confidence_threshold": 0.85,
+      "confidence_passed": false,
+      "judge_pass_recommendation": false,
+      "lock_state": "DRAFT",
+      "routed_to": "human_review",
+      "reasons": [
+        "매칭된 지원사업 없음 -> quality_gate/심사위원 검수 대상 자체가 없음"
+      ]
+    },
+    "lock_state": "DRAFT",
+    "needs_confirmation": [
+      "[2026년 2차 유통플랫폼 MD 상담회 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 무료 법률ㆍ세무ㆍ노무 간편상담 지원사업 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 온라인판로 지원사업 참여기업 모집공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 온라인판로 지원사업 참여기업 모집공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 소상공인 투자연계 지원사업 립스(LIPS) 프로그램 소상공인 모집 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 중소벤처기업부 소상공인 지원사업 통합 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[2026년 중소벤처기업부 소상공인 지원사업 통합 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[2026년 찾아가는 1:1 디지털 교육 소상공인 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[[경남] 2026년 소상공인 IP출원(상표출원) 지원사업 소상공인 수혜자 모집 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[소상공인 경영안정 바우처 지원사업 시행 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것.",
+      "[소상공인 경영안정 바우처 지원사업 시행 공고] 마감일 정보를 원문에서 확인하지 못함",
+      "[제11회 소상공인 쇼케이스데이 발표 희망기업 모집 공고] [자동수집-미검수] bizinfo.go.kr에서 기계 수집된 raw 필드만으로 구성된 candidate 카드. 본문(공고문/첨부 HWP)을 읽지 않았으므로 eligibility 등은 전부 null. 사람 검수 후 real_announcements.json으로 병합되기 전까지는 정본으로 취급하지 말 것."
+    ],
+    "run_meta": {
+      "ref_date": "2026-07-19",
+      "target_period": {
+        "start_date": "2026-07-19",
+        "end_date": "2027-01-15"
+      }
+    }
+  }
+}

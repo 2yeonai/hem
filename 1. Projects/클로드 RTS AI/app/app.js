@@ -3,6 +3,8 @@
   "use strict";
 
   var DATA = null;
+  var VIZ = null;          // viz_data.json cards (파생: 자세/화살표/체인)
+  var MMAP = null;         // muscle_map.json cards (부위/메시 매핑)
   var ASSESS_INDEX = [];   // {norm, id}
   var TECH_INDEX = [];     // {norm, id}
   var QUIZ_POOL = [];
@@ -64,6 +66,21 @@
   function truncate(s, n) {
     s = s || "";
     return s.length > n ? s.slice(0, n) + "…" : s;
+  }
+  // data.json의 F3_이미지 경로(../app/images/xxx.jpg, 카드 md 기준)를
+  // app/index.html이 app/ 안에서 서빙되는 실제 환경(images/xxx.jpg)에 맞게 변환
+  function f3ImagePath(p) {
+    return String(p || "").replace("../app/images/", "images/");
+  }
+  function renderF3Images(images) {
+    if (!images || !images.length) return "";
+    var html = '<div class="card"><div class="chainlabel">📷 F3 참고 이미지 (소책자 손 위치·압력 방향)</div><div class="f3-images">';
+    images.forEach(function (p) {
+      var src = f3ImagePath(p);
+      html += '<img class="f3-img" src="' + esc(src) + '" alt="F3 참고 이미지(손 위치·압력 방향)">';
+    });
+    html += '</div></div>';
+    return html;
   }
 
   // ---------- 약점(오답) 저장소 ----------
@@ -210,6 +227,8 @@
       a.classList.toggle("active", a.dataset.route === parts[0]);
     });
     crumb.innerHTML = "";
+    // 3D 뷰어는 model 상세에서만 살아있게: 다른 라우트로 가면 정리(모델 상세는 곧바로 재마운트)
+    if (window.RTSViz && !(parts[0] === "model" && parts[1])) RTSViz.unmount();
 
     if (parts[0] === "home" || parts.length === 0) return renderHome(app);
     if (parts[0] === "assessments") return renderAssessmentList(app, crumb);
@@ -220,7 +239,199 @@
     if (parts[0] === "quizrun") return renderQuizRun(app, crumb, parts[1]);
     if (parts[0] === "review") return renderReview(app, crumb);
     if (parts[0] === "search") return renderSearch(app, crumb, decodeURIComponent(parts[1] || ""));
+    if (parts[0] === "model" && parts[1]) return renderModelDetail(app, crumb, parts[1]);
+    if (parts[0] === "model") return renderModelHome(app, crumb);
     app.innerHTML = '<div class="empty">페이지를 찾을 수 없습니다.</div>';
+  }
+
+  // ---------- 3D 모델 뷰어 ----------
+  function vizCard(id) { return VIZ && VIZ.cards ? VIZ.cards[id] : null; }
+  function mapCard(id) { return MMAP && MMAP.cards ? MMAP.cards[id] : null; }
+
+  function muscleLabel(id) {
+    var v = vizCard(id);
+    if (v && v.muscle) {
+      var old = v.muscle.old || v.muscle.new || "";
+      var sci = v.muscle.sci || v.muscle.en || "";
+      return old + (sci ? " / " + sci : "");
+    }
+    var t = getTechnique(id);
+    return t ? (t.frontmatter["근육명"] || t.title) : id;
+  }
+
+  function renderModelHome(app, crumb) {
+    crumb.innerHTML = "<b>3D 자세·근육 모델</b>";
+    var html = "";
+    html += '<div class="card"><h2>🧍 3D 자세·근육 모델</h2>';
+    html += '<p class="muted">근육을 고르면 그 테크닉을 할 때의 <b>대상자 자세</b>를 마네킹이 재현하고, <b>타깃 부위</b>를 빨갛게 강조합니다. 화면을 드래그하면 돌려볼 수 있어요.</p>';
+    html += '<p class="muted" style="font-size:12px">※ 부위 단위 강조 + 일부 근육은 실제 형상(Z-Anatomy 메시, CC BY-SA)도 함께 표시됩니다. 관절별 자세 연동은 아직 없어 실제 근육 모양은 전신 방향만 대략 따라갑니다.</p></div>';
+
+    // 부위(mesh 상위)별 그룹핑
+    var groups = { "목": [], "어깨·등": [], "가슴·코어": [], "엉덩이·골반": [], "허벅지": [], "종아리·발": [] };
+    function bucket(region) {
+      var r = (region || "").toLowerCase();
+      if (/neck|head/.test(r)) return "목";
+      if (/torsoupper/.test(r)) return "어깨·등";
+      if (/torsolower/.test(r)) return "가슴·코어";
+      if (/pelvis/.test(r)) return "엉덩이·골반";
+      if (/thigh/.test(r)) return "허벅지";
+      if (/shin|foot/.test(r)) return "종아리·발";
+      return "가슴·코어";
+    }
+    DATA.techniques.forEach(function (t) {
+      var mc = mapCard(t.id);
+      if (!mc) return;
+      var g = bucket((mc.mesh || [])[0]);
+      // 가슴/코어 세분: 가슴은 torsoUpper front지만 어깨·등과 겹침 → region_ko로 보정
+      if (/가슴|배|허리|호흡|골반 바닥/.test(mc.region_ko) && g === "어깨·등") g = "가슴·코어";
+      groups[g].push({ t: t, mc: mc });
+    });
+    Object.keys(groups).forEach(function (gname) {
+      if (!groups[gname].length) return;
+      html += '<div class="section-title">' + esc(gname) + '</div><div class="grid">';
+      groups[gname].forEach(function (o) {
+        var name = (o.t.frontmatter["근육명"] || o.t.title).split("/")[0].trim();
+        html += '<a href="#/model/' + encodeURIComponent(o.t.id) + '"><div class="tile"><b>' + esc(name) + '</b>' +
+          '<small>' + esc(o.mc.region_ko || "") + '</small></div></a>';
+      });
+      html += "</div>";
+    });
+    app.innerHTML = html;
+  }
+
+  function renderModelDetail(app, crumb, rawId) {
+    var id = decodeURIComponent(rawId);
+    var isTech = id.indexOf("technique") === 0;
+    var card = isTech ? getTechnique(id) : getAssessment(id);
+    if (!card) { app.innerHTML = '<div class="empty">카드를 찾을 수 없습니다.</div>'; return; }
+    var v = vizCard(id);
+    var mc = mapCard(id);
+
+    // 검사카드면: 자세는 검사 자세, 강조는 첫 의심근육의 부위
+    var poseTag = (v && v.primary_pose_tag) || "서기";
+    var meshKeys = [], face = "front", label = "", regionKo = "", zAnatomy = "";
+    var focusMuscleId = id;
+    if (isTech && mc) {
+      meshKeys = mc.mesh; face = mc.face; regionKo = mc.region_ko;
+      label = muscleLabel(id); zAnatomy = mc.z_anatomy || "";
+    } else if (!isTech && v) {
+      var suspects = (v.chain && v.chain.suspect_muscles) || [];
+      var mt = null;
+      for (var i = 0; i < suspects.length; i++) { mt = findTechniqueByMuscle(suspects[i]); if (mt) break; }
+      if (mt) {
+        var mmc = mapCard(mt.id);
+        if (mmc) { meshKeys = mmc.mesh; face = mmc.face; regionKo = mmc.region_ko; label = muscleLabel(mt.id); focusMuscleId = mt.id; zAnatomy = mmc.z_anatomy || ""; }
+      }
+    }
+
+    var name = isTech ? (card.frontmatter["근육명"] || card.title).split("/")[0].trim()
+                      : (card.frontmatter["검사명"] || card.title).split("/")[0].trim();
+    crumb.innerHTML = '<a href="#/model">3D 모델</a> › <b>' + esc(name) + '</b>';
+
+    var html = "";
+    html += '<div class="viz-wrap">';
+    html += '<div class="viz-canvas-box"><canvas id="vizCanvas"></canvas>';
+    html += '<div class="viz-poselabel" id="vizPoseLabel"></div></div>';
+    html += '<div class="viz-panel" id="vizPanel"></div>';
+    html += '</div>';
+    app.innerHTML = html;
+
+    // 패널 내용
+    var panel = document.getElementById("vizPanel");
+    var ph = "";
+    ph += '<div class="card">';
+    ph += '<h2 style="margin:0 0 4px">' + esc(name) + '</h2>';
+    if (label) ph += '<div class="viz-label">🏷 ' + esc(label) + '</div>';
+    if (regionKo) ph += '<div class="muted" style="font-size:13px">부위: ' + esc(regionKo) + '</div>';
+    ph += '</div>';
+
+    // 자세 프리셋 버튼
+    ph += '<div class="card"><div class="chainlabel">🧍 대상자 자세 프리셋</div><div class="viz-poses">';
+    (window.RTSViz ? RTSViz.poses : ["서기"]).forEach(function (p) {
+      ph += '<button class="pose-btn' + (p === poseTag ? " active" : "") + '" data-pose="' + esc(p) + '">' + esc(p) + '</button>';
+    });
+    ph += '</div>';
+    if (v && v.poses && v.poses.length) {
+      ph += '<div class="muted" style="font-size:12px;margin-top:6px">원문 자세: ';
+      ph += v.poses.map(function (p) { return esc(p.section) + "→" + esc(p.pose_tag || "미분류"); }).join(" · ");
+      ph += '</div>';
+    }
+    ph += '</div>';
+
+    // 카드 핵심 내용
+    var sec = card.sections || {};
+    function block(title, key) {
+      if (!sec[key]) return "";
+      return '<div class="viz-sec"><div class="viz-sec-t">' + esc(title) + '</div>' + nl2br(truncate(sec[key], 420)) + '</div>';
+    }
+    ph += '<div class="card">';
+    if (isTech) {
+      ph += block("촉진", "촉진 (Palpation)") + block("ART", "ART 1") + block("MET", "MET 1") + block("MET", "MET");
+      Object.keys(sec).forEach(function (k) { if (/^운동/.test(k)) ph += block(k, k); });
+    } else {
+      ph += block("자세", "자세") + block("방법", "방법") + block("양성 판단", "양성 판단");
+    }
+    ph += '</div>';
+
+    // 화살표 힌트
+    if (v && v.arrow_hints && v.arrow_hints.length) {
+      ph += '<div class="card"><div class="chainlabel">➡️ 손 방향·스트로크 힌트</div>';
+      v.arrow_hints.slice(0, 4).forEach(function (h) {
+        ph += '<div class="viz-arrow">↳ ' + esc(truncate(h.text, 90)) + '</div>';
+      });
+      ph += '</div>';
+    }
+
+    // 체인 버튼
+    ph += '<div class="card chainbox">';
+    var v2 = v || {};
+    var suspects = (v2.chain && v2.chain.suspect_muscles) || [];
+    var retests = (v2.chain && v2.chain.retests) || [];
+    ph += '<div class="chainlabel">🧠 함께 볼 근육(3D)</div>';
+    if (suspects.length) {
+      ph += suspects.map(function (mname) {
+        var mt = findTechniqueByMuscle(mname);
+        if (mt) return '<a href="#/model/' + encodeURIComponent(mt.id) + '"><span class="chip type-muscle">🧍 ' + esc(mname) + '</span></a>';
+        return '<span class="chip disabled">🧍 ' + esc(mname) + '</span>';
+      }).join("");
+    } else { ph += '<span class="muted">기재 없음</span>'; }
+    ph += '<div class="chainlabel">🔁 재검사</div>';
+    if (retests.length) {
+      ph += retests.map(function (rn) {
+        var ra = findAssessmentByName(rn);
+        if (ra) return '<a href="#/assessment/' + encodeURIComponent(ra.id) + '"><span class="chip type-assess">🩺 ' + esc(rn) + '</span></a>';
+        return '<span class="chip disabled">🩺 ' + esc(rn) + '</span>';
+      }).join("");
+    } else { ph += '<span class="muted">기재 없음</span>'; }
+    ph += '</div>';
+
+    ph += '<div class="btnrow">';
+    var detailLink = isTech ? "#/technique/" + encodeURIComponent(id) : "#/assessment/" + encodeURIComponent(id);
+    ph += '<a href="' + detailLink + '"><button class="secondary">카드 상세 보기</button></a></div>';
+    panel.innerHTML = ph;
+
+    // 3D 마운트
+    if (!window.RTSViz || !window.THREE) {
+      document.getElementById("vizPoseLabel").textContent = "3D 엔진 로드 실패";
+      return;
+    }
+    var canvas = document.getElementById("vizCanvas");
+    RTSViz.unmount();
+    RTSViz.mount(canvas);
+    var applied = RTSViz.setPose(poseTag);
+    RTSViz.setHighlight(meshKeys, face, label, zAnatomy);
+    var poseLabelEl = document.getElementById("vizPoseLabel");
+    poseLabelEl.textContent = "자세: " + poseTag + (applied !== poseTag ? " (기본)" : "");
+
+    panel.querySelectorAll(".pose-btn").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var pt = b.dataset.pose;
+        panel.querySelectorAll(".pose-btn").forEach(function (x) { x.classList.toggle("active", x === b); });
+        RTSViz.setPose(pt);
+        RTSViz.setHighlight(meshKeys, face, label, zAnatomy);
+        poseLabelEl.textContent = "자세: " + pt;
+      });
+    });
   }
 
   // ---------- 홈 ----------
@@ -330,7 +541,8 @@
     html += relatedAssess.length ? relatedAssess.map(function (m) { return chainChip(m, "assessment"); }).join("") : '<span class="muted">기재 없음</span>';
     html += '</div>';
 
-    html += '<div class="btnrow"><a href="#/quiz"><button class="secondary">이 카드로 퀴즈 풀기 준비</button></a></div>';
+    html += '<div class="btnrow"><a href="#/model/' + encodeURIComponent(a.id) + '"><button>🧍 3D 자세·의심근육 보기</button></a>' +
+      '<a href="#/quiz"><button class="secondary">이 카드로 퀴즈 풀기 준비</button></a></div>';
 
     app.innerHTML = html;
     bindTabs(app);
@@ -373,7 +585,9 @@
       first = false;
     });
     Object.keys(t.sections).forEach(function (key) {
-      if (order.indexOf(key) >= 0 || key === "체인 링크") return;
+      // F3 참고 이미지 섹션은 원문이 마크다운 이미지 문법(![...](...))이라
+      // 텍스트 탭으로 두면 그대로 이스케이프돼 깨져 보임 — 아래 renderF3Images()로 실제 <img> 렌더링하므로 중복 텍스트 탭에서는 제외
+      if (order.indexOf(key) >= 0 || key === "체인 링크" || key === "F3 참고 이미지 (소책자)") return;
       tabsHtml += '<div class="tab" data-tab="' + esc(key) + '">' + esc(key) + '</div>';
       panelsHtml += '<div class="tabpanel" data-panel="' + esc(key) + '" style="display:none">' + nl2br(t.sections[key]) + '</div>';
     });
@@ -391,12 +605,16 @@
 
     html += '<div class="card"><div class="tabs">' + tabsHtml + '</div>' + panelsHtml + '</div>';
 
+    html += renderF3Images(t.frontmatter["F3_이미지"]);
+
     html += '<div class="card chainbox">';
     html += '<div class="chainlabel">🧠 이 근육이 뻣뻣하면 함께 볼 근육</div>';
     html += suspectMuscles.length ? suspectMuscles.map(function (m) { return chainChip(m, "technique"); }).join("") : '<span class="muted">기재 없음</span>';
     html += '<div class="chainlabel">🔁 테크닉 후 재검사</div>';
     html += retest.length ? retest.map(function (m) { return chainChip(m, "assessment"); }).join("") : '<span class="muted">기재 없음</span>';
     html += '</div>';
+
+    html += '<div class="btnrow"><a href="#/model/' + encodeURIComponent(t.id) + '"><button>🧍 3D 자세·근육 보기</button></a></div>';
 
     app.innerHTML = html;
     bindTabs(app);
@@ -410,6 +628,10 @@
     nameEl.classList.add("blurred");
     hideToggle.textContent = "👁 이름 보기";
     nameEl.addEventListener("click", function () { nameEl.classList.remove("blurred"); });
+
+    app.querySelectorAll(".f3-img").forEach(function (img) {
+      img.addEventListener("click", function () { img.classList.toggle("zoomed"); });
+    });
   }
 
   function bindTabs(root) {
@@ -555,8 +777,12 @@
 
   // ---------- 초기화 ----------
   function init() {
-    fetch("data.json").then(function (r) { return r.json(); }).then(function (data) {
-      DATA = data;
+    function getJSON(u) { return fetch(u).then(function (r) { return r.json(); }).catch(function () { return null; }); }
+    Promise.all([getJSON("data.json"), getJSON("viz_data.json"), getJSON("muscle_map.json")])
+      .then(function (res) {
+      DATA = res[0];
+      VIZ = res[1];
+      MMAP = res[2];
       buildIndices();
       buildQuizPool();
       window.addEventListener("hashchange", route);

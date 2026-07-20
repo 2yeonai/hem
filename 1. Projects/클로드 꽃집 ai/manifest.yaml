@@ -379,7 +379,7 @@ open_questions:
   - "review.reviewer_grade/sla_hours/queue_priority: the master doc explicitly says 'values not assigned yet' - not filling these in arbitrarily"
   - "on_reject is attached only to human_reviewer, the one human stage (the master doc's example only showed on_reject on a human stage). model self_check failures keep using the existing on_fail.action:route_to_human - flag if this reading is wrong"
   - "manifest.schema.json (in 클로드 ai 자동화 folder, v1) predates 2026-07-08 and does not know about the stages/rerun_gate/review sections - not relevant to this v2-structured file, kept only as historical note"
-  - "check.schema_ref values point at manifest.schema.v2.yaml, which lives in ai공장짓기/ (a sibling folder), not this folder - validate_manifest.py will WARN (file not found) rather than FAIL on these refs; consider either copying schema locally or teaching the validator to search sibling folders"
+  - "check.schema_ref values point at manifest.schema.v2.yaml, which lives in ai공장짓기/ (a sibling folder), not this folder - validate_manifest.py will WARN (file not found) rather than FAIL on these refs; consider either copying schema locally or teaching the validator to search sibling folders → ✅ 완료(2026-07-18, validate_manifest.py가 형제폴더 ai공장짓기/를 검색하도록 개선, [hyemi])"
 
 # Related documents: 12bot_kind_bunryupyo.yaml (detailed rationale),
 # golden_set.yaml (real data), HANDOFF.md (current implementation status -

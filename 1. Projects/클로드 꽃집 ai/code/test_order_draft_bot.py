@@ -13,8 +13,13 @@ order_draft_bot은 correction_bot이 만든 normalized_text 1건을 받는다는
      알려진 한계 케이스(상류 order_split_bot의 한계가 전파된 것, 실패로 세지
      않음).
 
-이름(recipient_name/sender_name)은 이 봇이 의도적으로 절대 채우지 않으므로
-"필드가 없다"가 아니라 "항상 missing_fields에 있어야 정상"이 이 테스트의 기대값.
+이름(recipient_name/sender_name): [2026-07-20 갱신] 이 테스트는 API 키가 없는
+환경(예: 이 스크립트를 그냥 실행하는 로컬/CI)에서 LLM 호출이 실패해 규칙기반
+폴백(_draft_rule_based)을 타는 경로를 검증한다 — 그 경로는 여전히 이름을
+전혀 시도하지 않으므로 "항상 missing_fields에 있어야 정상"이 맞는 기대값이다.
+단, 실제 API 키가 있는 환경(Render 등)에서 LLM 경로(_draft_llm)가 돌면 이제
+이름도 채워질 수 있다(혜미 승인, decision-log_12to14봇.md 참고) — 그건 이
+테스트가 검증하는 범위 밖이다.
 
 실행: python3 test_order_draft_bot.py
 """

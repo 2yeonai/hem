@@ -17,23 +17,7 @@ Alongside these, the vault root also holds a general-purpose **PARA + 5. Zettelk
 
 ## The shared "AI 공장" (AI factory) pattern
 
-All skills are meant to follow one architecture, defined at the top level in `클로드 ai 자동화/company_charter.md` (the "company charter" — what an AI employee is allowed to do autonomously vs. needs human approval for vs. must never do, e.g. actually submitting/sending things to a customer or government office).
-
-Each domain skill folder implements this contract:
-
-- **`manifest.yaml`** — a pipeline of `stages`, each with `kind: local | model | human`:
-  - `local` = deterministic code, no AI judgment
-  - `model` = an LLM call, with a `tier` (haiku/sonnet/opus-equivalent cost tier — real model names are intentionally never hardcoded here)
-  - `human` = a manual approval gate (e.g. 대표자검수 "owner review", 문서승인 "document approval")
-  - Stages declare `depends_on`, `io.reads`/`io.writes` against a shared `shared_context` object, optional `run_if` (conditional execution) and `entry_points` (multiple valid entry stages, e.g. an event trigger vs. a schedule trigger).
-  - Document-approval stages use a common `approval` block (`status`/`version`/`approved_by`/`rejection_reason`/`version_history`) — once `승인완료` (approved), the document is `locked` and only a new version can change it. The "never send an unapproved document" rule is deliberately re-checked at the send stage itself, not just trusted from pipeline order.
-- **`SKILL.md`** — when to trigger this skill, when *not* to use it, a one-paragraph summary of what it does end to end, and a "Known Limitations" section (what's still unverified/mocked).
-- **`scripts/run.py`** — a **mock/stub executor**. It reads `manifest.yaml`'s stages/triggers/run_if/entry_points and walks the pipeline end-to-end, but does **not** call any real AI model or STT — it exists to prove the pipeline structure is wired correctly, not to actually do the work yet.
-- **`test/`** — JSON fixtures + batch test scripts exercising the mock pipeline (e.g. `test_12cases_batch.py` in 방역).
-
-Two schema versions exist for this contract:
-- v1: `클로드 ai 자동화/manifest.schema.json` (JSON Schema; validated by `클로드 ai 자동화/validate_manifest.py`)
-- v2 (yaml): `ai공장짓기/manifest.schema.v2.yaml`, validated by `ai공장짓기/scripts/validate_manifest.py`. v2 adds `triggers`, `run_if`, `entry_points`, and the `approval` block on top of v1. (The `ai공장짓기` folder was restored to the vault root on 2026-07-08.)
+모든 스킬이 따르는 공통 계약(manifest.yaml의 stages/kind/tier/depends_on/approval, SKILL.md, scripts/run.py mock 실행기, test/ 픽스처, 스키마 v1/v2)의 전문은 → `1. Projects/ai공장짓기/설계노트/9_공장패턴_계약_(루트에서_이관).md` 참조 ([hyemi, 2026-07-20] 이관). 핵심만: 승인(승인완료=locked) 문서는 새 버전으로만 변경, "미승인 문서 발송 금지"는 발송 stage에서 재검증.
 
 ## Operating docs (read these before starting work)
 
@@ -43,49 +27,25 @@ Two schema versions exist for this contract:
 - `ai공장짓기/MASTER_SETUP.md` — how to rebuild this whole system on another account/model/tool from the vault alone.
 - `1. Projects/완전자동화_실행계획.md` — the current step-by-step execution plan with copy-paste prompts.
 - `2. Areas/Claude 세션로그/` — daily session logs auto-written at 22:30 by a scheduled task (+ weekly synthesis on Sundays). To resume interrupted work, read the latest note here.
-- `ai공장짓기/AI_OS_설계서.md` (v2, 2026-07-14) — meta-layer for how Claude sessions organize work across all factories/tools (ChatGPT/Claude Code/Codex/Cowork/Gemini orchestration, PRD→TASK-PACKET→RESULT-CARD, `prompts/routing-policy.md`, `ops/usage.md`, `templates/`). Separate layer from each factory's manifest.yaml pipeline. Entry point: `START-HERE.md` (vault root). **Correction log (2026-07-15)**: an earlier same-day session mistakenly believed this doc set was lost and fabricated a placeholder "v1 reconstruction" under different filenames — that guess was wrong and has been superseded/quarantined (`_inbox/삭제후보_AI운영체제_v1재구성오류_2026-07-15/`) after 혜미 supplied the real originals. Trust `AI_OS_설계서.md`/`START-HERE.md`/`ORCHESTRATION-LAYER.md`/`prompts/routing-policy.md`/`templates/TASK-PACKET.md`/`templates/RESULT-CARD.md`/`ops/usage.md` only.
+- `ai공장짓기/AI_OS_설계서.md` (v2, 2026-07-14) — meta-layer for how Claude sessions organize work across all factories/tools (ChatGPT/Claude Code/Codex/Cowork/Gemini orchestration, PRD→TASK-PACKET→RESULT-CARD, `prompts/routing-policy.md`, `ops/usage.md`, `templates/`). Separate layer from each factory's manifest.yaml pipeline. Entry point: `START-HERE.md` (vault root). (07-15 "가짜 v1 재구성" 사건 전말은 decision-log §루트이관기록 참조 — 격리 폴더: `_inbox/삭제후보_AI운영체제_v1재구성오류_2026-07-15/`.) Trust `AI_OS_설계서.md`/`START-HERE.md`/`ORCHESTRATION-LAYER.md`/`prompts/routing-policy.md`/`templates/TASK-PACKET.md`/`templates/RESULT-CARD.md`/`ops/usage.md` only.
   **Footnote (2026-07-17, decision-log §19 판정2)**: `prompts/routing-policy.md`, `ops/usage.md`, and `ops/tasks/README.md` deliberately stay at the vault root even though the "프로젝트 시작 위치 고정" rule (below, under "Working with 혜미") says new deliverables belong under `1. Projects/`. These three are shared infrastructure referenced by `AI_OS_설계서.md`/other factories by root-relative path — moving them would break those links. This is a documented exception, not a violation to fix.
 - `0. Docs/혜미_자동화_운영표.md` (2026-07-16) — single operating table: per-업무 executor tier, 혜미's share, approval gates, session protocol, and the long-material intake pipeline (§4).
 
 ## Commands
 
-Run from inside the relevant skill folder (paths below assume that; adjust `ai공장짓기/...` per the Gotchas note). **Since the 2026-07-13 reorg, skill folders live one level deeper** (`1. Projects/클로드 방역 ai/` etc.), so a relative reference to the shared `ai공장짓기/` scripts from inside a skill folder needs an extra `../../` (e.g. `python3 ../../ai공장짓기/scripts/validate_manifest.py manifest.yaml`), or just run from the vault root with the full path shown below:
-
-```bash
-# Validate a manifest against the schema
-python3 ai공장짓기/scripts/validate_manifest.py manifest.yaml
-
-# Syntax-check the mock runner
-python3 -m py_compile scripts/run.py
-
-# Run the mock pipeline for a given trigger
-python3 scripts/run.py --trigger event      # e.g. new inquiry
-python3 scripts/run.py --trigger schedule   # e.g. recurring visit reminder
-
-# 클로드 방역 ai only — batch test (12 synthetic cases + 3 approval-workflow scenarios)
-python3 scripts/test_12cases_batch.py
-
-# 클로드 꽃집 ai (gov-support content, see Gotchas) / 클로드 정부지원사업 ai — single-input run
-python3 scripts/run.py test/sample_input.json
-```
-
-Git history for the gov-support skill is kept as a bundle file, not a `.git` directory:
-```bash
-git clone gov-support-matching-skill.bundle my-skill      # fresh clone
-# or, inside an existing clone:
-git pull gov-support-matching-skill.bundle master
-```
+실행·검증 명령 전문은 → `1. Projects/ai공장짓기/COMMANDS.md` 참조 ([hyemi, 2026-07-20] 이관). 핵심 주의: 스킬 폴더는 `1. Projects/` 아래이므로 공유 스크립트는 볼트 루트에서 `python3 "1. Projects/ai공장짓기/scripts/validate_manifest.py" manifest.yaml` 형태로 실행.
 
 ## Gotchas (read before trusting file layout or cross-references)
 
-- **`1. Projects/클로드 꽃집 ai/` root is not the flower shop skill.** Its root `SKILL.md`, `manifest.yaml`, `scripts/`, and `test/` are a copy of the **정부지원사업 매칭 스킬 (gov-support-matching-skill)** — same content as `1. Projects/클로드 정부지원사업 ai/`, apparently placed here by mistake in a past session. The actual flower-shop artifacts live alongside it without their own root manifest/SKILL.md: `golden_set.yaml`, `12봇_kind분류표.yaml` (the real 12-bot pipeline classification), `code/storage_bot.py`, `참고자료_행정구역_지명사전.yaml`. There's also a nested `gov-support-skill/` subfolder with yet another copy. Don't assume `1. Projects/클로드 꽃집 ai/SKILL.md` describes flower-shop behavior.
-- **(RESOLVED 2026-07-08) The shared v2 schema folder was missing but has been restored.** `ai공장짓기/` now exists at the vault root with `manifest.schema.v2.yaml`, `scripts/validate_manifest.py`, `scripts/verify_write.py`, its own `CLAUDE.md` (model policy), `HANDOFF.md`, and the decision log. Note: skill-folder files reference it as a sibling path (`ai공장짓기/...`), but it lives at the vault root — run validation commands from the vault root or adjust the relative path.
+- **(RESOLVED) `1. Projects/클로드 꽃집 ai/` 루트는 진짜 꽃집 스킬이다(2026-07-18 실사 확인).** 꽃집 전용 manifest.yaml+HANDOFF+golden_set+`code/`(14봇)+`webapp/`이 정본. 과거 "정부지원 오사본이 놓여 있던 사건" 전말은 decision-log §루트이관기록(2026-07-20) 참조.
+- (RESOLVED 2026-07-08) 한때 사라졌던 `ai공장짓기/`(v2 스키마·검증 스크립트)는 복원됨 — 현재 위치와 경로 규칙은 아래 2026-07-16 항목 참조. 상세는 decision-log §루트이관기록.
 - **`.stale-*` / `.truncated-*` files are not real content.** They're backups left by a documented Edit/Write bug where large-file edits get silently truncated mid-byte on this Windows/bash-mount setup (see `1. Projects/클로드 방역 ai/SKILL.md` "유지보수" section and `1. Projects/클로드 정부지원사업 ai/HANDOFF.md`). The workaround in use: rename the target to `file.stale-<timestamp>` before rewriting, then rewrite via bash heredoc and verify with `python3 -m py_compile` / `yaml.safe_load` rather than trusting the Edit/Write tool result on large files in these folders. This bug hit this very file on 2026-07-09 (root CLAUDE.md truncated mid-word after an Edit; restored via heredoc), and again on 2026-07-16 (this file + 3 others truncated by small Edit calls; all restored from same-session full reads via heredoc).
 - **`1. Projects/클로드 정부지원사업 ai/jbjw-main/jbjw-main/hyemi-ai-factory/` is a separate, unrelated project** (has its own `CLAUDE.md`, `pyproject.toml`, numbered docs folders `00_rules` … `10_handoff`). It's nested inside the gov-support folder but isn't part of the AI-factory skill pattern described above — read its own `CLAUDE.md` before working in it rather than applying anything from this file.
-- Nothing here calls a real LLM or STT API yet — every `run.py` is a mock stub. Don't report a skill as "working end-to-end" without checking `SKILL.md`'s "알려진 한계" (known limitations) section first.
+- ([hyemi, 2026-07-20] 정정) ~~모든 run.py는 mock stub~~ → 꽃집 6/6·방역 4/6 model stage와 꽃집 웹앱은 **실 LLM 연동 완료(2026-07-17)**. 정부지원 뒷단(PPT·발표대본·QNA)·콘텐츠 공장·STT는 여전히 mock. "end-to-end 작동" 보고 전 반드시 해당 SKILL.md "알려진 한계" 확인.
 - **(2026-07-13) The four AI-skill folders were moved from the vault root into `1. Projects/`** (`1. Projects/클로드 방역 ai/`, `1. Projects/클로드 꽃집 ai/`, `1. Projects/클로드 정부지원사업 ai/`, `1. Projects/클로드 콘텐츠 ai/`) to align with the PARA structure below — `클로드 ai 자동화/` and `ai공장짓기/` (shared schema/hub) stayed at the vault root since they aren't a single business's project. All cross-file path references and wikilinks in the vault were updated in the same pass; if you find a stray un-updated `클로드 방역 ai/`-style reference (without the `1. Projects/` prefix) outside of `_inbox/` or git history, it was missed — fix it on sight rather than assuming the old path still works.
 - **(2026-07-16 observed) `ai공장짓기/` and `클로드 ai 자동화/` are no longer at the vault root — both now live under `1. Projects/`** (`1. Projects/ai공장짓기/`, `1. Projects/클로드 ai 자동화/`; confirmed by directory listing this session). Root-path references elsewhere in this file (Commands, Operating docs, the 2026-07-08/07-13 notes above) predate this move — prepend `1. Projects/` when running those commands (e.g. `python3 "1. Projects/ai공장짓기/scripts/validate_manifest.py" manifest.yaml`). They remain shared infrastructure, not a single business's project.
-- **(2026-07-13, C1) Sentinel truncation-prevention rule — 3-part, in force from now on.** ① Any brand-new md file or full-file rewrite must be written via bash heredoc (`cat > file <<'EOF' ... EOF`) followed by a `wc -c` byte-count sanity check — never trust a single large Edit/Write call for a full rewrite. ② Every md file's last non-empty line must be exactly `<!-- ok -->` (the sentinel). Immediately after any Edit/Write touches a file, run `python3 ai공장짓기/scripts/verify_write.py --sentinel-check <path>` — if it doesn't print `[PASS]`, the edit is not done yet. `python3 ai공장짓기/scripts/verify_write.py --sentinel-scan <root>` batch-checks a whole directory (used by the weekly synthesis task). ③ If truncation is found anyway, recovery is always by diff against `git HEAD` (or, when git is unavailable, the nearest pre-batch backup) — never by guessing what the missing tail said. All 535 existing vault md files were retroactively sentinel-tagged on 2026-07-13 (532 fixed, 3 already had it) via a standalone Python batch script (not Edit/Write), after taking a full tar backup of every md file to `outputs/backup_md_pre_sentinel.tar` as a rollback safety net — this substituted for `git commit` because `.git/index.lock` in this vault could not be removed in that session (environmental blocker, not resolved as of this writing; retry a normal `git commit` once the lock clears).
+- **(2026-07-13, C1) Sentinel truncation-prevention rule — 3-part, in force from now on.** ① Any brand-new md file or full-file rewrite must be written via bash heredoc (`cat > file <<'EOF' ... EOF`) followed by a `wc -c` byte-count sanity check — never trust a single large Edit/Write call for a full rewrite. ② Every md file's last non-empty line must be exactly `<!-- ok -->` (the sentinel). Immediately after any Edit/Write touches a file, run `python3 ai공장짓기/scripts/verify_write.py --sentinel-check <path>` — if it doesn't print `[PASS]`, the edit is not done yet. `python3 ai공장짓기/scripts/verify_write.py --sentinel-scan <root>` batch-checks a whole directory (used by the weekly synthesis task). ③ If truncation is found anyway, recovery is always by diff against `git HEAD` (or, when git is unavailable, the nearest pre-batch backup) — never by guessing what the missing tail said. All 535 existing vault md files were retroactively sentinel-tagged on 2026-07-13 (532 fixed, 3 already had it) via a standalone Python batch script (not Edit/Write), after taking a full tar backup of every md file to `outputs/backup_md_pre_sentinel.tar` as a rollback safety net — this substituted for `git commit` because `.git/index.lock` in this vault could not be removed in that session.
+- **(RESOLVED 2026-07-20, root cause found) `.git/index.lock` "cannot remove" is a mount-level `unlink()` restriction, not a real concurrent-process conflict.** On this Windows/bash-mount setup, deleting files under `.git/` from the bash sandbox (`rm`, Python `os.remove`, etc.) fails with "Operation not permitted" even when no other git process is running — but **renaming the same file (`mv`) succeeds**. This is why stale `index.lock.stale-<timestamp>` files accumulate (past sessions worked around this by renaming instead of deleting) and why plain `git commit`/`git status` can hang 40s+ then fail: git's own internal unlink-and-retry cleanup steps stall on the same restriction. **Working fix, fastest to slowest:** ① if `.git/index.lock` exists, `mv .git/index.lock ".git/index.lock.stale-$(date +%s)"` (never `rm`) before any git command. ② If a plain `git commit` still hangs/times out afterward, bypass porcelain commit entirely with plumbing, which only needs rename (not unlink) and finishes in under a second: `git write-tree` → `git commit-tree <tree> -p $(git rev-parse HEAD) -m "..."` → `git update-ref refs/heads/main <new-sha>`. Loose-object "warning: unable to unlink tmp_obj_..." messages during this are harmless — the rename into place already succeeded, only the temp-file cleanup fails. ③ Pre-commit hooks (`vault_check.py`, `context_budget_check.py`) are NOT the bottleneck — both run in ~1-1.5s standalone; don't waste time bypassing them with `--no-verify` first. If `mv` itself ever fails too (not yet observed), that's a genuine escalation — ask 혜미 to delete via Windows Explorer directly (confirmed working 2026-07-20).
 
 ## Obsidian PARA + 5. Zettelkasten structure
 
@@ -106,6 +66,7 @@ Note: Dataview and Templater query examples appear throughout these docs, but as
 
 ## Working with 혜미 (owner) — communication & routing rules
 
+- **상태 정본 2단계 규칙 (2026-07-20 신설 [hyemi, 2026-07-20]).** 전체 프로젝트 상태의 정본 = `2. Areas/핵심맥락.md` 최상단 대시보드 하나. 특정 프로젝트의 세부 현재 작업 정본 = 해당 HANDOFF 상단 "AI 작업 시작 규칙" 구역. 다른 상태성 문서에는 같은 상태를 복사하지 말고 정본 링크만 둔다. 충돌 시: 대시보드 > 시작구역 > 본문 이력. **프로젝트 폴더의 파일을 읽기 시작하면(질문 응답 포함) 그 HANDOFF 시작구역 규칙부터 적용한다.**
 - **프로젝트 시작 위치 고정 (2026-07-16 신설).** 다른 지시가 없으면 **모든 새 프로젝트·산출물은 HEM 볼트(`C:\Users\82106\Desktop\hem`) 안에서 시작한다.** 새 프로젝트 폴더는 `1. Projects/` 아래, 산출물은 해당 프로젝트 폴더에 저장. 임시 작업만 스크래치 폴더 사용 후 최종본은 볼트로. 업무별 실행 담당(모델 티어)·혜미 몫·승인 게이트는 `0. Docs/혜미_자동화_운영표.md`(단일 운영표)를 따른다. 혜미가 긴 외부 자료(설치 가이드·트렌드 글 등)를 붙여넣으면 운영표 §4 인테이크 파이프라인(평가→보관→채택분만 반영)으로 처리한다.
 
 - **규칙 강제 체계 (2026-07-18 신설 — 전문: `0. Docs/규칙강제_설계_2026-07-18.md`).** 이 볼트는 git pre-commit 훅(`1. Projects/ai공장짓기/scripts/githooks/pre-commit` → `scripts/vault_check.py --pre-commit`)이 활성화돼 있다: ①루트에 허용목록 밖 md 생성 ②md sentinel 누락 ③`1. Projects/` 직속 새 노트에 type/status/due 누락 ④`.env`류 비밀 파일 — 이 4가지는 **커밋이 자동 거부된다**(탈출구 `VAULT_CHECK_SKIP=1`, 사유 필수). 추가 규칙 2개: **(A) 완료 이관** — 할 일 항목을 완료시킨 세션이 그 자리에서 즉시 `- [x] (완료 날짜)` 또는 `→ ✅ 완료(날짜, 근거)` 표시, 할 일 정본은 `1. Projects/완전자동화_실행계획.md` T-테이블 하나. **(B) 비개발자 실행 지침** — 혜미에게 주는 실행 지침은 ①어떤 프로그램을 어떻게 여는지(시작버튼→검색어→어떤 창)부터 ②복붙 명령 ③성공 확인 방법 순서로. 다른 PC에서 볼트를 새로 클론하면 `git config core.hooksPath "1. Projects/ai공장짓기/scripts/githooks"` 1회 재실행 필요.

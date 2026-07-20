@@ -47,6 +47,10 @@ triggers:
     source: selection_notice
     entry_stage: 선정접수
     description: "선정 통보(관공서發, 예측 불가) — 혜미가 통보를 받아 직접 시작시킨다"
+  - type: event
+    source: draft_build_request
+    entry_stage: 입력충분성진단
+    description: "[v0.7.0] 사업계획서 내용 생성 요청(혜미發) — 외부감사(2026-07-19) 반영 신설 구간의 입구"
 
 # ---------------------------------------------------------------------
 # 공유 컨텍스트 객체 — 원본 v1에는 이런 명시적 공유 객체가 없었고,
@@ -171,6 +175,101 @@ shared_context:
       manifest.yaml output_schema.quality_gate_result와 동일. v2에서는 이 값이
       judge_self_review stage의 check 출력과 사실상 동일한 역할을 함(아래 stages 참고).
     written_by: [judge_self_review]
+    read_by: []
+
+  # =====================================================================
+  # v0.7.0 추가 (2026-07-20, [gombeck1]) — 내용 생성 구간 필드.
+  # 근거: 외부감사 "초창패_예창패_초안 평가_2026-07-19.md" 지시 1~15
+  # (원문 보존: 자동화_개선지시_외부감사_2026-07-20.md). 구현: scripts/content_gate.py
+  # (결정론적 게이트, LLM 호출 없음) + 작성 stage는 TASK-PACKET으로 하위모델(sonnet) 병렬 실행.
+  # =====================================================================
+
+  input_sufficiency_report:
+    type: object
+    description: "[v0.7.0] 작성 전 입력 충분성 진단서 — 작성가능/부족/가정필요/사용금지 구분 + 수준(%). 감사 지시 5"
+    written_by: [입력충분성진단]
+    read_by: [시나리오확정]
+
+  application_scenario:
+    type: object
+    description: >
+      [v0.7.0] 프로그램별 기준 시점: program_type(예창패/초창패), simulation_mode,
+      reference_date, business_stage, company_status, current_performance(초창패 필수:
+      사업자등록일·제품단계·시범업체·사용자·기록·유료고객·월매출). 감사 지시 1·2·11.
+      예창패와 초창패는 이 객체가 달라야 하며, 같으면 content_gate가 복사본으로 차단한다.
+    written_by: [시나리오확정]
+    read_by: [잠금값추출, 작성_문제인식, 작성_실현가능성, 작성_성장전략, 작성_팀]
+
+  content_locks:
+    type: object
+    description: "[v0.7.0] 변경 금지 잠금값: 회사명 mo,on·지불고객(단일)·중심문제·1차 MVP 4종(홍재우 골든셋 G8 확정, 임의 축소 금지)·비의료 범위·확장 로드맵·대표자 실경력(3종 100만개 판매). 감사 최종지시"
+    written_by: [잠금값추출]
+    read_by: [작성_문제인식, 작성_실현가능성, 작성_성장전략, 작성_팀, 수정본생성]
+
+  evidence_ledger:
+    type: array
+    description: "[v0.7.0] 주장·수치별 증빙 원장: claim/status(7종 상태값)/evidence_type/source_file/sample_size/usable_in_submission. 감사 지시 3·4. 검사: content_gate.check_evidence_ledger"
+    written_by: [잠금값추출]
+    read_by: [작성_문제인식, 작성_실현가능성, 작성_성장전략, 작성_팀, 내용검증게이트, 재검증]
+
+  conflict_log:
+    type: array
+    description: "[v0.7.0] 자료 간 충돌 기록(조용히 선택 금지). 우선순위: 사용자 잠금값 > 최신 강사 피드백 > 실제 심사평 > 기존 프로필 > 증빙자료 > 과거 계획서 > AI 제안. 감사 지시 6"
+    written_by: [잠금값추출]
+    read_by: [수정본생성]
+
+  section_draft_problem:
+    type: object
+    description: "[v0.7.0] PSST '문제인식' 섹션 초안 (병렬 작성 1/4)"
+    written_by: [작성_문제인식]
+    read_by: [초안통합]
+
+  section_draft_solution:
+    type: object
+    description: "[v0.7.0] PSST '실현가능성' 섹션 초안 (병렬 작성 2/4)"
+    written_by: [작성_실현가능성]
+    read_by: [초안통합]
+
+  section_draft_scaleup:
+    type: object
+    description: "[v0.7.0] PSST '성장전략' 섹션 초안 (병렬 작성 3/4)"
+    written_by: [작성_성장전략]
+    read_by: [초안통합]
+
+  section_draft_team:
+    type: object
+    description: "[v0.7.0] PSST '팀' 섹션 초안 (병렬 작성 4/4)"
+    written_by: [작성_팀]
+    read_by: [초안통합]
+
+  merged_draft:
+    type: object
+    description: "[v0.7.0] 4개 섹션 통합본 — 일관성(회사명·고객·MVP·KPI·예산 교차) 맞춤. 기존 judge_self_review(8인+홍재우)는 이 통합본을 심사 대상으로 쓴다(기존 stage 정의는 불변, 실행 시 대상만 교체)"
+    written_by: [초안통합]
+    read_by: [내용검증게이트, 수정본생성]
+
+  content_gate_report:
+    type: object
+    description: "[v0.7.0] content_gate.py 검증 결과: 산술오류/복사본/고객군혼합/출처없는 수치/예산합계. FAIL이면 다음 단계 진행 금지. 감사 지시 7·8"
+    written_by: [내용검증게이트, 재검증]
+    read_by: [수정본생성, 출력분리]
+
+  revised_draft:
+    type: object
+    description: "[v0.7.0] 심사(8인+홍재우)·게이트 지적 반영 수정본. 문장·구조·계산은 수정하되 없는 증빙(조사·계약·매출·MOU)은 생성 금지. 감사 지시 12"
+    written_by: [수정본생성]
+    read_by: [재검증, 출력분리]
+
+  submission_output:
+    type: object
+    description: "[v0.7.0] 제출용 본문 — 내부 메모·감사 내역·탈락 이력·AI 작성 안내·[확인 필요] 전부 제거(content_gate.split_outputs). 감사 지시 13"
+    written_by: [출력분리]
+    read_by: []
+
+  internal_review_output:
+    type: object
+    description: "[v0.7.0] 내부 검토본 — 사실·가정·목표 구분표, 증빙 목록, 확인 필요 항목, 계산 검증 결과, 수정 전후 비교, 혜미가 실제 확보할 자료 목록. 감사 지시 15"
+    written_by: [출력분리]
     read_by: []
 
 # ---------------------------------------------------------------------
@@ -368,6 +467,145 @@ stages:
     # (방역 문자장부봇 패턴), 아니면 RuntimeError로 저장 자체를 차단. 헌장 적용: 이 stage
     # 다음에 "발송" stage는 존재하지 않는다 — 실전 사용은 반드시 사람(헌장 §3).
 
+  # =====================================================================
+  # v0.7.0 추가 (2026-07-20, [gombeck1]) — 내용 생성 구간 12 stage.
+  # 왜: 기존 구간은 "검수기"(초안 조립+위험 검사)였지 "작성기"가 아니었음 —
+  # 부실 초안의 원인(외부감사 결론). 이 구간이 ①입력 진단 ②시나리오 분리
+  # ③잠금값·증빙 원장 ④PSST 4섹션 병렬 작성(하위모델) ⑤산술·일관성 게이트
+  # ⑥심사 후 수정본 생성 ⑦내부본/제출본 분리를 담당한다.
+  # local stage 4개는 scripts/content_gate.py로 실제 구현됨(모의 아님).
+  # model stage 6개는 실행 시 TASK-PACKET(작성단계_업무지시서_2026-07-20.md)을
+  # 하위모델(sonnet 티어) 세션에 배분해 수행 — 4개 작성 stage는 병렬(async).
+  # =====================================================================
+
+  - id: 입력충분성진단
+    kind: local
+    io:
+      reads: [business_profile]
+      writes: [input_sufficiency_report]
+    depends_on: []
+    async: false
+    # 구현: content_gate.diagnose_input_sufficiency() — 14개 필수 입력 점검, 60% 미만이면 작성 중단
+
+  - id: 시나리오확정
+    kind: human
+    io:
+      reads: [input_sufficiency_report]
+      writes: [application_scenario]
+    check:
+      mode: human_gate
+      schema_ref: "ai공장짓기/manifest.schema.v2.yaml#check_output_schema.human_gate"
+    depends_on: [입력충분성진단]
+    async: true
+    # 혜미가 부족 항목의 가정값 후보를 승인 — AI가 임의로 실적을 만들지 않는다(감사 지시 5).
+    # 초창패는 current_performance 7개 필드 필수(content_gate.check_scenario가 강제)
+
+  - id: 잠금값추출
+    kind: model
+    tier: sonnet
+    io:
+      reads: [business_profile, application_scenario]
+      writes: [content_locks, evidence_ledger, conflict_log]
+    depends_on: [시나리오확정]
+    async: false
+    # 기존 자료 재사용 우선순위 적용(감사 지시 6) — "새 아이디어만 사용" 원칙 폐기
+
+  - id: 작성_문제인식
+    kind: model
+    tier: sonnet
+    io:
+      reads: [content_locks, evidence_ledger, application_scenario]
+      writes: [section_draft_problem]
+    depends_on: [잠금값추출]
+    async: true
+
+  - id: 작성_실현가능성
+    kind: model
+    tier: sonnet
+    io:
+      reads: [content_locks, evidence_ledger, application_scenario]
+      writes: [section_draft_solution]
+    depends_on: [잠금값추출]
+    async: true
+
+  - id: 작성_성장전략
+    kind: model
+    tier: sonnet
+    io:
+      reads: [content_locks, evidence_ledger, application_scenario]
+      writes: [section_draft_scaleup]
+    depends_on: [잠금값추출]
+    async: true
+
+  - id: 작성_팀
+    kind: model
+    tier: sonnet
+    io:
+      reads: [content_locks, evidence_ledger, application_scenario]
+      writes: [section_draft_team]
+    depends_on: [잠금값추출]
+    async: true
+    # ↑ 4개 작성 stage는 서로 독립(병렬). 각자 업무지시서의 해당 섹션 지시만 수행
+
+  - id: 초안통합
+    kind: model
+    tier: sonnet
+    io:
+      reads: [section_draft_problem, section_draft_solution, section_draft_scaleup, section_draft_team]
+      writes: [merged_draft]
+    depends_on: [작성_문제인식, 작성_실현가능성, 작성_성장전략, 작성_팀]
+    async: false
+    # 회사명·고객·MVP·KPI·예산 교차 일관성을 맞춰 하나의 문서로. 문제→기능→검증→KPI 연결(감사 지시 10)
+
+  - id: 내용검증게이트
+    kind: local
+    io:
+      reads: [merged_draft, evidence_ledger]
+      writes: [content_gate_report]
+    on_fail:
+      action: retry
+      human_reject:
+        return_to: 초안통합
+    depends_on: [초안통합]
+    async: false
+    # 구현: content_gate.verify_arithmetic/verify_budget_total/check_scenario_separation/
+    # check_customer_consistency/find_unlabeled_numbers — FAIL이면 심사로 못 넘어감(감사 지시 7·8·9)
+
+  - id: 수정본생성
+    kind: model
+    tier: sonnet
+    io:
+      reads: [merged_draft, content_gate_report, content_locks, conflict_log]
+      writes: [revised_draft]
+    depends_on: [내용검증게이트]
+    async: false
+    # 기존 judge_self_review(8인+홍재우)를 merged_draft에 실행한 결과와 게이트 리포트를 받아
+    # 감점 사유별 수정안 생성. 문장·구조·계산만 수정, 없는 실적 생성 금지(감사 지시 12).
+    # 기존 공장에 "심사 후 고쳐 쓰는 직원"이 없던 것이 부실의 핵심 원인 중 하나
+
+  - id: 재검증
+    kind: local
+    io:
+      reads: [revised_draft, evidence_ledger]
+      writes: [content_gate_report]
+    on_fail:
+      action: retry
+      human_reject:
+        return_to: 수정본생성
+    depends_on: [수정본생성]
+    async: false
+    # 수정 과정에서 새 오류가 들어오지 않았는지 동일 게이트 재실행
+
+  - id: 출력분리
+    kind: local
+    io:
+      reads: [revised_draft, content_gate_report]
+      writes: [submission_output, internal_review_output]
+    depends_on: [재검증]
+    async: false
+    # 구현: content_gate.split_outputs() — 제출용에는 확정 사실·사업내용만,
+    # 내부검토본에 가정·출처·확인필요·수정내역. 제출 여부는 사람(헌장 §3 — 발송 stage 없음)
+
 # ---------------------------------------------------------------------
 # 마이그레이션에서 v1→v2로 표현이 안 되거나 임의로 결정하지 않은 부분
 # (작업 B "막히면" 지침 준수 — 필드를 임의로 새로 만들지 않고 여기 기록)
@@ -380,3 +618,6 @@ open_issues:
   - "[v0.6.1 신규] 뒷단 8 stage의 tier가 low_cost/mid/high인데 위 §16까지 stage들은 haiku/sonnet/opus — 두 tier 어휘 공존 문제(기존 open_issue 3번)가 이번 추가로 한 파일 안에서 실제로 공존하게 됨. 어느 쪽을 정본으로 통일할지는 여전히 미결."
   - "[v0.6.1 신규] stage_예상qna생성 mock이 '약점별 1문항' 구조인데 골든 레퍼런스 QnA.pdf 실물은 '5개 만능답변 템플릿+질문 카테고리 매핑' 구조(2026-07-16 pdftotext 실측) — 실 LLM 연동 시점에 재설계 필요, 지금은 파이프라인 배선 증명용 mock이라 그대로 둠."
   - "[v0.6.1 신규] .pptx/.docx 등 실물 파일 렌더링은 이 manifest/run.py 범위 밖 — ppt_draft/presentation_script/expected_qna는 구조화 데이터까지만, 실제 문서 생성은 실행 시점 도구(pptx 스킬 등) 몫."
+
+  - "[v0.7.0 신규] 내용 생성 구간의 model stage 6개는 run.py에 코드로 구현되지 않음 — 실행은 작성단계_업무지시서_2026-07-20.md의 TASK-PACKET을 하위모델(sonnet) 세션에 배분하는 방식(AI_OS PRD→TASK-PACKET→RESULT-CARD 패턴). local stage 4개(진단·게이트·재검증·출력분리)만 content_gate.py로 실제 구현됨."
+  - "[v0.7.0 신규] 기존 judge_self_review는 draft_application을 읽도록 정의돼 있어 merged_draft 심사는 실행 시점에 대상만 바꿔 쓰는 관례로 처리 — 기존 stage 정의를 append-only 원칙상 수정하지 않았음. 다음 대개편 때 정식으로 reads에 merged_draft를 추가할 것."

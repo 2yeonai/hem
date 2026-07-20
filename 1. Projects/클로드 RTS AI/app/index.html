@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260719">
 </head>
 <body>
 <div class="header">
@@ -24,10 +24,19 @@
   <a href="#/home" data-route="home"><span class="ic">🏠</span>홈</a>
   <a href="#/assessments" data-route="assessments"><span class="ic">🩺</span>검사</a>
   <a href="#/techniques" data-route="techniques"><span class="ic">✋</span>테크닉</a>
+  <a href="#/model" data-route="model"><span class="ic">🧍</span>3D</a>
   <a href="#/quiz" data-route="quiz"><span class="ic">📝</span>퀴즈</a>
   <a href="#/review" data-route="review"><span class="ic">📌</span>오답노트</a>
 </nav>
 
-<script src="app.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js"
+  }
+}
+</script>
+<script type="module" src="viz.js?v=20260720e"></script>
+<script type="module" src="app.js?v=20260720e"></script>
 </body>
 </html>

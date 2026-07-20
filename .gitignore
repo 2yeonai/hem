@@ -54,6 +54,13 @@ desktop.ini
 .env.local
 .env.*.local
 
+# 꽃집 웹앱 런타임 데이터(대기 중 주문) - 배포 환경마다 새로 생기는 실행 데이터라
+# 코드가 아님, 커밋 대상 아님 (2026-07-20 추가, webapp 테스트 중 실수로 추적될 뻔함)
+1. Projects/클로드 꽃집 ai/webapp/pending_orders.json*
+# 꽃집 run_pipeline.py 데모 실행 시 생기는 런타임 산출물(실데이터 아님, 코드 테스트
+# 중 로컬에 생김) - 커밋 대상 아님 (2026-07-20 추가)
+1. Projects/클로드 꽃집 ai/code/run_pipeline_demo.json*
+
 # Node.js (플러그인 개발 시)
 node_modules/
 npm-debug.log*
@@ -85,3 +92,17 @@ spaces.json
 
 # 로컬 STT/미디어 작업 도구·바이너리 (965MB, whisper.cpp 모델·exe 등 - vault 콘텐츠 아님, 2026-07-17 추가)
 _inbox/work/
+
+# 외부 설치 스킬 폴더 (2026-07-18 추가) — skills CLI가 설치한 서드파티 스킬, vault 콘텐츠 아님(센티널 규칙 비대상)
+.agents/
+skills-lock.json
+/_inbox/work/whispercpp/ggml-base.bin
+/_inbox/work/whispercpp/ggml-small.bin
+/_inbox/work/whispercpp/ggml-small-q5_1.bin
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/1강 오디오.m4a
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/2강 오디오.m4a
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/3강 오디오.m4a
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/4강 오디오.m4a
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/6월 세미나 오디오.m4a
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/7월 세미나 비디오.mp4
+/1. Projects/클로드 정부지원사업 ai/강사방법론/강의녹취_원문/7월 세미나 오디오.m4a

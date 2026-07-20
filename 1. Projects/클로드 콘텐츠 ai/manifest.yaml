@@ -16,6 +16,20 @@
 # ※ stage 구성 자체는 위 확정 패턴들의 조합으로 만든 "초안"임 —
 #   운영하다 구조 변경급 판단이 필요해지면 Fable 상정(사용자 승인 후) 원칙 유지.
 # =====================================================================
+# ---------------------------------------------------------------------
+# 팩 참조 (2026-07-19 [hyemi], decision-log §25 F7 — 마케팅팀 v1 승격)
+#   brand-pack   : 무엇을 파는 누구인가 (브랜드마다 1개)
+#   channel-pack : 채널별 글쓰기·게시 규칙 (업종·고객과 직교, 전 브랜드 공유)
+#   파이프라인 stage 구조는 바뀌지 않았다 — 읽어 오는 설정의 위치만 규격화.
+# ---------------------------------------------------------------------
+packs:
+  brand_packs_dir: brand-packs/
+  channel_packs_dir: channel-packs/
+  default_brand: brand-packs/hyemi-ai-company.yaml   # 마케팅팀 1호 고객 = 혜미 AI 자동화 사업
+  channels:
+    - channel-packs/naver-blog.yaml
+    - channel-packs/threads.yaml                     # 현재 브랜드1호에서는 비활성(계정 미정)
+
 schema_version: v2
 domain: content
 skill_name: content-topic-to-publish

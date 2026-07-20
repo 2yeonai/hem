@@ -1,5 +1,7 @@
 # 구현 작업용 종합 자료 — 2026-07-08
 
+> **[정본]** 2026-07-18 N1 중복정리 [gombeck1]: 꽃집/방역/정부지원 폴더의 `ai-platform/ai 공장 종합 기획.md` 사본 3개 흡수 (본문 동일, 하단 관련 문서 링크만 병합). 원본 3개는 `4. Archive/ai플랫폼기획_사본3개_2026-07-18/`로 이동.
+
 오늘 Fable 5로 확정한 모든 설계 결정을 정리한 문서. Cowork(Claude Code)에게
 넘길 때 이 문서를 그대로 붙여넣거나 레포에 저장 후 참조시키면 됨.
 **이 문서에 없는 내용은 추측하지 말고 blocked로 보고할 것.**
@@ -346,6 +348,8 @@ s1_ledger_read(local) → s2_input_normalize(local) → s3_priority_calc(local)
 - [[ai공장짓기/설계노트/0_전체_그림|0_전체_그림]]
 - [[ai공장짓기/설계노트/관련_문서|관련_문서]]
 - [[ai공장짓기/runner/README|README]]
+- [[ai공장짓기/HANDOFF|HANDOFF (ai공장짓기)]]
 - [[2. Areas/핵심맥락|핵심맥락]]
+- (사본 흡수분 2026-07-18) [[1. Projects/클로드 꽃집 ai/HANDOFF|HANDOFF (꽃집)]] · [[1. Projects/클로드 꽃집 ai/최종점검_리포트_2026-07-07|최종점검_리포트_2026-07-07 (꽃집)]] · [[1. Projects/클로드 방역 ai/최종요약보고서_2026-07-07|최종요약보고서_2026-07-07 (방역)]] · [[1. Projects/클로드 정부지원사업 ai/HANDOFF|HANDOFF (정부지원사업)]] · [[1. Projects/클로드 정부지원사업 ai/마이그레이션_diff_리포트_v1_to_v2|마이그레이션_diff_리포트_v1_to_v2]]
 
 <!-- ok -->

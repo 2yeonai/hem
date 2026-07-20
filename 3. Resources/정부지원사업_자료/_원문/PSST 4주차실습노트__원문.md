@@ -3,7 +3,7 @@ title: "PSST 4주차실습노트 - 추출 원문"
 type: extracted-fulltext
 source: "PSST 4주차실습노트.pdf"
 converted: 2026-07-13
-tags: [문서변환, 원문, 인박스]
+tags: []
 ---
 
 # PSST 4주차실습노트 - 추출 원문

@@ -3,7 +3,7 @@ title: "PSST 빈양식 - 추출 원문"
 type: extracted-fulltext
 source: "PSST 빈양식.hwp"
 converted: 2026-07-13
-tags: [문서변환, 원문, 인박스]
+tags: []
 ---
 
 # PSST 빈양식 - 추출 원문

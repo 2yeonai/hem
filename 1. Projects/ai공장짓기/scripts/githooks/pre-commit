@@ -17,5 +17,7 @@ else
     exit 0
 fi
 
+"$PY" "1. Projects/ai공장짓기/scripts/context_budget_check.py" || true  # 경고 전용, 커밋 판정에 미사용 [hyemi 2026-07-20]
+
 "$PY" "$VAULT_CHECK" --pre-commit
 exit $?

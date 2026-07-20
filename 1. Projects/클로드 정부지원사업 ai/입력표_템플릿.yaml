@@ -1,0 +1,69 @@
+# =====================================================================
+# 입력표_템플릿.yaml — 사업계획서 작성 전 필수 입력 (2026-07-20 신설, [gombeck1])
+# 근거: 외부감사 "앞으로 입력해야 할 최소 정보" 표 + content_gate.REQUIRED_INPUTS
+# 사용법: 이 파일을 복사해 값을 채운 뒤 작성 세션에 첨부한다.
+#   status 어휘(7종): verified_fact(증빙 가능한 사실) / user_confirmed(혜미가 확인한 사실)
+#   / simulation_assumption(가상 설정) / planned_target(협약기간 목표)
+#   / ai_suggestion(AI 제안 — 본문 금지) / needs_evidence(근거 부족) / prohibited(사용 금지)
+# =====================================================================
+
+program_type: 예비창업패키지        # 예비창업패키지 | 초기창업패키지
+simulation_mode: false             # 초창패 가상 지원이면 true
+reference_date: 2026-07-20         # 사업계획서상 '현재' 날짜
+
+business_status:                   # 사업자 상태
+  value: 미등록                     # 미등록 | 등록일 YYYY-MM-DD
+  status: user_confirmed
+
+product_stage:                     # 아이디어 | 목업 | MVP | 상용화
+  value: 목업
+  status: user_confirmed
+
+primary_market:                    # 지불고객 — 정확히 한 종류만!
+  value: 소속 관리사 3~20명 규모 지역 중소 방문형 산후케어 업체
+  status: user_confirmed
+
+customer_validation:               # 실제 완료한 조사 수 (완료한 것만! 계획은 아래 targets에)
+  업체_인터뷰: {value: 0, status: needs_evidence}
+  관리사_인터뷰: {value: 0, status: needs_evidence}
+  산모_설문: {value: 0, status: needs_evidence}
+
+deal_evidence:                     # 거래 성과 (의향서·MOU·계약·유료고객)
+  시범도입_의향서: {value: 0, status: needs_evidence}
+  MOU: {value: 0, status: needs_evidence}
+  유료고객: {value: 0, status: needs_evidence}
+
+usage_performance:                 # 사용 성과 (초창패 가상이면 simulation_assumption으로)
+  시범업체: {value: 0, status: needs_evidence}
+  활성_사용자: {value: 0, status: needs_evidence}
+  누적_기록: {value: 0, status: needs_evidence}
+
+revenue:
+  월_반복매출: {value: 0, status: needs_evidence}
+
+founder_capability:                # ★ 혜미 확인 필요 — 제출 전 증빙(판매기록 캡처 등) 확보
+  - {value: 미용사(피부) 국가자격, status: user_confirmed}
+  - {value: 뷰티 3종 제품 온라인 마케팅 누적 100만개 판매, status: user_confirmed, evidence: 판매기록 스크린샷 확보 필요}
+  - {value: AI 협업 도구로 화면·데이터 구조 직접 설계, status: user_confirmed}
+
+team:
+  value: 대표자 1인 + 개발 외주 파트너(확보 예정) + 세무·개인정보 자문(확보 예정)
+  status: planned_target
+
+pricing:                           # 확정 아님 — 검증 가설
+  value: 구간제(9.9만/19.9만/39.9만) 가설, 인터뷰에서 5만·10만·20만 지불의사 검증
+  status: ai_suggestion            # 혜미 승인 시 user_confirmed로 변경
+
+evidence_status: 이 파일의 status 값이 곧 증빙상태 구분임
+prohibitions: [의료 표현, 과장 표현, 미확인 수치의 사실형 서술, 피부미용업 신고 문구]
+
+# --- 초창패 가상 지원 시에만 채우는 블록 (전부 simulation_assumption) ---
+current_performance_초창패가상:
+  business_reg_date: 2025-09-01
+  product_stage: MVP
+  pilot_companies: 3
+  active_users: 10
+  usage_records: 150
+  paying_customers: 1
+  monthly_revenue: 200000          # 원
+  실측가정: 인수인계 확인시간 15분→5분 (시범 3곳)

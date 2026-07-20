@@ -1,0 +1,3810 @@
+{
+  "generated_from": "app/data.json",
+  "counts": {
+    "assessments": 35,
+    "techniques": 61,
+    "total": 96
+  },
+  "cards": {
+    "assessment-21-DNF근력검사": {
+      "id": "assessment-21-DNF근력검사",
+      "type": "검사카드",
+      "title": "검사 21 | DNF(심부경부굴곡근) 근력검사 (Deep Neck Flexor MMT)",
+      "part": "PART 5 — 기타 검사 (경추 심부근육)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "DNF"
+        ],
+        "techniques": [
+          "DNF"
+        ],
+        "retests": [
+          "경추굴곡패턴검사 재실시로 원클릭 복귀"
+        ],
+        "related_assessments": [
+          "경추굴곡패턴검사"
+        ]
+      },
+      "assessment_name": "DNF(심부경부굴곡근) 근력검사 / Deep Neck Flexor MMT",
+      "joint": "경추 — DNF(심부경부굴곡근) 도수근력검사(MMT)",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세(supine)",
+        "operator_raw": "대상자 머리 뒤쪽에서 한 손을 베개처럼 받친다(깍지를 끼지 않고 손을 하나로 모아 받친다)",
+        "pose_tag": "누움"
+      },
+      "positive": "3초 이내에 머리가 떨어짐(추락) → 뚜렷한 약화 / 20~30초를 채우지 못하고 자세가 무너짐(머리·턱이 계속 들림)"
+    },
+    "assessment-17-견갑골정렬평가": {
+      "id": "assessment-17-견갑골정렬평가",
+      "type": "검사카드",
+      "title": "검사 17 | 견갑골 정렬평가 (Scapular Alignment Evaluation)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "상부승모근",
+          "전거근",
+          "하부승모근",
+          "소흉근",
+          "견갑거근",
+          "능형근",
+          "광배근"
+        ],
+        "techniques": [
+          "상부승모근",
+          "전거근",
+          "하부승모근",
+          "소흉근",
+          "견갑거근",
+          "능형근",
+          "광배근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "견갑보조검사",
+          "상방회전 검사",
+          "전방경사 검사"
+        ]
+      },
+      "assessment_name": "견갑골 정렬평가 / Scapular Alignment Evaluation",
+      "joint": "ST 조인트(어깨가슴관절) — 견갑골 정적 정렬(위치) 평가",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "선 자세(반드시 서서 실시 — 누운 자세로는 검사하지 않는다). 힘을 툭 뺀 최대한 편안한 자세를 유지하고, 인위적으로 자세를 만들지 않는다",
+        "operator_raw": "대상자 뒤에서 양쪽 견갑골을 동시에 관찰·촉진",
+        "pose_tag": "누움"
+      },
+      "positive": "좌우 높낮이 차이가 뚜렷함 / 좌우 벌어짐(루트-극돌기 거리) 차이가 뚜렷함"
+    },
+    "assessment-18-견갑보조검사": {
+      "id": "assessment-18-견갑보조검사",
+      "type": "검사카드",
+      "title": "검사 18 | 견갑보조검사 (Scapular Assistance Test) — \"세컨더리 테스트\"",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "전거근",
+          "하부승모근"
+        ],
+        "techniques": [
+          "전거근",
+          "하부승모근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "견갑골 정렬평가",
+          "상방회전 검사",
+          "호킨스케네디 테스트"
+        ]
+      },
+      "assessment_name": "견갑보조검사 / Scapular Assistance Test (SAT) / \"세컨더리 테스트\"",
+      "joint": "ST 조인트 — 검사자가 견갑골 움직임을 도수로 보조하며 GH 조인트 통증 변화를 확인하는 감별 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "선 자세, 통증이 있는 쪽 팔을 귀 옆까지 끝범위로 들어 올린 상태(1차로 도수 보조 없이 먼저 들어보게 하여 통증·제한 여부를 확인)",
+        "operator_raw": "대상자 뒤 또는 옆에서 견갑골에 손을 대고 후방경사·상방회전 방향으로 도수 보조를 가한다",
+        "pose_tag": "서기"
+      },
+      "positive": "도수 보조 전에는 통증·걸리는 느낌이 있다가, 보조 후 통증이 사라지거나 크게 줄어듦 → **양성(ST 조인트/견갑골 기능 저하가 통증의 주된 원인)**. / 보조를 가해도 통증이 그대로라면 GH 조인트 자체의 문제(관절낭·회전근개 등)일 가능성을 우선 고려한다."
+    },
+    "assessment-14-경추가쪽굽힘검사": {
+      "id": "assessment-14-경추가쪽굽힘검사",
+      "type": "검사카드",
+      "title": "검사 14 | 경추 가쪽굽힘 검사 (Lateral Flexion Test)",
+      "part": "PART 4 — 경추 (Cervical Spine)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "사각근",
+          "SCM"
+        ],
+        "techniques": [
+          "사각근",
+          "흉쇄유돌근"
+        ],
+        "retests": [
+          "2차 검사"
+        ],
+        "related_assessments": [
+          "경추 회전 검사",
+          "\"사각근 ART·MET"
+        ]
+      },
+      "assessment_name": "경추 가쪽굽힘 검사 / Lateral Flexion Test / 경추 측굴 검사",
+      "joint": "경추 — 가쪽굽힘 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세",
+        "operator_raw": "대상자 후방에서만 검사 (본 검사는 뒤에서만 시행 — 앞에서 볼 수도 있다는 오해가 있으나 원칙은 후방 단독)",
+        "pose_tag": "앉기"
+      },
+      "positive": "45도에 미치지 못하는 경우 / 머리만 기울어지고 목 고정"
+    },
+    "assessment-11-경추굴곡검사": {
+      "id": "assessment-11-경추굴곡검사",
+      "type": "검사카드",
+      "title": "검사 11 | 경추 굴곡 검사 (Cervical Flexion Test)",
+      "part": "PART 4 — 경추 (Cervical Spine)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "DNF",
+          "상부승모근",
+          "견갑거근"
+        ],
+        "techniques": [
+          "DNF",
+          "견갑거근"
+        ],
+        "retests": [
+          "2차 검사"
+        ],
+        "related_assessments": [
+          "경추 신전 검사",
+          "경추굴곡 패턴 검사"
+        ]
+      },
+      "assessment_name": "경추 굴곡 검사 / Cervical Flexion Test",
+      "joint": "경추 — 상부경추 굴곡 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세",
+        "operator_raw": "대상자 측방에서 관찰",
+        "pose_tag": "앉기"
+      },
+      "positive": "손가락 2개 공간이 확보되지 않는 경우 / 통증 발생"
+    },
+    "assessment-16-경추굴곡패턴검사": {
+      "id": "assessment-16-경추굴곡패턴검사",
+      "type": "검사카드",
+      "title": "검사 16 | 경추굴곡 패턴 검사 (Cervical Flexion Pattern Test) — DNF 기능 확인",
+      "part": "PART 5 — 기타 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "DNF",
+          "후두하근"
+        ],
+        "techniques": [
+          "DNF",
+          "후두하근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "경추 굴곡 검사",
+          "경추 신전 검사"
+        ]
+      },
+      "assessment_name": "경추굴곡 패턴 검사 / Cervical Flexion Pattern Test / DNF 기능 검사",
+      "joint": "경추 — DNF(심부경굴곡근 / Deep Neck Flexor) 기능 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세, 무릎 세우기",
+        "operator_raw": "대상자 측방에서 머리·턱 움직임 관찰",
+        "pose_tag": "누움"
+      },
+      "positive": "턱이 빠지는 경우 / 턱을 당겼다가 올라가다 풀려버리는 경우"
+    },
+    "assessment-12-경추신전검사": {
+      "id": "assessment-12-경추신전검사",
+      "type": "검사카드",
+      "title": "검사 12 | 경추 신전 검사 (Cervical Extension Test)",
+      "part": "PART 4 — 경추 (Cervical Spine)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "이복근",
+          "상부흉추 후만 변화"
+        ],
+        "techniques": [
+          "이복근 (원인 근육 테크닉"
+        ],
+        "retests": [
+          "2차 검사"
+        ],
+        "related_assessments": [
+          "경추 굴곡 검사",
+          "경추 회전 검사"
+        ]
+      },
+      "assessment_name": "경추 신전 검사 / Cervical Extension Test",
+      "joint": "경추 — 상부경추 신전 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세",
+        "operator_raw": "대상자 측방에서 관찰",
+        "pose_tag": "앉기"
+      },
+      "positive": "칼주름이 생기지 않는 경우 / 통증 발생"
+    },
+    "assessment-13-경추회전검사": {
+      "id": "assessment-13-경추회전검사",
+      "type": "검사카드",
+      "title": "검사 13 | 경추 회전 검사 (Cervical Rotation Test)",
+      "part": "PART 4 — 경추 (Cervical Spine)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "SCM",
+          "상부승모근",
+          "판상근",
+          "견갑거근"
+        ],
+        "techniques": [
+          "상부승모근",
+          "흉쇄유돌근",
+          "판상근",
+          "견갑거근"
+        ],
+        "retests": [
+          "2차 검사"
+        ],
+        "related_assessments": [
+          "경추 굴곡 검사",
+          "경추 가쪽굽힘 검사",
+          "\"사각근 테크닉"
+        ]
+      },
+      "assessment_name": "경추 회전 검사 / Cervical Rotation Test",
+      "joint": "경추 — 경추 회전 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세",
+        "operator_raw": "먼저 대상자 후방, 이후 전방",
+        "pose_tag": "앉기"
+      },
+      "positive": "SCM이 수직으로 서지 않는 경우 / 쇄골 절반까지 미치지 못하는 경우"
+    },
+    "assessment-27-고관절벌림패턴검사": {
+      "id": "assessment-27-고관절벌림패턴검사",
+      "type": "검사카드",
+      "title": "검사 27 | 고관절벌림 패턴검사 (Hip Abduction Pattern Test)",
+      "part": "PART 3 — 고관절/하지 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "옆누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "중둔근",
+          "대퇴근막장근",
+          "요방형근"
+        ],
+        "techniques": [
+          "중둔근",
+          "대퇴근막장근",
+          "요방형근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "트렌들렌버그검사",
+          "고관절신전 패턴검사"
+        ]
+      },
+      "assessment_name": "고관절벌림 패턴검사 / Hip Abduction Pattern Test",
+      "joint": "고관절 — 옆으로 누운 자세에서 다리를 벌리는(외전) 동작 중 중둔근·대퇴근막장근(TFL)·대둔근·몸통의 협응을 관찰하는 움직임 패턴 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "옆으로 누운 자세(side-lying). 아래쪽 다리는 살짝 굽히고, 위쪽 손으로 몸통을 지지·고정. 위쪽 다리는 일자로 편 상태로 세팅",
+        "operator_raw": "대상자 뒤 또는 위쪽에서 골반·다리의 움직임을 관찰",
+        "pose_tag": "옆누움"
+      },
+      "positive": "벌림 중 고관절 굴곡 동반(다리가 점점 굽음) / 다리가 거의 안 움직인 채 골반이 먼저 위로 딸려 올라감"
+    },
+    "assessment-26-고관절신전패턴검사": {
+      "id": "assessment-26-고관절신전패턴검사",
+      "type": "검사카드",
+      "title": "검사 26 | 고관절신전 패턴검사 (Prone Hip Extension Pattern Test)",
+      "part": "PART 3 — 고관절/하지 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "대둔근",
+          "햄스트링"
+        ],
+        "techniques": [
+          "대둔근"
+        ],
+        "retests": [
+          "대둔근 근력검사 재실시로 원클릭 복귀"
+        ],
+        "related_assessments": [
+          "대둔근 근력검사",
+          "트렌들렌버그검사",
+          "몸통굴곡 패턴검사"
+        ]
+      },
+      "assessment_name": "고관절신전 패턴검사 / Prone Hip Extension Pattern Test",
+      "joint": "고관절-몸통 복합 — 엎드린 자세에서 다리를 들어올리는(고관절 신전) 동작 중 대둔근·햄스트링·기립근의 동원 순서를 관찰하는 움직임 패턴 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "엎드린 자세(prone), 차렷 자세",
+        "operator_raw": "한 손은 대둔근, 한 손은 햄스트링(대퇴 후면)에 가볍게 얹어 촉진하며, 시선은 허리를 함께 관찰한다",
+        "pose_tag": "엎드림"
+      },
+      "positive": "요추 과신전(과전만) / 대둔근 점화 지연 또는 미점화, 기립근·햄스트링 우세"
+    },
+    "assessment-06-내회전검사": {
+      "id": "assessment-06-내회전검사",
+      "type": "검사카드",
+      "title": "검사 06 | 내회전 검사 (Internal Rotation Test)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "GH후방관절낭",
+          "극하근",
+          "소원근",
+          "후면삼각근"
+        ],
+        "techniques": [
+          "GH후방관절낭",
+          "극하근",
+          "소원근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "외회전 검사",
+          "다운 스크래치 테스트"
+        ]
+      },
+      "assessment_name": "내회전 검사 / Internal Rotation Test / GH 조인트 내회전 가동성 검사",
+      "joint": "GH 조인트 (관절와상완관절)",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세 (후킹 포지션), 팔 90도 벌림, 팔꿈치 90도 굴곡",
+        "operator_raw": "대상자 측방, 어깨 전면부를 손바닥으로 반드시 고정한다 — 외회전 검사와 달리 내회전 검사는 이 고정이 핵심이다. 세게 눌러 움직임 자체를 막는 것이 아니라, 어깨가 앞으로 튀어나오지 않을 정도로만 가볍게 막아준다(관절낭 자체의 가동범위를 보려는 검사이므로, 어깨가 대신 움직여버리면 검사 의미가 없어짐)",
+        "pose_tag": "누움"
+      },
+      "positive": "손끝이 침대에 닿지 못하는 경우 / 좌우 비대칭이 뚜렷한 경우"
+    },
+    "assessment-02-다운스크래치테스트": {
+      "id": "assessment-02-다운스크래치테스트",
+      "type": "검사카드",
+      "title": "검사 02 | 다운 스크래치 테스트 (Down Scratch Test)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "상부승모근",
+          "능형근",
+          "견갑거근",
+          "소흉근",
+          "광배근",
+          "GH후방관절낭",
+          "극상근"
+        ],
+        "techniques": [
+          "상부승모근",
+          "능형근",
+          "견갑거근",
+          "소흉근",
+          "광배근",
+          "GH후방관절낭",
+          "극상근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "업 스크래치 테스트",
+          "상방회전 검사",
+          "전방경사 검사"
+        ]
+      },
+      "assessment_name": "다운 스크래치 테스트 / Down Scratch Test / 아래 긁기 검사",
+      "joint": "ST 조인트 + GH 조인트 (어깨복합관절 복합 평가)",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세 (업 스크래치와 동일한 발 위치로 일관되게 유지)",
+        "operator_raw": "대상자 후방에서 양쪽 손끝 위치 관찰",
+        "pose_tag": "앉기"
+      },
+      "positive": "손끝이 하각에 도달하지 못하는 경우 / 견갑골 내측 모서리가 분리되지 않고 붙어있는 경우"
+    },
+    "assessment-28-대둔근근력검사": {
+      "id": "assessment-28-대둔근근력검사",
+      "type": "검사카드",
+      "title": "검사 28 | 대둔근 근력검사 (Gluteus Maximus MMT)",
+      "part": "PART 3 — 고관절/하지 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "대둔근"
+        ],
+        "techniques": [
+          "대둔근"
+        ],
+        "retests": [
+          "고관절신전 패턴검사 재실시로 원클릭 복귀"
+        ],
+        "related_assessments": [
+          "고관절신전 패턴검사",
+          "트렌들렌버그검사"
+        ]
+      },
+      "assessment_name": "대둔근 근력검사 / Gluteus Maximus MMT (Prone Hip Extension MMT)",
+      "joint": "고관절 — 대둔근(Gluteus Maximus) 도수근력검사(MMT). 무릎 굴곡+고관절 외전·외회전 자세로 햄스트링의 개입을 최소화해 대둔근을 선택적으로 검사한다.",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "엎드린 자세(prone)",
+        "operator_raw": "검사할 다리 쪽에서 한쪽 팔뚝으로 대상자의 대퇴 앞쪽~정강이를 눌러 무릎 굴곡을 유지시키고, 다른 손으로 골반(천골)을 고정한다",
+        "pose_tag": "엎드림"
+      },
+      "positive": "저항 시 쉽게 밀림(약화) / 좌우 뚜렷한 차이"
+    },
+    "assessment-34-대흉근길이검사쇄골파트": {
+      "id": "assessment-34-대흉근길이검사쇄골파트",
+      "type": "검사카드",
+      "title": "검사 34 | 대흉근 길이 검사 (쇄골 파트) — Clavicular Head Length Check",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "대흉근"
+        ],
+        "techniques": [
+          "대흉근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "외회전 검사"
+        ]
+      },
+      "assessment_name": "대흉근 길이 검사(쇄골 파트) / Clavicular Head Length Check / 대흉근 쇄골머리 길이검사",
+      "joint": "GH 조인트 — 대흉근 쇄골 파트(빗장뼈머리) 길이·유연성 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세(후킹/누워서). 팔을 \"앞으로 나란히\"처럼 천장 쪽으로 들어 시작한다",
+        "operator_raw": "대상자 측방에서 들어올린 팔이 침대면에 닿는지(뜨는지) 좌우를 비교 관찰한다",
+        "pose_tag": "누움"
+      },
+      "positive": "수평벌림에서 팔이 뜬다 → 대흉근 쇄골 파트 타이트(단축) 의심. / 좌우 차이가 뚜렷하면 뜬 쪽을 양성으로 취급한다."
+    },
+    "assessment-35-대흉근길이검사흉골파트": {
+      "id": "assessment-35-대흉근길이검사흉골파트",
+      "type": "검사카드",
+      "title": "검사 35 | 대흉근 길이 검사 (흉골 파트) — Sternal Head Length Check",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "대흉근"
+        ],
+        "techniques": [
+          "대흉근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "외회전 검사",
+          "완전굴곡 검사"
+        ]
+      },
+      "assessment_name": "대흉근 길이 검사(흉골 파트) / Sternal Head Length Check / 대흉근 흉골머리 길이검사",
+      "joint": "GH 조인트 — 대흉근 흉골 파트(복장뼈머리) 길이·유연성 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세(후킹/누워서). 팔을 앞으로 나란히에서 시작한다",
+        "operator_raw": "대상자 측방에서 벌림한 팔이 침대면에 닿는지(뜨는지) 좌우를 비교 관찰한다",
+        "pose_tag": "누움"
+      },
+      "positive": "약 135° 벌림에서 팔이 뜬다 → 대흉근 흉골 파트 타이트(단축) 의심. / 임상 빈도:** 둘 중 흉골 파트 제한이 훨씬 더 흔하다 — 팔을 위로 들었을 때 떠 있는 경우가 더 자주 나타난다."
+    },
+    "assessment-25-레그로워링검사": {
+      "id": "assessment-25-레그로워링검사",
+      "type": "검사카드",
+      "title": "검사 25 | 레그로워링검사 (Leg Lowering Test)",
+      "part": "PART 2 — 몸통(트렁크) 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "복직근",
+          "복횡근"
+        ],
+        "techniques": [
+          "복직근",
+          "복횡근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "몸통굴곡 패턴검사",
+          "고관절신전 패턴검사"
+        ]
+      },
+      "assessment_name": "레그로워링검사 / Leg Lowering Test",
+      "joint": "몸통(요추-골반) 안정성 — 다리를 천천히 내리는 동안 요추-골반 안정성(피드포워드 코어 안정화)을 확인하는 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세, 양다리를 편 채 수직(90도 부근)으로 들어 올린 상태에서 시작",
+        "operator_raw": "대상자 허리 밑에 손을 넣어 압력 변화를 촉진한다",
+        "pose_tag": "누움"
+      },
+      "positive": "45도에 훨씬 못 미치는 각도(예: 75도 부근)에서 압력이 풀림 / 다리를 내리자마자 바로 허리가 뜸"
+    },
+    "assessment-09-로컴테스트": {
+      "id": "assessment-09-로컴테스트",
+      "type": "검사카드",
+      "title": "검사 09 | 로컴 테스트 (Locum Test)",
+      "part": "PART 3 — 어깨 특수 검사 (Special Tests)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "삼각근",
+          "극상근"
+        ],
+        "techniques": [
+          "극상근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "호킨스 케네디 테스트",
+          "업 스크래치 테스트"
+        ]
+      },
+      "assessment_name": "로컴 테스트 / Locum Test / 어깨 충돌 특수 검사 1",
+      "joint": "GH 조인트 — 어깨 충돌 관련 특수 검사(통증유발검사/스페셜 테스트 계열)",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세",
+        "operator_raw": "대상자 측방 또는 후방",
+        "pose_tag": "앉기"
+      },
+      "positive": "팔꿈치가 코 높이에 미치지 못하는 경우 / 어깨 과도한 으쓱, 통증 또는 집힘 발생"
+    },
+    "assessment-08-리프트오프검사": {
+      "id": "assessment-08-리프트오프검사",
+      "type": "검사카드",
+      "title": "검사 08 | 리프트오프 검사 (Lift-off Test)",
+      "part": "PART 2 — 견갑하근 (Subscapularis)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "견갑하근"
+        ],
+        "techniques": [
+          "견갑하근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "내회전 검사",
+          "외회전 검사"
+        ]
+      },
+      "assessment_name": "리프트오프 검사 / Lift-off Test / 견갑하근 근력 검사",
+      "joint": "GH 조인트 — 견갑하근(어깨밑근) 기능 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "선 자세 또는 앉은 자세, 한쪽 손등을 허리 뒤로 돌려 뒷짐 자세",
+        "operator_raw": "대상자 후방",
+        "pose_tag": "앉기"
+      },
+      "positive": "손등을 허리에서 떼기 어렵거나 거의 들리지 않는 경우 / 좌우 차이가 뚜렷한 경우(한쪽이 힘을 확연히 못 씀)"
+    },
+    "assessment-24-몸통굴곡패턴검사": {
+      "id": "assessment-24-몸통굴곡패턴검사",
+      "type": "검사카드",
+      "title": "검사 24 | 몸통굴곡 패턴검사(컬업/롤업검사) (Trunk Flexion Pattern Test)",
+      "part": "PART 2 — 몸통(트렁크) 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "복직근",
+          "장요근"
+        ],
+        "techniques": [
+          "복직근",
+          "장요근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "레그로워링검사",
+          "쇼버검사"
+        ]
+      },
+      "assessment_name": "몸통굴곡 패턴검사(컬업/롤업검사) / Trunk Flexion Pattern Test (Curl-up / Roll-up Test)",
+      "joint": "몸통(요추·흉추·골반 복합) — 윗몸일으키기(컬업) 동작 중 몸통 근육과 고관절 굴곡근의 동원 순서를 관찰하는 움직임 패턴 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세, 무릎을 세우고 허벅지 앞쪽에 손을 올려 시작 자세를 만든다",
+        "operator_raw": "대상자 발치에서 뒤꿈치 밑으로 손을 넣어 받친다",
+        "pose_tag": "누움"
+      },
+      "positive": "하각이 떨어지기 전에 뒤꿈치가 가벼워짐(고관절 굴곡근이 몸통보다 먼저 개입) / 몸이 안 말리고 빳빳하게 펴진 채로 일어남"
+    },
+    "assessment-15-베이튼스코어": {
+      "id": "assessment-15-베이튼스코어",
+      "type": "검사카드",
+      "title": "검사 15 | 베이튼 스코어 (Beighton Score)",
+      "part": "PART 5 — 기타 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": [
+          "어깨·고관절 가동성 검사 전반"
+        ]
+      },
+      "assessment_name": "베이튼 스코어 / Beighton Score / 과가동성 평가",
+      "joint": "전신 — 과가동성(Hypermobility) 선별 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "항목별로 선 자세 또는 앉은 자세",
+        "operator_raw": "대상자 전방 또는 측방에서 각 항목을 좌우 양측 실시",
+        "pose_tag": "앉기"
+      },
+      "positive": "5점 이상 → 과가동성(Hypermobility) 가능성 의심** (100% 확정 진단은 아니며 \"의심\"의 개념) / 특히 무릎, 발목(에이톤 스토어 부위 — 원문 표현, 발목 주변 유연성) 쪽이 유연한 사람은 부상 위험이 상대적으로 더 높다."
+    },
+    "assessment-03-상방회전검사": {
+      "id": "assessment-03-상방회전검사",
+      "type": "검사카드",
+      "title": "검사 03 | 상방회전 검사 (Upward Rotation Test)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "전거근",
+          "하부승모근",
+          "능형근",
+          "견갑거근",
+          "광배근",
+          "소흉근"
+        ],
+        "techniques": [
+          "전거근",
+          "하부승모근",
+          "능형근",
+          "견갑거근",
+          "광배근",
+          "소흉근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "업 스크래치 테스트",
+          "전방경사 검사"
+        ]
+      },
+      "assessment_name": "상방회전 검사 / Upward Rotation Test",
+      "joint": "ST 조인트 (어깨가슴관절) — 견갑골 상방회전 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세, 팔을 옆으로 들어 올린 상태",
+        "operator_raw": "대상자 옆(측방)에서 가슴 앞쪽과 등 뒤쪽을 손가락 두 개로 함께 짚어 몸통 정가운데(여성은 가슴 아래 속옷 라인 정도)를 확인, 견갑골 하각의 이동 방향 관찰",
+        "pose_tag": "앉기"
+      },
+      "positive": "팔이 180도까지 충분히 올라가지 못하면서 하각도 모자란 경우 → 제한으로 판정 (\"팔 다 올라가는데 좀 모자라면 문제없다\"는 식으로 안이하게 판단하지 않는다. 팔이 못 올라가면 우선 제한으로 간주) / 견갑골 하각이 충분히 이동하지 않는 경우"
+    },
+    "assessment-19-상부승모근근력검사": {
+      "id": "assessment-19-상부승모근근력검사",
+      "type": "검사카드",
+      "title": "검사 19 | 상부승모근 근력검사 (Upper Trapezius MMT)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "상부승모근"
+        ],
+        "techniques": [
+          "상부승모근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "하부승모근 근력검사",
+          "견갑골 정렬평가"
+        ]
+      },
+      "assessment_name": "상부승모근 근력검사 / Upper Trapezius MMT",
+      "joint": "ST 조인트 — 상부승모근(UTP) 도수근력검사(MMT)",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "앉은 자세, 양팔 만세(위로 거상)한 상태에서 어깨를 최대한 거상(으쓱)한다",
+        "operator_raw": "대상자 머리 위쪽에 위치한다(옆에서 하지 않는다 — 옆에서 하면 팔이 90도로 벌어져 다른 근육이 개입하게 된다)",
+        "pose_tag": "앉기"
+      },
+      "positive": "한쪽 어깨가 저항에 쉽게 밀림(\"이상한데?\" 하는 수준으로 힘이 안 들어오는 느낌) / 좌우 비교 시 뚜렷한 차이"
+    },
+    "assessment-30-쇼버검사": {
+      "id": "assessment-30-쇼버검사",
+      "type": "검사카드",
+      "title": "검사 30 | 쇼버검사(요추굴곡검사) (Schober's Test)",
+      "part": "PART 4 — 흉추/요추 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "요흉근막",
+          "척추기립근"
+        ],
+        "techniques": [
+          "척추기립근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "흉추신전검사",
+          "몸통굴곡 패턴검사"
+        ]
+      },
+      "assessment_name": "쇼버검사(요추굴곡검사) / Schober's Test",
+      "joint": "요추(및 흉추) — 몸통 굴곡(전굴) 시 척추 분절의 실제 늘어나는 길이(가동성)를 줄자로 정량 측정하는 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "90도 정도 무릎이 굴곡되는 의자에 앉은 자세로 시작",
+        "operator_raw": "대상자 뒤/옆에서 척추 표식을 붙이고 줄자로 길이를 측정",
+        "pose_tag": "앉기"
+      },
+      "positive": "요추 구간 늘어난 길이가 5cm에 뚜렷이 못 미침(요추 굴곡 가동성 제한) / 흉추 구간은 원래 제한이 크지 않은 경우가 많아, 이 검사에서는 실질적으로 요추 제한을 보는 검사로 활용된다(\"요추 검사라고 생각하시면 돼요\")"
+    },
+    "assessment-22-어깨벌림패턴검사": {
+      "id": "assessment-22-어깨벌림패턴검사",
+      "type": "검사카드",
+      "title": "검사 22 | 어깨벌림 패턴검사 (Shoulder Abduction Pattern Test)",
+      "part": "PART 1 — 어깨 복합관절 (움직임 패턴 검사)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "상부승모근",
+          "전거근",
+          "하부승모근",
+          "회전근개"
+        ],
+        "techniques": [
+          "상부승모근",
+          "전거근",
+          "하부승모근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "어깨완전외전 패턴검사",
+          "업스크래치테스트",
+          "다운스크래치테스트"
+        ]
+      },
+      "assessment_name": "어깨벌림 패턴검사 / Shoulder Abduction Pattern Test",
+      "joint": "GH 조인트·ST 조인트 복합 — 어깨 벌림(외전) 동작의 초기 근육 동원 순서·협응을 관찰하는 움직임 패턴 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "선 자세. 팔꿈치를 90도 굽힌 상태로 대기",
+        "operator_raw": "대상자 정면 또는 뒤에서 양쪽을 동시에 관찰",
+        "pose_tag": "서기"
+      },
+      "positive": "60도 이전 어깨 거상 / 벌림 중 견갑골 후인(리트랙션)"
+    },
+    "assessment-23-어깨완전외전패턴검사": {
+      "id": "assessment-23-어깨완전외전패턴검사",
+      "type": "검사카드",
+      "title": "검사 23 | 어깨완전외전 패턴검사 (Full Abduction Pattern Test)",
+      "part": "PART 1 — 어깨 복합관절 (움직임 패턴 검사)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "견갑거근",
+          "전거근",
+          "하부승모근",
+          "소흉근",
+          "회전근개"
+        ],
+        "techniques": [
+          "견갑거근",
+          "전거근",
+          "하부승모근",
+          "소흉근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "어깨벌림 패턴검사",
+          "업스크래치테스트",
+          "다운스크래치테스트"
+        ]
+      },
+      "assessment_name": "어깨완전외전 패턴검사 / Full Abduction Pattern Test",
+      "joint": "GH 조인트·ST 조인트 복합 — 팔을 귀 옆까지 끝범위(180도)로 완전히 드는 동작의 협응 패턴 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "선 자세. 팔꿈치를 편 상태로 대기",
+        "operator_raw": "대상자 정면에서 얼굴·목·견갑골의 움직임을 함께 관찰",
+        "pose_tag": "서기"
+      },
+      "positive": "목이 팔 드는 쪽으로 기울어짐 / 견갑골 윙잉(내측연 들림) 또는 히핑(하각 들림)"
+    },
+    "assessment-01-업스크래치테스트": {
+      "id": "assessment-01-업스크래치테스트",
+      "type": "검사카드",
+      "title": "검사 01 | 업 스크래치 테스트 (Up Scratch Test)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "능형근",
+          "견갑거근",
+          "소흉근",
+          "GH후방관절낭",
+          "극하근",
+          "소원근",
+          "상부승모근",
+          "전거근",
+          "하부승모근",
+          "광배근"
+        ],
+        "techniques": [
+          "능형근",
+          "견갑거근",
+          "소흉근",
+          "GH후방관절낭",
+          "상부승모근",
+          "전거근",
+          "하부승모근",
+          "광배근",
+          "극하근",
+          "소원근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "다운 스크래치 테스트",
+          "상방회전 검사",
+          "외회전 검사"
+        ]
+      },
+      "assessment_name": "업 스크래치 테스트 / Up Scratch Test / 위 긁기 검사",
+      "joint": "ST 조인트 + GH 조인트 (어깨복합관절 복합 평가)",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세 (발바닥을 바닥에서 뗄지 붙일지는 상관없으나, 전·후 검사 모두 동일하게 일관되게 유지한다)",
+        "operator_raw": "대상자 후방에서 양쪽 팔 동시 관찰",
+        "pose_tag": "앉기"
+      },
+      "positive": "손끝이 삼각에 도달하지 못하는 경우 / 상완골이 수평에 가깝게 눕는 경우(질적 기준 아웃)"
+    },
+    "assessment-07-완전굴곡검사": {
+      "id": "assessment-07-완전굴곡검사",
+      "type": "검사카드",
+      "title": "검사 07 | 완전굴곡 검사 (Full Flexion Test) — 광배근 길이 검사",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "광배근",
+          "대원근"
+        ],
+        "techniques": [
+          "광배근",
+          "대원근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "업 스크래치 테스트"
+        ]
+      },
+      "assessment_name": "완전굴곡 검사 / Full Flexion Test / 광배근 길이 검사",
+      "joint": "GH 조인트 — 굴곡 및 광배근 길이 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세 (후킹 포지션). 이 검사만 특이하게 골반을 후방경사시키고 허리를 침대 쪽으로 눌러 유지한다(전방경사 검사와 정반대이므로 혼동 주의 — 전방경사는 허리를 누르지 않고 편안하게 둔다)",
+        "operator_raw": "대상자 측방",
+        "pose_tag": "누움"
+      },
+      "positive": "팔이 침대에서 떠 있는 경우 / 팔꿈치가 벌어지거나 팔이 내회전되며 돌아가는 경우"
+    },
+    "assessment-05-외회전검사": {
+      "id": "assessment-05-외회전검사",
+      "type": "검사카드",
+      "title": "검사 05 | 외회전 검사 (External Rotation Test)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "GH전방관절낭",
+          "견갑하근"
+        ],
+        "techniques": [
+          "GH전방관절낭",
+          "견갑하근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "내회전 검사",
+          "업 스크래치 테스트"
+        ]
+      },
+      "assessment_name": "외회전 검사 / External Rotation Test / GH 조인트 외회전 가동성 검사",
+      "joint": "GH 조인트 (관절와상완관절)",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세 (후킹 포지션), 팔 옆으로 90도 벌림(외전), 팔꿈치 90도 굴곡 — 팔이 펴진 푸시업 자세로 시작한다고 이해하면 된다",
+        "operator_raw": "대상자 측방. 외회전 검사는 어깨 뒤쪽을 살짝 받치기만 하면 되고, 손을 따로 고정하지 않아도 된다(내회전 검사와의 핵심 차이)",
+        "pose_tag": "누움"
+      },
+      "positive": "손등이 침대에 닿지 못하는 경우 / 좌우 비대칭이 뚜렷한 경우"
+    },
+    "assessment-04-전방경사검사": {
+      "id": "assessment-04-전방경사검사",
+      "type": "검사카드",
+      "title": "검사 04 | 전방경사 검사 (Anterior Tilt Test) — 소흉근 길이 검사",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "누움",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "소흉근"
+        ],
+        "techniques": [
+          "소흉근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "다운 스크래치 테스트",
+          "상방회전 검사"
+        ]
+      },
+      "assessment_name": "전방경사 검사 / Anterior Tilt Test / 앞기울기 검사 (소흉근 길이 검사로 활용)",
+      "joint": "ST 조인트 — 견갑골 전방경사(앞기울기) 정렬 및 소흉근 길이 평가",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "바로 누운 자세, 무릎을 세운 후크 라인 포지션(Hook-lying Position, \"산 모양 자세\" / \"후킹 포지션\"이라고도 부름). 검사 효율을 위해 처음부터 머리가 베드 바깥쪽으로 살짝 나오게 눕힌다(다음 검사인 완전굴곡 검사까지 이어서 하기 위함)",
+        "operator_raw": "대상자 측방에서 견봉각과 침대 사이 공간 관찰. 대상자 눈높이에 맞춰 몸을 낮춘다",
+        "pose_tag": "누움"
+      },
+      "positive": "견봉각이 과도하게 들려 있는 경우(표준 체형인데 손가락 4~5개 이상 들어가는 등) / 좌우 차이가 뚜렷한 경우 → 눈에 띄게 한쪽이 더 떠 있으면 그쪽을 양성으로 취급"
+    },
+    "assessment-29-트렌들렌버그검사": {
+      "id": "assessment-29-트렌들렌버그검사",
+      "type": "검사카드",
+      "title": "검사 29 | 트렌들렌버그검사 (Trendelenburg Test)",
+      "part": "PART 3 — 고관절/하지 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "중둔근"
+        ],
+        "techniques": [
+          "중둔근"
+        ],
+        "retests": [
+          "고관절벌림 패턴검사 재실시로 원클릭 복귀"
+        ],
+        "related_assessments": [
+          "고관절벌림 패턴검사"
+        ]
+      },
+      "assessment_name": "트렌들렌버그검사 / Trendelenburg Test",
+      "joint": "고관절 — 한 발 서기(외발서기) 동안 골반 수평 유지 능력을 확인하는 벌림근(주로 중둔근) 기능 평가 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "선 자세, 양손을(검사자 또는 지지물에) 올려 균형을 보조할 수 있게 한다",
+        "operator_raw": "대상자 뒤에서 양쪽 골반(장골능) 높이를 관찰",
+        "pose_tag": "서기"
+      },
+      "positive": "들린 쪽(비지지측) 골반이 눈에 띄게 떨어짐 / 몸통을 반대로 기울여 보상함"
+    },
+    "assessment-20-하부승모근근력검사": {
+      "id": "assessment-20-하부승모근근력검사",
+      "type": "검사카드",
+      "title": "검사 20 | 하부승모근 근력검사 (Lower Trapezius MMT)",
+      "part": "PART 1 — 어깨 복합관절 (Shoulder Complex)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "하부승모근",
+          "소흉근"
+        ],
+        "techniques": [
+          "하부승모근",
+          "소흉근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "상부승모근 근력검사",
+          "견갑골 정렬평가"
+        ]
+      },
+      "assessment_name": "하부승모근 근력검사 / Lower Trapezius MMT",
+      "joint": "ST 조인트 — 하부승모근(LTP) 도수근력검사(MMT)",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "엎드린 자세(prone). 검사할 팔을 몸통 대각선 방향(허리선 연장 방향)으로 약 150도(90도와 180도의 절반을 넘는 각도) 들어 올려 몸통과 팔이 일직선을 이루는 자세(\"Y\"자 형태) — 강사 표현으로 이 각도가 \"하부승모근이 가장 좋아하는 위치\"다",
+        "operator_raw": "대상자 옆에서 손목이 아니라 팔꿈치를 받쳐 잡는다",
+        "pose_tag": "엎드림"
+      },
+      "positive": "지지를 떼는 순간 팔이 떨어짐(추락) / 저항 시 반대쪽보다 쉽게 밀림"
+    },
+    "assessment-10-호킨스케네디테스트": {
+      "id": "assessment-10-호킨스케네디테스트",
+      "type": "검사카드",
+      "title": "검사 10 | 호킨스 케네디 테스트 (Hawkins-Kennedy Test)",
+      "part": "PART 3 — 어깨 특수 검사 (Special Tests)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "GH후방관절낭"
+        ],
+        "techniques": [
+          "GH후방관절낭"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "로컴 테스트",
+          "내회전 검사"
+        ]
+      },
+      "assessment_name": "호킨스 케네디 테스트 / Hawkins-Kennedy Test / 어깨 충돌 특수 검사 2",
+      "joint": "GH 조인트 — 어깨 내회전 충돌 특수 검사",
+      "level": 2,
+      "assess_pose": {
+        "subject_raw": "앉은 자세",
+        "operator_raw": "대상자 전방",
+        "pose_tag": "앉기"
+      },
+      "positive": "팔꿈치를 어깨 정면에 둔 정직한 자세에서도 내회전 시 어깨에서 집힘 또는 통증 발생 / 좌우 비대칭"
+    },
+    "assessment-32-흉추가쪽굽힘검사": {
+      "id": "assessment-32-흉추가쪽굽힘검사",
+      "type": "검사카드",
+      "title": "검사 32 | 흉추가쪽굽힘검사(벽 측굴검사) (Thoracic Lateral Flexion Test)",
+      "part": "PART 4 — 흉추/요추 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "요방형근",
+          "척추기립근"
+        ],
+        "techniques": [
+          "요방형근",
+          "척추기립근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "흉추신전검사",
+          "흉추회전검사"
+        ]
+      },
+      "assessment_name": "흉추가쪽굽힘검사(벽 측굴검사) / Thoracic Lateral Flexion Test (Wall Test)",
+      "joint": "흉추 — 벽에 기대어 선 자세로 몸통을 옆으로 굽히며(가쪽굽힘) 흉추의 측굴 가동성을 좌우 비교·정량 평가하는 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "벽에 등을 대고 선 자세. 두 발은 골반 너비로 벌리고, 뒤꿈치는 벽에 붙이지 않고 발 사이즈의 절반 정도 앞으로 나온 위치에 둔다",
+        "operator_raw": "대상자 옆에서 팔의 위치와 벽 부착 지점(뒤통수·견갑골 내측연·천골)을 관찰",
+        "pose_tag": "서기"
+      },
+      "positive": "좌우 도달 높이 차이(어느 한쪽이 뚜렷이 덜 내려감) / 벽 부착 3지점 중 하나 이상이 굽힘 중 벽에서 떨어짐"
+    },
+    "assessment-31-흉추신전검사": {
+      "id": "assessment-31-흉추신전검사",
+      "type": "검사카드",
+      "title": "검사 31 | 흉추신전검사(프레스업) (Thoracic Extension Test)",
+      "part": "PART 4 — 흉추/요추 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "척추기립근",
+          "대둔근"
+        ],
+        "techniques": [
+          "척추기립근",
+          "대둔근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "쇼버검사",
+          "흉추가쪽굽힘검사",
+          "흉추회전검사"
+        ]
+      },
+      "assessment_name": "흉추신전검사(프레스업) / Thoracic Extension Test (Prone Press-up)",
+      "joint": "흉추 — 엎드려 코브라 자세(프레스업)로 상체를 들어올리며 흉추 각 분절의 신전 가동성과 라인(칼주름, 튀어나온 분절)을 확인하는 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "엎드린 자세(prone), 코브라 자세(엎드려 팔굽혀 상체 들기)와 유사한 자세로 준비",
+        "operator_raw": "대상자 등 쪽에서 촉진하며 관찰",
+        "pose_tag": "엎드림"
+      },
+      "positive": "특정 분절(허리 또는 흉추 특정 레벨)에 진한 칼주름 / 촉진 시 한 분절만 볼록하게 튀어나오는 느낌, 그 지점 압통"
+    },
+    "assessment-33-흉추회전검사": {
+      "id": "assessment-33-흉추회전검사",
+      "type": "검사카드",
+      "title": "검사 33 | 흉추회전검사(좌식 회전) (Thoracic Rotation Test)",
+      "part": "PART 4 — 흉추/요추 검사",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "척추기립근"
+        ],
+        "techniques": [
+          "척추기립근"
+        ],
+        "retests": [],
+        "related_assessments": [
+          "흉추신전검사",
+          "흉추가쪽굽힘검사"
+        ]
+      },
+      "assessment_name": "흉추회전검사(좌식 회전) / Thoracic Rotation Test (Seated, Dowel)",
+      "joint": "흉추 — 앉은 자세(요추 회전을 최소화한 상태)에서 어깨에 봉(dowel)을 걸치고 몸통을 회전시켜 흉추 회전 가동성을 좌우 비교·정량 평가하는 검사",
+      "level": 1,
+      "assess_pose": {
+        "subject_raw": "앉은 자세(의자 등), 골반을 고정하거나 다리 사이에 물건을 끼워 하체 움직임을 제한. 봉(dowel)이 있으면 양쪽 어깨(승모근 위)에 걸치고 손목을 걸쳐 얹는다(손으로 봉을 잡지 않는다 — 잡으면 손으로 돌리려는 보상이 섞인다)",
+        "operator_raw": "대상자 정면에서 회전 각도를 관찰·측정",
+        "pose_tag": "앉기"
+      },
+      "positive": "한쪽 회전 각도가 45도에 뚜렷이 못 미침 / 회전 중 몸통이 옆으로 밀림(스웨이) 또는 가쪽굽힘이 섞임"
+    },
+    "technique-20-DNF": {
+      "id": "technique-20-DNF",
+      "type": "테크닉카드",
+      "title": "테크닉 20 | 심부경부굴곡근 / DNF (Deep Neck Flexors)",
+      "part": "목 파트 — 내재근, 상부경추 굴곡·시상면 안정자",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "천장을 보고 누운 자세",
+          "operator_raw": "",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "누움",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "후두하근",
+          "흉쇄유돌근·사각근"
+        ],
+        "techniques": [],
+        "retests": [
+          "DNF 근력검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "심부경부굴곡근 (DNF)",
+        "new": "심부경부굴곡근 (DNF)",
+        "old": "",
+        "en": "Deep Neck Flexors (Rectus Capitis Anterior, Rectus Capitis Lateralis, Longus Capitis, Longus Colli)",
+        "en_short": "Deep Neck Flexors",
+        "abbr": "DNF",
+        "sci": "DNF"
+      },
+      "technique_types": [
+        "패턴검사",
+        "근력평가(MMT)",
+        "운동"
+      ],
+      "palpation": "전사문에는 DNF에 대한 직접 촉진 방법(손가락으로 만져 확인하는 방식)은 확인되지 않는다 — 목 안쪽 깊은 곳에 위치해 촉진이 어려운 근육이며, 대신 아래의 패턴검사·근력평가로 기능을 확인한다.",
+      "one_liner": "DNF(전두직근·외측두직근·두장근·경장근 4개를 합친 이름)는 목 앞쪽 가장 안쪽(내재근)에 뼈에 바로 발려 있는 근육군으로, 상부경추 굴곡(턱 당기기)을 유일하게 담당하며 시상면에서 목이 뒤로 젖혀지지(신전) 않도록 버티는 안정자 역할을 한다."
+    },
+    "technique-05-GH전방관절낭": {
+      "id": "technique-05-GH전방관절낭",
+      "type": "테크닉카드",
+      "title": "테크닉 05 | GH 전방 관절낭 / 앞쪽 관절주머니 / GH Anterior Capsule",
+      "part": "PART 2 — 외회전 제한 근육 (GH 조인트)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "누운 자세, 팔 135도 벌림(V자 형태)",
+          "operator_raw": "대상자 측방",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "누움",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [
+          "견갑하근"
+        ],
+        "retests": [
+          "외회전 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "GH 전방 관절낭 / 앞쪽 관절주머니",
+        "new": "GH 전방 관절낭",
+        "old": "앞쪽 관절주머니",
+        "en": "GH Anterior Capsule",
+        "en_short": "GH Anterior Capsule",
+        "abbr": "",
+        "sci": "GH Anterior Capsule"
+      },
+      "technique_types": [
+        "ART"
+      ],
+      "palpation": "원문에 별도 촉진 섹션은 없으나 ART 접촉 방법 안에 상세히 기술되어 있다.\n**상완골두 촉진 순서:**\n① 팔을 135도 벌림(V자 형태, 스캡션 위치)으로 들어 올린다.\n② 겨드랑이 쪽을 동글동글 굴려본다 — 이때 상완골두가 앞쪽으로 툭 튀어나온다(\"닭다리 먹을 때 뼈를 비틀어 뽑는 느낌\"으로 표현됨).\n③ 딱딱한 뼈가 만져지는 지점이 상완골두다.\n**흔한 실수 / 촉진 난이도:** 남성, 운동을 많이 한 대상자는 근육이 먼저 만져져 골두 촉진이 잘 안 된다. 반대로 어깨가 불안정한 대상자는 골두가 유난히 잘 만져지는데, 이는 좋은 소견이 아니라 불안정성의 신호로 해석한다.\n**접촉:** 골두 앞쪽에 손가락 한 마디 전체를 대고 접촉한다 — 포인트로 찌르지 않는다.",
+      "one_liner": "GH 전방 관절낭은 관절 앞쪽을 인대 조직으로 감싸는 주머니(캡슐)로, 앞쪽 관절낭과 뒤쪽 관절낭으로 구분된다. 여기가 뻣뻣해지면 외회전이 막힌다. 관절 구조물 중 가장 딥한 층이라 여기부터 풀면 얕은 층(표층 근육)은 자동으로 따라온다."
+    },
+    "technique-11-GH후방관절낭": {
+      "id": "technique-11-GH후방관절낭",
+      "type": "테크닉카드",
+      "title": "테크닉 11 | GH 후방 관절낭 / 뒤쪽 관절주머니 / GH Posterior Capsule",
+      "part": "PART 4 — 내회전 개선 (GH 조인트)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "앉은 자세",
+          "operator_raw": "대상자 측방",
+          "pose_tag": "앉기"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "누운 자세, 내회전 끝범위",
+          "operator_raw": "어깨 전면부를 가볍게 고정",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "앉기",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "MET 1",
+          "text": "\" → 이미 끝범위인 내회전을 더 깊게 밀어붙이려는 힘"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "극하근",
+          "소원근",
+          "후면삼각근"
+        ],
+        "techniques": [],
+        "retests": [
+          "내회전 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "GH 후방 관절낭 / 뒤쪽 관절주머니",
+        "new": "GH 후방 관절낭",
+        "old": "뒤쪽 관절주머니",
+        "en": "GH Posterior Capsule",
+        "en_short": "GH Posterior Capsule",
+        "abbr": "",
+        "sci": "GH Posterior Capsule"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**접촉 위치:** 어깨뼈 가시를 따라 끝까지 가면 견봉이 나온다. 견봉각 아래쪽 공간 — 거기를 누르면 쑥쑥 들어가는 공간이 견갑골과 상완골의 경계선이다. 이 부위는 가장 안쪽에 있는 후방 관절낭 자체를 다루는 지점이며, 여기가 풀리면 더 바깥쪽에 있는 극하근·소원근·후면삼각근까지 함께 풀리는 효과가 있다.",
+      "one_liner": "후방 관절낭이 뻣뻣해지는 게 전방보다 훨씬 흔하다. 내회전 제한이 있으면 가장 먼저 확인하는 부위이며, 소책자 3페이지는 이 후방 관절낭 자체(가장 안쪽), 3~5페이지 전체는 \"내회전 개선\"이라는 하나의 목적으로 묶여 있다."
+    },
+    "technique-52-가자미근": {
+      "id": "technique-52-가자미근",
+      "type": "테크닉카드",
+      "title": "테크닉 52 | 가자미근 / 넙치근 / Soleus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "비복근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "가자미근 / 넙치근",
+        "new": "가자미근",
+        "old": "넙치근",
+        "en": "Soleus",
+        "en_short": "Soleus",
+        "abbr": "",
+        "sci": "Soleus"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 가자미근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다(단, 원문에서 \"가자미근은 안에 있잖아요. 그러니까 풀기가 쉽지 않은 거예요\"라는 서술은 있음 — 위치가 깊어 손으로 직접 풀기 어렵다는 취지).",
+      "one_liner": "가자미근은 경골의 가자미근선과 비골 머리 뒤쪽에서 시작해 비복근과 함께 아킬레스건을 이뤄 종골에 붙는, 무릎을 지나가지 않는 단관절 발바닥굽힘 주동근이며, 서 있는 자세를 유지하는 자세유지근이자 정맥 회귀를 돕는 펌프 역할까지 겸한다."
+    },
+    "technique-03-견갑거근": {
+      "id": "technique-03-견갑거근",
+      "type": "테크닉카드",
+      "title": "테크닉 03 | 견갑거근 / 어깨올림근 / Levator Scapulae",
+      "part": "PART 1 — 업 스크래치 제한 근육 (하방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "앉은 자세",
+          "operator_raw": "대상자 후방 또는 측방",
+          "pose_tag": "앉기"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "앉은 자세(강사는 의자에 앉아서 하는 것을 추천)",
+          "operator_raw": "대상자 후방 또는 측방",
+          "pose_tag": "앉기"
+        }
+      ],
+      "primary_pose_tag": "앉기",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "상부승모근"
+        ],
+        "techniques": [],
+        "retests": [
+          "업 스크래치 테스트",
+          "상방회전 검사"
+        ],
+        "related_assessments": [
+          "상방회전 검사"
+        ]
+      },
+      "muscle": {
+        "full": "견갑거근 / 어깨올림근",
+        "new": "견갑거근",
+        "old": "어깨올림근",
+        "en": "Levator Scapulae",
+        "en_short": "Levator Scapulae",
+        "abbr": "",
+        "sci": "Levator Scapulae"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**손의 접촉:** 상각을 먼저 찾는다 — 어깨뼈 가시를 따라가다 루트(견갑극 뿌리)에서 약 1cm 위로 올라간 지점을 80% 정도 등반하듯 짚은 뒤, 아래쪽으로 살짝 눌러서 상각 위치를 확정한다(원문 표현: \"위 살짝 내리면 상각이 있다\"). 삼각(상각) 부위를 가볍게 압박하면 두피 쪽까지 뻐근하게 당기는 느낌이 난다.",
+      "one_liner": "견갑거근은 견갑골 상각을 목 쪽으로 끌어올리는 근육(견갑골 상각~경추 횡돌기). 단축·뻣뻣해지면 견갑골이 올라가거나 상방회전이 막히고, 목까지 잡아당겨 통증을 만든다."
+    },
+    "technique-06-견갑하근": {
+      "id": "technique-06-견갑하근",
+      "type": "테크닉카드",
+      "title": "테크닉 06 | 견갑하근 / 어깨밑근 / Subscapularis",
+      "part": "PART 2 — 외회전 제한 근육 (GH 조인트)",
+      "date": "",
+      "poses": [
+        {
+          "section": "촉진 (Palpation)",
+          "subject_raw": "누운 자세, 팔 옆으로 90도 벌림",
+          "operator_raw": "",
+          "pose_tag": "누움"
+        },
+        {
+          "section": "ART 1",
+          "subject_raw": "누운 자세, 팔을 앞으로 나란히 + 내회전 자세로 시작",
+          "operator_raw": "대상자 옆, 겨드랑이 안쪽으로 손을 사선으로 넣은 상태",
+          "pose_tag": "누움"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "누운 자세, 팔을 외회전 끝범위에 둔 상태",
+          "operator_raw": "어깨 앞쪽을 가볍게 고정",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "누움",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "ART 1",
+          "text": "견갑골이 보이면 안쪽 모서리를 살짝 당겨주듯 텐션을 더해도 좋다"
+        },
+        {
+          "section": "MET 1",
+          "text": "포인트:** \"제 손을 미세요\"처럼 말하면 팔 전체로 밀어버리기 쉬움 → 회전하는 힘이라고 정확히 설명한다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [
+          "GH전방관절낭"
+        ],
+        "retests": [
+          "외회전 검사",
+          "리프트오프 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "견갑하근 / 어깨밑근",
+        "new": "견갑하근",
+        "old": "어깨밑근",
+        "en": "Subscapularis",
+        "en_short": "Subscapularis",
+        "abbr": "",
+        "sci": "Subscapularis"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**대상자 자세:** 누운 자세, 팔 옆으로 90도 벌림\n**손의 접촉:** 겨드랑이 바로 아래에서 시작한다. 엄지손가락 있는 쪽(견갑골 외측 모서리 방향)에서 손을 사선으로 집어넣는다. 갈비뼈를 타고 붙여 들어가는 느낌으로 — 찌르듯 넣지 않는다. 손끝으로 딱딱한 견갑골 가장자리가 만져지면 촉진 성공이다.\n**포인트:** 견갑골이 전방경사되어 있으면 팔을 약간 더 들어야 손이 더 잘 들어간다 / 팔이 올라갈수록(외회전이 진행될수록) 견갑골이 상방회전되며 촉진이 더 잘 된다 / 굉장히 아픈 부위이므로 살살, 지그시 접근한다.",
+      "one_liner": "견갑하근은 내회전(IR) 주동근이며, 소결절(작은결절)에 부착되어 상완골두가 앞쪽으로 빠져나가지 않도록 혼자 버티는 근육이다. 대상자들은 보통 외회전 운동은 많이 해도 내회전 운동은 잘 하지 않기 때문에, 오히려 내회전 운동을 더 정교하게 챙겨줘야 하는 근육이다."
+    },
+    "technique-29-골반기저근": {
+      "id": "technique-29-골반기저근",
+      "type": "테크닉카드",
+      "title": "테크닉 29 | 골반기저근 / 골반저근 / Pelvic Floor Muscles",
+      "part": "트렁크(체간) — 이너코어박스(로컬코어)의 바닥",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "횡격막",
+          "복횡근",
+          "다열근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "골반기저근 / 골반저근",
+        "new": "골반기저근",
+        "old": "골반저근",
+        "en": "Pelvic Floor Muscles",
+        "en_short": "Pelvic Floor Muscles",
+        "abbr": "",
+        "sci": "Pelvic Floor Muscles"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문에는 골반기저근에 대한 직접적 촉진 시연이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "골반기저근은 항문거근 계열 3개 근육과 미골근 계열 2개 근육(문헌에 따라 더 많게 보기도 함) 등 총 5개 안팎의 근육으로 이루어진 골반 바닥의 \"받침\"으로, 골반 안의 내장을 떠받치고 복강내압(IAP)을 최적으로 생성·유지하는 역할을 하며, 이너코어박스에서 횡격막(뚜껑)과 짝을 이루는 \"바닥\" 역할을 한다."
+    },
+    "technique-04-광배근": {
+      "id": "technique-04-광배근",
+      "type": "테크닉카드",
+      "title": "테크닉 04 | 광배근 / 넓은등근 / Latissimus Dorsi",
+      "part": "PART 1 — 업 스크래치 제한 근육 (하방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1 — 엎드린 자세",
+          "subject_raw": "엎드린 자세",
+          "operator_raw": "대상자 측방",
+          "pose_tag": "엎드림"
+        },
+        {
+          "section": "ART 2 — 옆으로 누운 자세 (강사 추천 버전)",
+          "subject_raw": "옆으로 누운 자세(사이드라잉), 머리는 팔 위에 얹음",
+          "operator_raw": "대상자 앞쪽",
+          "pose_tag": "옆누움"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "옆으로 누운 자세, 위쪽 다리는 길게 뻗어 골반을 최대한 떨어뜨림",
+          "operator_raw": "대상자 팔을 잡음",
+          "pose_tag": "옆누움"
+        }
+      ],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "촉진 (Palpation)",
+          "text": "손의 접촉:** 안쪽 모서리(내측견)에서 시작해 상방으로 돕듯이 밀어주며 하각을 지나 가쪽 모서리(외측연)까지, 겨드랑이에서 마무리한다"
+        },
+        {
+          "section": "ART 2 — 옆으로 누운 자세 (강사 추천 버전)",
+          "text": "검사자는 대상자가 팔을 뻗는 동안 겨드랑이 아래쪽을 척골로 압박한 채로 **앞에서부터 뒤쪽으로** 밀듯이 쓸어준다 — 하각을 지나 안쪽 모서리 쪽으로 마무리"
+        },
+        {
+          "section": "ART 2 — 옆으로 누운 자세 (강사 추천 버전)",
+          "text": "강사 큐잉(원표현):** \"책에는 그냥 위에서 아래로 이렇게 쓸어내리는 거거든요"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "대원근"
+        ],
+        "techniques": [],
+        "retests": [
+          "완전굴곡 검사",
+          "업 스크래치 테스트"
+        ],
+        "related_assessments": [
+          "외회전 검사",
+          "다운 스크래치 테스트"
+        ]
+      },
+      "muscle": {
+        "full": "광배근 / 넓은등근",
+        "new": "광배근",
+        "old": "넓은등근",
+        "en": "Latissimus Dorsi",
+        "en_short": "Latissimus Dorsi",
+        "abbr": "",
+        "sci": "Latissimus Dorsi"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**해부학적 이유:** 광배근은 허리 쪽에 부착되어 흉곽 하부를 덮고 지나가며, 겨드랑이 뒤쪽에서 대원근·삼두근과 함께 사각형 모양의 공간(사각공간)을 만든다. 이 공간으로 신경이 지나가며, 팔을 들었다 내렸다 반복하면 이 부위가 비벼지고 심하면 광배근이 미세하게 찢어지는 사람도 있다.\n**손의 접촉:** 안쪽 모서리(내측견)에서 시작해 상방으로 돕듯이 밀어주며 하각을 지나 가쪽 모서리(외측연)까지, 겨드랑이에서 마무리한다.",
+      "one_liner": "광배근은 팔을 내리고 안으로 돌리는 큰 근육(허리~골반에서 시작해 상완골 결절간구에 부착). 뻣뻣해지면 팔을 위로 드는 게 막히고, 업/다운 스크래치와 내회전까지 동시에 방해한다."
+    },
+    "technique-12-극상근": {
+      "id": "technique-12-극상근",
+      "type": "테크닉카드",
+      "title": "테크닉 12 | 극상근 / 가시위근 / Supraspinatus",
+      "part": "PART 5 — 극상근",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1 — 대결절 / 삼각근·이두근과 함께 (29페이지)",
+          "subject_raw": "앉은 자세",
+          "operator_raw": "대상자 전방",
+          "pose_tag": "앉기"
+        },
+        {
+          "section": "MET 1 (두 가지 방법)",
+          "subject_raw": "옆으로 누운 자세, 다운 스크래치(하방회전) 끝범위",
+          "operator_raw": "대상자 뒤쪽에서 견갑골 안쪽으로 손을 넣고 전면부 막기",
+          "pose_tag": "옆누움"
+        }
+      ],
+      "primary_pose_tag": "앉기",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "ART 1 — 대결절 / 삼각근·이두근과 함께 (29페이지)",
+          "text": "팔이 가는 동안 검사자는 어깨 전면부에서 옆쪽(바깥쪽)으로 쓸어준다"
+        },
+        {
+          "section": "ART 2 — 극상와 / 상부승모근과 함께 (30페이지)",
+          "text": "접촉 위치:** 어깨뼈 가시 위쪽(극상와, 극상근의 기시점) — 승모근에 덮여 있는 상태에서 그 위를 눌러 쓸어준다"
+        },
+        {
+          "section": "ART 2 — 극상와 / 상부승모근과 함께 (30페이지)",
+          "text": "가시 바깥쪽부터 시작해 가시를 따라 안쪽으로 쓸어준다"
+        },
+        {
+          "section": "ART 2 — 극상와 / 상부승모근과 함께 (30페이지)",
+          "text": "검사자는 어깨뼈 가시 위쪽에 손을 대고, 다른 한 손으로 어깨를 가볍게 눌러 고정한다(밀 때 대상자가 넘어지지 않게 하기 위함)"
+        },
+        {
+          "section": "ART 2 — 극상와 / 상부승모근과 함께 (30페이지)",
+          "text": "팔이 이동하는 동안 검사자는 가시 위쪽에서 안쪽 방향으로 쓸어준다"
+        },
+        {
+          "section": "MET 1 (두 가지 방법)",
+          "text": "견갑골을 단단히 고정하고 팔만 안쪽으로 더 밀어넣는다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "상부승모근",
+          "삼각근"
+        ],
+        "techniques": [],
+        "retests": [
+          "다운 스크래치 테스트"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "극상근 / 가시위근",
+        "new": "극상근",
+        "old": "가시위근",
+        "en": "Supraspinatus",
+        "en_short": "Supraspinatus",
+        "abbr": "",
+        "sci": "Supraspinatus"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "원문에 별도 촉진(Palpation) 섹션 없음(미기재). ART 접촉 위치가 각 ART 항목에 개별 기술됨.",
+      "one_liner": "극상근 + 삼각근(별도 카드 없음 — 극상근 카드에서 함께 다룸)은 견갑골이 하방회전되면 짧아진 위치에 놓인다. 원래 하방회전 자체는 정상적으로 가능한 움직임이지만, 어깨가 불안정해지면 팔이 가만히 있는 상태에서도 견갑골이 하방회전 위치로 자꾸 돌아가 있게 되고, 그 결과 극상근·삼각근이 짧은 위치에 고정되어 뻣뻣해진다. 여기를 해결하면 견갑골이 다시 잘 움직이게 되어 팔 드는 것이 편해진다."
+    },
+    "technique-14-극하근": {
+      "id": "technique-14-극하근",
+      "type": "테크닉카드",
+      "title": "테크닉 14 | 극하근 / 가시아래근 / Infraspinatus",
+      "part": "회전근개(로테이터커프) — 외회전 근육",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "가 스스로 시행 가능한 스트레칭(파트너가 도와줄 수도 있음)",
+          "operator_raw": "",
+          "pose_tag": ""
+        }
+      ],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "소원근",
+          "후두하근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "극하근 / 가시아래근",
+        "new": "극하근",
+        "old": "가시아래근",
+        "en": "Infraspinatus",
+        "en_short": "Infraspinatus",
+        "abbr": "",
+        "sci": "Infraspinatus"
+      },
+      "technique_types": [
+        "스트레칭"
+      ],
+      "palpation": "전사문에서는 극하근을 소원근과 묶어서 함께 촉진하는 방법만 확인된다(개별 분리 촉진법은 확인되지 않음). 대상자를 엎드리게 하고 검사자가 어깨뼈 가시를 먼저 찾은 뒤, 가시 아래쪽에 손가락 두 개를 가로로 위치시켜 긁듯이 촉진한다 — 이 손가락 두 개가 위치한 자리가 극하근과 소원근이다. 촉진이 제대로 됐는지 확인하려면 대상자에게 힘을 뺀 채 외회전을 시켜본다 — **강사 큐잉(원표현):** \"미친구들 외회전할 때 있는 근육이었던 거 기억나세요? ... 외배전이 그렇지\"라며 외회전 시 해당 조직이 볼록해지는지로 확인시켰다. 겨드랑이·가슴 사이로 손을 파고 넣어 앞쪽에서 견갑하근과 구분하는 별도 촉진도 함께 시연됐다(견갑하근 촉진이며 극하근·소원근과의 대조용).",
+      "one_liner": "극하근은 가시아래오목(극하와)에서 시작해 상완골 큰결절(대결절) 뒤쪽에 붙는 회전근개 중 하나로, 소원근과 함께 외회전의 주동근이며, 단축·뻣뻣해지기 쉬운 근육이다."
+    },
+    "technique-23-내복사근": {
+      "id": "technique-23-내복사근",
+      "type": "테크닉카드",
+      "title": "테크닉 23 | 내복사근 / 배속빗근 / Internal Oblique",
+      "part": "트렁크(체간) — 로컬코어(이너코어) 근육군",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "외복사근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "내복사근 / 배속빗근",
+        "new": "내복사근",
+        "old": "배속빗근",
+        "en": "Internal Oblique",
+        "en_short": "Internal Oblique",
+        "abbr": "",
+        "sci": "Internal Oblique"
+      },
+      "technique_types": [
+        "미기재"
+      ],
+      "palpation": "원문 전사에는 내복사근에 대한 직접적인 촉진 시연은 확인되지 않는다 — 지어내지 않고 미기재로 남긴다. 다만 강사가 체표 랜드마크로 언급한 내용이 있다: 몸이 좋은 남성들의 복부에 드러나는 \"치골 라인\"으로 흔히 불리는 사선(V자) 라인은 사실 정확히는 서혜인대 라인이며, 이 라인 위에 내복사근이 붙는다(원문: \"이 라인이 바로 서혜인대라인이다. 거기에 내복사근이 지금 붙고 있잖아요\").",
+      "one_liner": "내복사근은 서혜인대(사타구니 인대)·장골능 앞부분·흉요근막에서 시작해 2~12번 갈비연골과 복건막으로 붙으며, 편측 수축 시 동측(같은 쪽) 회전과 가쪽굽힘을 만드는 회전의 주동근이다 — 좌우 어느 한쪽이 자세·운동 습관 때문에 약화·저활성되는 좌우불균형이 흔하다."
+    },
+    "technique-48-내측광근": {
+      "id": "technique-48-내측광근",
+      "type": "테크닉카드",
+      "title": "테크닉 48 | 내측광근 / 안쪽넓은근 / Vastus Medialis (Oblique)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 무릎/대퇴사두근 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "앉기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "외측광근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "내측광근 / 안쪽넓은근 (VM, 사선섬유는 VMO)",
+        "new": "내측광근",
+        "old": "안쪽넓은근 (VM, 사선섬유는 VMO)",
+        "en": "Vastus Medialis (Oblique)",
+        "en_short": "Vastus Medialis",
+        "abbr": "",
+        "sci": "Vastus Medialis"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 내측광근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "내측광근은 대퇴골 뒤쪽 거친선(조선)에서 시작해 슬개골·경골조면(대퇴사두근 공통 정지점)으로 붙는 무릎 신전 주동근이며, 긴섬유(VML)와 사선섬유(VMO) 두 파트로 나뉘어 이 중 VMO가 슬개골의 외측 변위를 억제하는 유일한 근육으로 설명되는, 무릎 재활에서 특히 중요하게 다뤄지는(강사가 \"★\" 표시) 근육이다."
+    },
+    "technique-02-능형근": {
+      "id": "technique-02-능형근",
+      "type": "테크닉카드",
+      "title": "테크닉 02 | 능형근 / 마름근 / Rhomboid",
+      "part": "PART 1 — 업 스크래치 제한 근육 (하방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "촉진 (Palpation)",
+          "subject_raw": "엎드린 자세 또는 앉은 자세",
+          "operator_raw": "",
+          "pose_tag": "엎드림"
+        },
+        {
+          "section": "ART 1",
+          "subject_raw": "앉은 자세",
+          "operator_raw": "대상자 후방",
+          "pose_tag": "앉기"
+        },
+        {
+          "section": "ART 2",
+          "subject_raw": "ART 1과 동일",
+          "operator_raw": "",
+          "pose_tag": ""
+        }
+      ],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "중부승모근",
+          "상부승모근"
+        ],
+        "techniques": [],
+        "retests": [
+          "업 스크래치 테스트",
+          "상방회전 검사"
+        ],
+        "related_assessments": [
+          "상방회전 검사"
+        ]
+      },
+      "muscle": {
+        "full": "능형근 / 마름근",
+        "new": "능형근",
+        "old": "마름근",
+        "en": "Rhomboid",
+        "en_short": "Rhomboid",
+        "abbr": "",
+        "sci": "Rhomboid"
+      },
+      "technique_types": [
+        "ART"
+      ],
+      "palpation": "**대상자 자세:** 엎드린 자세 또는 앉은 자세\n**손의 접촉:** 어깨뼈 가시(견갑극, 상각 레벨은 흉추 2번 부근)와 하각(흉추 7번 부근) 사이, 척추 극돌기와 견갑골 내측 모서리 사이 공간에서 접촉한다. 능형근 자체는 상각이 흉추 5번, 하각(부착부)이 경추 7번 방향으로 사선으로 주행하므로, 그 결 방향을 따라 위아래로 나누어 압박한다(한 번에 다 못 하므로 몇 번 나눠서 진행).\n**촉진 시 조직의 특징:**\n- 눌러서 제일 아프다고 하는 한두 지점을 찾아 그 지점 위주로 진행한다 — 단, 이 통증이 능형근만의 것이라 단정할 수는 없다(중부승모근·기립근 등 주변 근육과 함께 문제를 일으키는 경우가 많음).",
+      "one_liner": "능형근은 견갑골을 안쪽으로 당기는 근육(흉추 5번~경추 7번 방향으로 부착되는 ㅅ자 모양). 뻣뻣해지면 견갑골이 프로트랙션(벌어짐)되기 어려워지고, 상방회전도 방해된다."
+    },
+    "technique-26-다열근": {
+      "id": "technique-26-다열근",
+      "type": "테크닉카드",
+      "title": "테크닉 26 | 다열근 / 뭇갈래근 / Multifidus",
+      "part": "트렁크(체간) — 이너코어박스(로컬코어)의 후방 안정근",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "복횡근",
+          "요방형근",
+          "척추기립근",
+          "장요근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "다열근 / 뭇갈래근",
+        "new": "다열근",
+        "old": "뭇갈래근",
+        "en": "Multifidus",
+        "en_short": "Multifidus",
+        "abbr": "",
+        "sci": "Multifidus"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 다열근 단독 촉진 시연이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "다열근은 척추뼈마다 가로돌기(TP)에서 대각선으로 위쪽 가시돌기(SP)까지 짧게짧게 이어 붙는 다갈래(多裂) 심부근육으로, 특히 요추·천추 구간에 밀도가 높아 척추뼈가 앞으로 미끄러지려는 힘(전단력)을 억제하는 요천추 국소 안정자이며, 이너코어박스의 \"뒤쪽 끈\" 역할을 한다."
+    },
+    "technique-45-단내전근": {
+      "id": "technique-45-단내전근",
+      "type": "테크닉카드",
+      "title": "테크닉 45 | 단내전근 / 짧은모음근 / Adductor Brevis",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "치골근·장내전근",
+          "대내전근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "단내전근 / 짧은모음근",
+        "new": "단내전근",
+        "old": "짧은모음근",
+        "en": "Adductor Brevis",
+        "en_short": "Adductor Brevis",
+        "abbr": "",
+        "sci": "Adductor Brevis"
+      },
+      "technique_types": [
+        "해부/기능·운동처방"
+      ],
+      "palpation": "원문 전사에는 단내전근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 부착부 설명(치골 몸통 하부·거친선 상부)뿐이며, 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "단내전근은 \"브레비스(짧다)\"라는 이름 그대로, 아래쪽 치골 몸통(인페리어 퓨빅 바디)에서 시작해 거친선(리니아 아스페라) 상부 파트까지 올라가 붙는 안테리어 어덕터로, 내전(AD)을 주동하며 굴곡·내회전에도 협력근으로 참여한다 — 기능은 장내전근과 동일하다."
+    },
+    "technique-56-단비골근": {
+      "id": "technique-56-단비골근",
+      "type": "테크닉카드",
+      "title": "테크닉 56 | 단비골근 / 짧은종아리근 / Peroneus (Fibularis) Brevis",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "장비골근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "단비골근 / 짧은종아리근",
+        "new": "단비골근",
+        "old": "짧은종아리근",
+        "en": "Peroneus (Fibularis) Brevis",
+        "en_short": "Peroneus",
+        "abbr": "",
+        "sci": "Peroneus"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 단비골근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "단비골근은 비골 아래쪽 3분의 2 지점에서 시작해 5번 발허리뼈 바닥에 붙는, 장비골근보다 짧고 얕은 근육으로 외번(eversion)의 주동근이다."
+    },
+    "technique-46-대내전근": {
+      "id": "technique-46-대내전근",
+      "type": "테크닉카드",
+      "title": "테크닉 46 | 대내전근 / 큰모음근 / Adductor Magnus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "반건양근·반막양근",
+          "치골근·장내전근·단내전근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "대내전근 / 큰모음근",
+        "new": "대내전근",
+        "old": "큰모음근",
+        "en": "Adductor Magnus",
+        "en_short": "Adductor Magnus",
+        "abbr": "",
+        "sci": "Adductor Magnus"
+      },
+      "technique_types": [
+        "해부/기능·촉진·운동처방"
+      ],
+      "palpation": "**어덕터 투버클(내전근 결절) 촉진:** 허벅지 안쪽에 손을 넣고 재봉선을 따라 가운데서부터 꾹 눌러 내려가면 뼈처럼 걸리는 지점이 있다(어덕터 투버클, 무릎 안쪽 가까이). 다리를 살짝 펴면 촉진이 더 잘 된다. 앞뒤로 끌어보면 통증이 느껴질 수 있는데, 원문에서는 \"촉진하면 되게 아픈 곳\"으로 설명되며 폼롤러로 문지르면 유독 아플 수 있는 부위다.",
+      "one_liner": "대내전근은 내전근 5형제 중 가장 크고 넓은 근육으로, 앞쪽 사선 섬유(치골 가지 하부→거친선)는 내전을 주동하고 뒤쪽 수직 섬유(좌골조면→내전근 결절, 어덕터 투버클)는 햄스트링처럼 고관절 신전에도 관여해 \"제2의 햄스트링\"으로 불린다 — 허벅지 내측 부피의 대부분을 차지하며 SLR 가동성을 제한할 수 있는 근육이다."
+    },
+    "technique-32-대둔근": {
+      "id": "technique-32-대둔근",
+      "type": "테크닉카드",
+      "title": "테크닉 32 | 대둔근 / 큰볼기근 / Gluteus Maximus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 둔근/고관절 신전·외회전 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "중둔근",
+          "대퇴근막장근",
+          "대퇴이두근·반건양근·반막양근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 신전 패턴 검사",
+          "대둔근근력검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "대둔근 / 큰볼기근",
+        "new": "대둔근",
+        "old": "큰볼기근",
+        "en": "Gluteus Maximus",
+        "en_short": "Gluteus Maximus",
+        "abbr": "",
+        "sci": "Gluteus Maximus"
+      },
+      "technique_types": [
+        "평가/운동처방"
+      ],
+      "palpation": "원문 전사에는 대둔근 자체의 별도 촉진 시연 구간이 확인되지 않는다 — 확인된 것은 아래 \"평가\" 섹션의 기능 평가(고관절 신전 패턴 검사, 도수근력검사)이며, 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "대둔근은 천골 뒤쪽~후둔근선(장골)에서 시작해 둔근조면(20%)과 장경인대(70~80%)로 붙는, 신전·외회전의 두 가지 주동근이자 시상면·이마면·수평면 세 가지 면에서 모두 움직이는 근육 — 앉아있는 시간이 길고 태생적으로 신전근이 억제되기 쉬운 탓에 약화·저활성이 매우 흔하며, 천장관절·무릎(장경인대)·상지(광배근·흉요근막)까지 광범위하게 영향을 미친다."
+    },
+    "technique-07-대원근": {
+      "id": "technique-07-대원근",
+      "type": "테크닉카드",
+      "title": "테크닉 07 | 대원근 / 큰원근 / Teres Major",
+      "part": "PART 2 — 외회전 제한 근육 (GH 조인트)",
+      "date": "",
+      "poses": [
+        {
+          "section": "촉진 (Palpation)",
+          "subject_raw": "옆으로 누운 자세(측와위), 위쪽 팔을 90도 벌리고 팔꿈치를 굽힌 상태",
+          "operator_raw": "",
+          "pose_tag": "옆누움"
+        },
+        {
+          "section": "ART 1",
+          "subject_raw": "옆으로 누운 자세(측와위)",
+          "operator_raw": "대상자 등쪽",
+          "pose_tag": "옆누움"
+        },
+        {
+          "section": "MET (교재에 없는 테크닉, 강사 추가 제공)",
+          "subject_raw": "옆으로 누운 자세, 팔을 만세 방향 끝범위에 둔 상태",
+          "operator_raw": "는 견갑골 외측 모서리를 고정",
+          "pose_tag": "옆누움"
+        }
+      ],
+      "primary_pose_tag": "옆누움",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "ART 1",
+          "text": "팔꿈치가 굽혀지는 동안 검사자는 압박을 유지한 채 하각 방향(아래쪽)으로 쓸어내린다"
+        },
+        {
+          "section": "MET (교재에 없는 테크닉, 강사 추가 제공)",
+          "text": "검사자는 대상자의 견갑골 외측 모서리를 바깥에서 안쪽으로 눌러 상방회전이 일어나지 않도록 고정한다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "광배근",
+          "삼두근 장두"
+        ],
+        "techniques": [
+          "광배근"
+        ],
+        "retests": [
+          "외회전 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "대원근 / 큰원근",
+        "new": "대원근",
+        "old": "큰원근",
+        "en": "Teres Major",
+        "en_short": "Teres Major",
+        "abbr": "",
+        "sci": "Teres Major"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**대상자 자세:** 옆으로 누운 자세(측와위), 위쪽 팔을 90도 벌리고 팔꿈치를 굽힌 상태\n**랜드마크 찾는 순서:**\n① 먼저 삼두근 장두(long head)의 힘줄을 찾는다 — 대상자의 손목을 잡고 \"팔꿈치를 펴세요\"라고 저항성 신전을 지시하면 삼두근 장두에 힘이 들어온다.\n② 힘이 들어온 상태에서 겨드랑이 뒤편을 손끝으로 튕겨보면 삼두근 장두 힘줄이 활처럼 튕기는 느낌이 난다.\n③ 그 힘줄을 찾았으면 바로 앞쪽(겨드랑이 밑)이 대원근이다 — 대상자에게 힘을 빼게 한 뒤 튕겨서 확인하면 탱탱하게 튕기는 조직이 만져진다.\n④ 소원근과 크기로 감별한다 — 대원근은 소원근보다 크며, 특히 근육이 발달한 대상자는 대원근이 상당히 굵게 만져진다.\n**흔한 실수:** 정확한 지점을 못 찾겠으면 엄지로 좁게 잡으려 하지 말고, 견갑골 외측 아래쪽(하각 방향) 전체를 넓게 잡아도 무방하다.",
+      "one_liner": "대원근은 광배근·삼두근 장두와 나란히 붙어 함께 문제를 일으키는 작은 근육이다. 크기는 작지만 외회전과 굴곡 제한을 동시에 만든다. 강사 표현으로 광배근의 \"동생\" 격 — 광배근이 뻣뻣해지면 같이 제한되는 경우가 많고, 광배근과 함께 상방회전 문제로도 이어질 수 있다."
+    },
+    "technique-35-대퇴근막장근": {
+      "id": "technique-35-대퇴근막장근",
+      "type": "테크닉카드",
+      "title": "테크닉 35 | 대퇴근막장근 / TFL / Tensor Fasciae Latae",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "중둔근",
+          "장요근",
+          "대둔근",
+          "외측광근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사",
+          "전방경사 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "대퇴근막장근 / TFL",
+        "new": "대퇴근막장근",
+        "old": "TFL",
+        "en": "Tensor Fasciae Latae",
+        "en_short": "Tensor Fasciae Latae",
+        "abbr": "",
+        "sci": "Tensor Fasciae Latae"
+      },
+      "technique_types": [
+        "자가촉진/운동처방"
+      ],
+      "palpation": "**자가 촉진(한 발 서기 상태):** ASIS(전상장골극)를 잡고 그대로 바깥쪽으로 이동하면 살짝 눌렀을 때 말랑말랑해지는 지점이 TFL이다. 그 상태로 해당 다리 쪽으로 짝다리(한 발 지지)를 짚으면 확실히 힘이 들어오는 것이 느껴진다. 거기서 조금 더 뒤로 가면 뼈처럼 딱딱한 느낌이 나는데 그 지점이 장경인대다.",
+      "one_liner": "대퇴근막장근(TFL)은 고관절 굴곡·벌림·내회전을 만드는 근육으로, 중둔근(벌림)과 장요근(굴곡) 양쪽 모두의 협력근 우세 역할을 겸하다 보니 몸에서 가장 일을 많이 하고 뻣뻣해지는 근육 중 하나이며, 장경인대(IT밴드)를 통해 무릎 외측·슬개골 외측 변위에까지 영향을 미친다."
+    },
+    "technique-38-대퇴이두근": {
+      "id": "technique-38-대퇴이두근",
+      "type": "테크닉카드",
+      "title": "테크닉 38 | 대퇴이두근(장두·단두) / 넙다리두갈래근 / Biceps Femoris",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [
+        {
+          "section": "운동처방 (햄스트링 신장성 조절 훈련)",
+          "text": "두 발 → 한 발로 난이도를 올린다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "대둔근",
+          "반건양근·반막양근",
+          "외측광근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 신전 패턴 검사",
+          "대둔근근력검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "대퇴이두근(장두·단두) / 넙다리두갈래근",
+        "new": "대퇴이두근(장두·단두)",
+        "old": "넙다리두갈래근",
+        "en": "Biceps Femoris (Long Head & Short Head)",
+        "en_short": "Biceps Femoris",
+        "abbr": "",
+        "sci": "Biceps Femoris"
+      },
+      "technique_types": [
+        "해부/기능·운동처방"
+      ],
+      "palpation": "원문 전사에는 대퇴이두근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 부착부 설명(좌골조면·거친선·비골두)과 아래 \"운동처방\" 섹션의 신장성 운동 시연이며, 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "대퇴이두근은 라테랄(바깥쪽) 햄스트링으로, 장두는 좌골조면(궁둥뼈거친면)에서, 단두는 대퇴골 뒤쪽 거친선(리니아 아스페라)에서 각각 시작해 둘 다 비골두(종아리뼈 머리)와 경골 외측과에 붙는다 — 장두만 고관절을 지나는 이관절근(신전+외회전 가능)이고 단두는 무릎만 지나는 단관절근이며, 대둔근과의 협력근 우세 관계로 인해 단축·뻣뻣·과활성되기 쉬운 근육이다."
+    },
+    "technique-61-대흉근": {
+      "id": "technique-61-대흉근",
+      "type": "테크닉카드",
+      "title": "테크닉 61 | 대흉근 / 큰가슴근 / Pectoralis Major",
+      "part": "PART 2 — 외회전 제한 근육 (GH 조인트)",
+      "date": "",
+      "poses": [
+        {
+          "section": "촉진 (Palpation)",
+          "subject_raw": "바로 누운 자세",
+          "operator_raw": "",
+          "pose_tag": "누움"
+        },
+        {
+          "section": "ART 1",
+          "subject_raw": "바로 누운 자세, 팔을 앞으로 나란히에서 내회전 → 외회전으로 보내는 동작",
+          "operator_raw": "대상자 측방에서 흉골~쇄골 아래 라인에 손을 대고 유지",
+          "pose_tag": "누움"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "바로 누운 자세, 제한 있는 파트의 벌림 끝범위(쇄골=수평벌림, 흉골=약 135°/사선)",
+          "operator_raw": "대상자 머리 위쪽. 대상자 반대 팔은 가슴 쪽에 올려 눌러 몸통을 고정",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "누움",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "ART 1",
+          "text": "검사자는 **흉골 주변부터 쇄골 아래쪽까지** 라인을 팔이 움직이는 동안 쓸어준다(흉골 → 쇄골 아래 방향)"
+        },
+        {
+          "section": "ART 1",
+          "text": "잡은 손은 팔 쪽으로 가볍게 텐션을 주거나 흉골 쪽으로 당겨줘도 되고, 뭐든 가볍게 유지하며 같이 움직인다"
+        },
+        {
+          "section": "ART 1",
+          "text": "흉골 정중선보다 왼쪽 가슴이면 약간 왼쪽으로 치우친 가슴 라인 + 쇄골 아래 파트를 설정해 쓸어준다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "소흉근"
+        ],
+        "techniques": [],
+        "retests": [
+          "대흉근 길이 검사",
+          "대흉근 길이 검사",
+          "외회전 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "대흉근 / 큰가슴근",
+        "new": "대흉근",
+        "old": "큰가슴근",
+        "en": "Pectoralis Major",
+        "en_short": "Pectoralis Major",
+        "abbr": "",
+        "sci": "Pectoralis Major"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**대상자 자세:** 바로 누운 자세\n**손의 접촉:** ART 라인 그대로, **흉골 정중선보다 살짝 바깥쪽(가슴 쪽) 라인 ~ 쇄골 아래쪽**을 따라 대흉근 섬유를 확인한다. 흉골 쪽에서 쇄골 아래로 이어지는 넓은 결을 짚는다. 원문에서 \"굉장히 아프고 효과는 굉장히 좋다\"고 할 만큼 압통이 강한 부위이므로 처음엔 강도를 조절한다.",
+      "one_liner": "대흉근은 쇄골 파트(빗장뼈머리)와 흉골 파트(복장뼈머리)로 나뉘고 붙는 결이 달라 길이 검사도 파트별로 따로 한다 — 팔을 드는 동안 흉골 주변부터 쇄골 아래까지 라인을 쓸어주는 ART, 그리고 제한 있는 파트에서만 하는 MET로 접근한다. 대흉근이 쇄골을 잡고 있어 타이트하면 팔 들림 제한·어깨 충돌로 이어진다."
+    },
+    "technique-42-박근": {
+      "id": "technique-42-박근",
+      "type": "테크닉카드",
+      "title": "테크닉 42 | 박근 / 두덩정강근 / Gracilis",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "봉공근·반건양근",
+          "치골근·장내전근·단내전근·대내전근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "박근 / 두덩정강근",
+        "new": "박근",
+        "old": "두덩정강근",
+        "en": "Gracilis",
+        "en_short": "Gracilis",
+        "abbr": "",
+        "sci": "Gracilis"
+      },
+      "technique_types": [
+        "해부/기능"
+      ],
+      "palpation": "원문 전사에는 박근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 대내전근 촉진 설명(\"허벅지 안쪽에 재봉선을 따라 가운데서부터 꾹 눌러서 내려가면 걸리는 뼈\"는 대내전근의 어덕터 투버클을 가리키는 것으로 박근과는 다른 지점)이며, 박근 자체의 촉진법은 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "박근은 내전근 5형제 중 유일하게 두 관절(고관절·무릎)을 지나는 이관절근으로, 아래쪽 치골 가지에서 시작해 경골 안쪽 융기(거위발)에 닿으며, 내전근 중에서는 힘을 크게 못 내는 얇은 근육으로 취급하는 교재도 있을 만큼 \"얇다(박薄)\"는 이름 그대로 얇고 긴 근육이다."
+    },
+    "technique-39-반건양근": {
+      "id": "technique-39-반건양근",
+      "type": "테크닉카드",
+      "title": "테크닉 39 | 반건양근 / 반힘줄모양근 / Semitendinosus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "반막양근",
+          "봉공근·박근",
+          "대둔근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 신전 패턴 검사",
+          "대둔근근력검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "반건양근 / 반힘줄모양근",
+        "new": "반건양근",
+        "old": "반힘줄모양근",
+        "en": "Semitendinosus",
+        "en_short": "Semitendinosus",
+        "abbr": "",
+        "sci": "Semitendinosus"
+      },
+      "technique_types": [
+        "해부/기능·운동처방"
+      ],
+      "palpation": "원문 전사에는 반건양근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 아래 구분법(힘줄근 vs 막근 구분: 얇고 힘줄 같은 쪽이 반건양근)과 거위발 부착부 설명이며, 지어내지 않고 미기재로 남긴다.\n**구분 포인트(원문 근거):** \"둘 다 경골 안쪽 융기에 부착되긴 하는데, 왼쪽(반건양근)이 얇고 오른쪽(반막양근)이 두껍다 — 얇은 쪽이 힘줄근(건양근)\"이라는 설명으로 두 근육을 구분한다. 반건양근은 반막양근보다 표층(슈퍼피셜)에서 겹쳐 앞으로 돌아 나가 거위발에 붙는다.",
+      "one_liner": "반건양근은 좌골조면(궁둥뼈거친면)에서 시작해 힘줄이 얇고 표층으로 앞쪽으로 돌아 나가 경골 안쪽 융기(거위발)에 붙는 메디얼(안쪽) 햄스트링으로, 박근·반막양근과 겹쳐 주행하다가 셋 중 유일하게 봉공근·박근과 함께 거위발을 이루어 무릎의 내측 안정자 역할을 한다."
+    },
+    "technique-40-반막양근": {
+      "id": "technique-40-반막양근",
+      "type": "테크닉카드",
+      "title": "테크닉 40 | 반막양근 / 반막모양근 / Semimembranosus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "반건양근",
+          "대둔근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 신전 패턴 검사",
+          "대둔근근력검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "반막양근 / 반막모양근",
+        "new": "반막양근",
+        "old": "반막모양근",
+        "en": "Semimembranosus",
+        "en_short": "Semimembranosus",
+        "abbr": "",
+        "sci": "Semimembranosus"
+      },
+      "technique_types": [
+        "해부/기능·운동처방"
+      ],
+      "palpation": "원문 전사에는 반막양근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 아래 구분법(반건양근과의 두께 비교로 구분)뿐이며, 지어내지 않고 미기재로 남긴다.\n**구분 포인트(원문 근거):** \"둘 다 경골 안쪽 융기에 부착되긴 하는데, 얇은 쪽이 힘줄근(반건양근)이고 두꺼운 쪽이 막근(반막양근)이다.\" 반건양근이 반막양근 위쪽(표층)으로 겹쳐서 앞으로 돌아 나가는 반면, 반막양근은 뒤쪽에 그대로 붙는다는 위치 차이가 설명됨.",
+      "one_liner": "반막양근은 좌골조면(궁둥뼈거친면)에서 시작해 반건양근보다 깊은 층으로 곧장 경골 안쪽 융기(내측과)에 붙는 메디얼(안쪽) 햄스트링으로, 반건양근에 비해 두꺼워 \"막(모양)근\"이라는 이름이 붙었으며 거위발 힘줄 그룹에는 포함되지 않는다."
+    },
+    "technique-22-복직근": {
+      "id": "technique-22-복직근",
+      "type": "테크닉카드",
+      "title": "테크닉 22 | 복직근 / 배곧은근 / Rectus Abdominis",
+      "part": "트렁크(체간) — 로컬코어(이너코어) 근육군",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "횡격막"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "복직근 / 배곧은근",
+        "new": "복직근",
+        "old": "배곧은근",
+        "en": "Rectus Abdominis",
+        "en_short": "Rectus Abdominis",
+        "abbr": "",
+        "sci": "Rectus Abdominis"
+      },
+      "technique_types": [
+        "미기재"
+      ],
+      "palpation": "원문 전사에는 복직근 자체에 대한 별도의 촉진 시연은 확인되지 않는다 — 지어내지 않고 미기재로 남긴다. 확인되는 것은 복직근 정지부(치골) 위치를 찾는 랜드마크 안내뿐이다: 배꼽을 누른 상태로 점점 아래로 내려가면 두덩뼈(치골, Pubis)가 만져진다 — \"치골이 여기에요\"라고 명확히 위치를 정정하며 강조(원문에서 흔히 오인되는 \"치골 = 사타구니 앞쪽 전체\"라는 통념을 바로잡음).",
+      "one_liner": "복직근은 치골(두덩뼈)에서 시작해 5~7번 갈비연골로 붙는 굴곡의 주동근(\"식스팩 근육\")으로, 몸통을 골반 쪽으로 가깝게 하는 동작을 주로 수행하며, 굴곡 중심 생활습관·운동습관 때문에 특히 상부가 단축·뻣뻣해지기 쉽고 이는 신전 제한과 횡격막 하강 방해로 이어질 수 있다."
+    },
+    "technique-25-복횡근": {
+      "id": "technique-25-복횡근",
+      "type": "테크닉카드",
+      "title": "테크닉 25 | 복횡근 / 배가로근 / Transverse Abdominis",
+      "part": "트렁크(체간) — 이너코어박스(로컬코어) 구성근육",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "횡격막",
+          "골반기저근",
+          "다열근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "복횡근 / 배가로근",
+        "new": "복횡근",
+        "old": "배가로근",
+        "en": "Transverse Abdominis",
+        "en_short": "Transverse Abdominis",
+        "abbr": "",
+        "sci": "Transverse Abdominis"
+      },
+      "technique_types": [
+        "미기재"
+      ],
+      "palpation": "원문 전사에는 복횡근에 대한 직접적인 촉진 시연이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다. 확인되는 것은 개념 모형(\"프링글스 통\" 원통 비유)을 통한 위치 설명뿐이다: 뚜껑=횡격막, 바닥=골반기저근, 옆을 감싸는 종이=복횡근, 종이를 마지막에 묶는 끈=다열근.",
+      "one_liner": "복횡근은 서혜인대·장골능·흉요근막에서 시작해 복건막·백선·치골로 붙는, 결이 완전히 가로 방향인 몸의 \"자연 복대\"로, 움직임보다는 복강내압(IAP=복압)을 만들고 유지·증가시켜 골반과 허리를 안정화하는 데 특화된 근육이며, 팔다리가 움직이기 직전에 가장 먼저 활성화되는 피드포워드 근육이다."
+    },
+    "technique-41-봉공근": {
+      "id": "technique-41-봉공근",
+      "type": "테크닉카드",
+      "title": "테크닉 41 | 봉공근 / 넙다리빗근(재봉근) / Sartorius",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "박근·반건양근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "봉공근 / 넙다리빗근(재봉근)",
+        "new": "봉공근",
+        "old": "넙다리빗근(재봉근)",
+        "en": "Sartorius",
+        "en_short": "Sartorius",
+        "abbr": "",
+        "sci": "Sartorius"
+      },
+      "technique_types": [
+        "미기재 — 원문에 개별 강의 구간 없음"
+      ],
+      "palpation": "미기재 (원문에 없음).",
+      "one_liner": "원문에서 확인되는 것은 봉공근이 박근·반건양근과 함께 \"거위발(구스풋)\" 힘줄을 이루는 무릎 내측 안정자 그룹의 구성원이라는 사실뿐이다 — 개별 기시·정지·기능(원문 미기재)은 확인되지 않는다."
+    },
+    "technique-51-비복근": {
+      "id": "technique-51-비복근",
+      "type": "테크닉카드",
+      "title": "테크닉 51 | 비복근 / 장딴지근 / Gastrocnemius (GCM)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "가자미근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "비복근 / 장딴지근",
+        "new": "비복근",
+        "old": "장딴지근",
+        "en": "Gastrocnemius (GCM)",
+        "en_short": "Gastrocnemius",
+        "abbr": "GCM",
+        "sci": "GCM"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 비복근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "비복근은 대퇴골 내측·외측 상과에서 두 갈래(내측두·외측두)로 시작해 가자미근과 함께 아킬레스건을 이뤄 종골(발꿈치뼈)에 붙는, 발바닥굽힘의 주동근이자 무릎도 지나가는 두 관절 근육으로, 폭발적인 움직임에서 특히 강하게 동원된다."
+    },
+    "technique-13-사각근": {
+      "id": "technique-13-사각근",
+      "type": "테크닉카드",
+      "title": "테크닉 13 | 사각근 / 목갈비근 / Scalenes",
+      "part": "PART 6 — 경추 테크닉",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1 — 횡돌기 (T-P 적용)",
+          "subject_raw": "누운 자세 또는 앉은 자세",
+          "operator_raw": "대상자 옆 또는 머리 쪽",
+          "pose_tag": "누움"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "누운 자세, ART 끝범위(멀어지는 가쪽굽힘 + 머리 떨군 상태)",
+          "operator_raw": "목 옆쪽 전체를 손으로 막고 쇄골·갈비뼈가 올라오지 못하게 고정",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "누움",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "ART 1 — 횡돌기 (T-P 적용)",
+          "text": "앞→뒤, 뒤→앞 어느 방향으로 쓸어도 되지만, 대상자에 따라 한쪽 방향에서 통증을 더 느낄 수 있으므로 두 방향을 다 시도해보고 편한 방향으로 진행한다"
+        },
+        {
+          "section": "ART 2 — 쇄골 안쪽 (갈비뼈 1·2번)",
+          "text": "멀어지는 가쪽굽힘 + 머리 살짝 떨구기 동안 압박을 유지하며 안쪽으로 파듯이 쓸어준다"
+        },
+        {
+          "section": "ART 2 — 쇄골 안쪽 (갈비뼈 1·2번)",
+          "text": "강사 큐잉(원표현):** \"동남아 가서 스쿠터 스로틀 당기듯이 — 엄지를 당겨서 안쪽 쇄골 안쪽 공간을 파주는 거"
+        },
+        {
+          "section": "MET 1",
+          "text": "검사자는 목 옆쪽 전체를 손으로 막고, 쇄골·갈비뼈가 들리지 못하게 눌러 고정한다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "소흉근"
+        ],
+        "techniques": [],
+        "retests": [
+          "경추 가쪽굽힘 검사",
+          "경추 신전 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "사각근 / 목갈비근",
+        "new": "사각근",
+        "old": "목갈비근",
+        "en": "Scalenes",
+        "en_short": "Scalenes",
+        "abbr": "",
+        "sci": "Scalenes"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**접촉 위치:** 흉쇄유돌근(SCM)을 본인 손으로 잡을 때 엄지가 뒤쪽을 향하게 잡는다(같은 쪽 손으로 잡으면 엄지가 자연히 뒤를 향함). 그 상태에서 엄지를 목 방향으로 푹 찔러 넣는다. 앞뒤로 긁으면 밧줄처럼 다닥다닥 걸리는 것들 = 사각근. 굉장히 얇은 근육이라 힘 조절이 중요하다.",
+      "one_liner": "목이 아프면서 손이 저리면 흉식 호흡 먼저 확인 — 사각근과 소흉근 세트로 접근."
+    },
+    "technique-08-상부승모근": {
+      "id": "technique-08-상부승모근",
+      "type": "테크닉카드",
+      "title": "테크닉 08 | 상부승모근 / 위등세모근 / Upper Trapezius",
+      "part": "PART 3 — 다운 스크래치 개선 (상방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "촉진 (Palpation)",
+          "subject_raw": "앉은 자세",
+          "operator_raw": "",
+          "pose_tag": "앉기"
+        },
+        {
+          "section": "ART 1",
+          "subject_raw": "앉은 자세",
+          "operator_raw": "대상자 후방 또는 측방",
+          "pose_tag": "앉기"
+        },
+        {
+          "section": "MET 1",
+          "subject_raw": "앉은 자세, 머리 반대쪽으로 최대한 멀어진 끝범위",
+          "operator_raw": "어깨 끝단 + 목 전체를 막아주는 역할",
+          "pose_tag": "앉기"
+        }
+      ],
+      "primary_pose_tag": "앉기",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "촉진 (Palpation)",
+          "text": "손가락 3개(앞·중간·뒤)를 펴서 올려 순서대로(앞 → 중간 → 뒤) 살짝살짝 눌러보며 압통을 확인한다"
+        },
+        {
+          "section": "ART 1",
+          "text": "대상자가 어깨를 아래로 쭉 내린다"
+        },
+        {
+          "section": "ART 1",
+          "text": "어깨가 다 내려가면 검사자는 목 방향(목걸이 라인)으로 쓸어올린다 — 목걸이 라인 정도에서 마무리하면 되고, 더 위(목 쪽)로 올려도 무방하다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "전거근",
+          "하부승모근"
+        ],
+        "techniques": [],
+        "retests": [
+          "다운 스크래치 테스트",
+          "로컴 테스트"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "상부승모근 / 위등세모근",
+        "new": "상부승모근",
+        "old": "위등세모근",
+        "en": "Upper Trapezius",
+        "en_short": "Upper Trapezius",
+        "abbr": "",
+        "sci": "Upper Trapezius"
+      },
+      "technique_types": [
+        "ART",
+        "MET"
+      ],
+      "palpation": "**대상자 자세:** 앉은 자세\n**손의 접촉:** 쇄골 바깥쪽 ~ 어깨 끝 쪽으로 가깝게 손을 댄다. 손가락 3개(앞·중간·뒤)를 펴서 올려 순서대로(앞 → 중간 → 뒤) 살짝살짝 눌러보며 압통을 확인한다. **보통 중간이 가장 아프므로 중간 파트만 기억해도 된다.** 많이 아픈 사람은 압박 시 머리까지 깡하고 울리는 듯한 느낌을 호소한다 — 상부승모근은 두통을 만드는 근육이기도 하다. 맨살에 하는 것이 효과적이다.",
+      "one_liner": "다운 스크래치 제한의 1순위 — 상부승모근이 뻣뻣하면 어깨가 안 내려간다. 운동 전에 몇 번 해주고 하부승모근 운동으로 연결한다. 다운 스크래치는 업 스크래치보다 관여 근육이 적어(상부승모근 + UR 관련 근육 정도) 개선 흐름이 비교적 빠르게 끝난다."
+    },
+    "technique-34-소둔근": {
+      "id": "technique-34-소둔근",
+      "type": "테크닉카드",
+      "title": "테크닉 34 | 소둔근 / 작은볼기근 / Gluteus Minimus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "중둔근",
+          "대둔근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "소둔근 / 작은볼기근",
+        "new": "소둔근",
+        "old": "작은볼기근",
+        "en": "Gluteus Minimus",
+        "en_short": "Gluteus Minimus",
+        "abbr": "",
+        "sci": "Gluteus Minimus"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문에서 명시적으로 설명된다: \"왜냐하면 얘는 가장 심부에 있기 때문에 촉진이 안 돼요. 촉진이 안 되고 다 덮여 있습니다.\" — 대둔근·중둔근에 완전히 덮여 있어 직접 촉진이 불가능한 근육으로 강조됨. 별도의 촉진 기법은 원문에 제시되지 않는다.",
+      "one_liner": "소둔근은 전둔근선과 하둔근선 사이(장골)에서 시작해 대전자 앞쪽(안테리어 파트)에 붙는, 가장 심부에 위치해 촉진되지 않는 근육 — 벌림에 협력근으로 참여하며, 앞쪽 섬유는 내회전, 뒤쪽 섬유는 외회전 쪽으로 나뉘는데 그중에서도 내회전 주동근에 가장 가까운 근육으로 설명된다."
+    },
+    "technique-15-소원근": {
+      "id": "technique-15-소원근",
+      "type": "테크닉카드",
+      "title": "테크닉 15 | 소원근 / 작은원근 / Teres Minor",
+      "part": "회전근개(로테이터커프) — 외회전 근육",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "가 스스로 시행 가능한 스트레칭",
+          "operator_raw": "",
+          "pose_tag": ""
+        }
+      ],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "극하근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "소원근 / 작은원근",
+        "new": "소원근",
+        "old": "작은원근",
+        "en": "Teres Minor",
+        "en_short": "Teres Minor",
+        "abbr": "",
+        "sci": "Teres Minor"
+      },
+      "technique_types": [
+        "스트레칭"
+      ],
+      "palpation": "전사문에서는 소원근을 극하근과 묶어서 함께 촉진하는 방법만 확인된다(개별 분리 촉진법은 확인되지 않음). 견갑골 외측연(6번 랜드마크로 촉진했던 바깥쪽 모서리) 쪽에 부착되며, 대상자를 엎드리게 한 뒤 어깨뼈 가시를 먼저 찾고 그 아래쪽에 손가락 두 개를 가로로 위치시켜 촉진한다 — 이 두 손가락이 위치한 지점이 극하근과 소원근이다. 외회전 시 근육이 볼록해지는지로 촉진 위치를 검증한다.",
+      "one_liner": "소원근(\"작은 원\"이라는 뜻, 테레스=원형)은 견갑골 외측연(겨드랑이쪽 모서리)에서 시작해 상완골 큰결절(대결절) 뒤쪽에 붙는 회전근개 중 하나로, 극하근과 함께 외회전의 주동근이며, 극하근과 마찬가지로 단축·뻣뻣해지기 쉬운 근육이다."
+    },
+    "technique-01-소흉근": {
+      "id": "technique-01-소흉근",
+      "type": "테크닉카드",
+      "title": "테크닉 01 | 소흉근 / 작은가슴근 / Pectoralis Minor",
+      "part": "PART 1 — 업 스크래치 제한 근육 (하방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "누운 자세(후킹 포지션, 무릎 세움)",
+          "operator_raw": "대상자 옆",
+          "pose_tag": "누움"
+        }
+      ],
+      "primary_pose_tag": "누움",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "촉진 (Palpation)",
+          "text": "자가/약식 촉진(자세 확인용):** 쇄골 길이의 절반 지점에서 아래·바깥쪽으로 밀어 걸리는 뼈(오구돌기)를 찾아 그 위에 손을 얹는다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "사각근",
+          "하부승모근"
+        ],
+        "techniques": [],
+        "retests": [
+          "다운 스크래치 테스트",
+          "전방경사 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "소흉근 / 작은가슴근",
+        "new": "소흉근",
+        "old": "작은가슴근",
+        "en": "Pectoralis Minor",
+        "en_short": "Pectoralis Minor",
+        "abbr": "",
+        "sci": "Pectoralis Minor"
+      },
+      "technique_types": [
+        "ART"
+      ],
+      "palpation": "**자가/약식 촉진(자세 확인용):** 쇄골 길이의 절반 지점에서 아래·바깥쪽으로 밀어 걸리는 뼈(오구돌기)를 찾아 그 위에 손을 얹는다. 뒷짐을 진 상태에서 손을 허리에서 떼려고 하거나, 일부러 흉식호흡으로 크게 들이쉬면 어깨가 앞으로 기울면서 손 아래에서 근육이 볼록 튀어나오는 게 느껴진다 — 이것이 소흉근이다. **혼자 문지를 때는 근육 결 방향이 아니라 사선(결의 반대 방향)으로 문지르는 것이 더 잘 풀린다** (원문 표현: \"결대로 자르는 것보다 사선으로 문질러주시면 잘 풀리거든요\").\n**임상 촉진(치료용):** 대상자를 눕혀 무릎을 세우고(후킹 포지션) 팔을 90도 벌림 위치로 놓은 뒤 손목을 잡아 힘을 완전히 빼게 한다. 대흉근 힘줄을 먼저 찾아 자뼈(척측) 쪽에 손가락 세 개 정도를 위치시키고, 힘줄을 대상자 턱 방향으로 살짝 들어올리며 더 이상 들어가지 않을 때까지 안쪽(갈비뼈 방향)으로 밀어 넣는다. 잡고 있던 손목을 놓고 손가락을 갈비뼈(3~5번) 방향으로 계속 눌러 들어가면 물방울 모양으로 팽팽하게 걸리는 조직이 만져진다 — 이것이 소흉근이다. **대상자가 팔의 힘을 완전히 빼지 않으면 이 깊이까지 촉진 자체가 되지 않는다** (원문: \"간지러운 사람은 잘 안 돼요\").",
+      "one_liner": "소흉근은 갈비뼈 3·4·5번에서 시작해 오구돌기(부리돌기)로 붙어 견갑골을 앞으로 기울이는(전방경사) 주동근 — 평소 자세상 짧아진 위치에 자주 놓여 단축·과활성되기 쉽고, 하부승모근과는 상호억제 관계이며, 그 밑을 지나는 상완신경총을 눌러 손저림(TOS)까지 만들 수 있다."
+    },
+    "technique-50-슬와근": {
+      "id": "technique-50-슬와근",
+      "type": "테크닉카드",
+      "title": "테크닉 50 | 슬와근 / 오금근 / Popliteus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 무릎 후방 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "슬와근 / 오금근",
+        "new": "슬와근",
+        "old": "오금근",
+        "en": "Popliteus",
+        "en_short": "Popliteus",
+        "abbr": "",
+        "sci": "Popliteus"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 슬와근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "슬와근은 대퇴골 외측상과(가쪽위관절융기)에서 시작해 경골 몸통 뒤쪽 몸쪽 부분에 붙는 근육으로, 무릎을 굽힐 때 필요한 내회전(IR)을 만들어 스크류(나사집) 기전으로 \"잠긴\" 무릎을 풀어주는 열쇠 역할을 한다."
+    },
+    "technique-37-심부외회전근군": {
+      "id": "technique-37-심부외회전근군",
+      "type": "테크닉카드",
+      "title": "테크닉 37 | 심부외회전근군(이상근 제외 4종) / 쌍자근·폐쇄근·대퇴방형근",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "이상근",
+          "대둔근·중둔근·소둔근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "심부외회전근군(이상근 제외 4종) / 쌍자근(상·하) · 폐쇄근(내·외) · 대퇴방형근",
+        "new": "심부외회전근군(이상근 제외 4종)",
+        "old": "쌍자근(상·하) · 폐쇄근(내·외) · 대퇴방형근",
+        "en": "Deep Lateral Rotators (Gemellus Superior/Inferior, Obturator Internus/Externus, Quadratus Femoris)",
+        "en_short": "Deep Lateral Rotators",
+        "abbr": "",
+        "sci": "Deep Lateral Rotators"
+      },
+      "technique_types": [
+        "해부/기능 개관"
+      ],
+      "palpation": "원문 전사에는 쌍자근·폐쇄근·대퇴방형근 개별 촉진 시연이 확인되지 않는다 — 이상근 촉진 시 \"약간 아래쪽·안쪽으로도 함께 눌러보면 다른 심부둔근들도 함께 촉진된다\"는 일반적 언급만 있다(→ `테크닉_이상근.md` 촉진 섹션 참조). 개별 근육을 구분해 짚는 촉진법은 미기재.",
+      "one_liner": "신부 외회전 근육(딥 글루티얼, 신부둔근)은 이상근·쌍자근(상/하)·폐쇄근(내/외)·대퇴방형근 6개로 좌우 총 12개이며, 회전근개가 GH관절 후방을 감싸듯 고관절 후방을 감싸 \"정교하게 조절된 외회전\"과 후방 안정성(포스테리어 스테빌리티)을 담당한다 — 고관절 자체가 절구관절로 원래 안정적이라 회전근개만큼 활약할 필요가 적은 대신, 자세 문제(스웨이백)나 바깥쪽 둔근 기능 저하 시 보상적으로 혹사되어 단축·뻣뻣해지기 쉽다."
+    },
+    "technique-24-외복사근": {
+      "id": "technique-24-외복사근",
+      "type": "테크닉카드",
+      "title": "테크닉 24 | 외복사근 / 배바깥빗근 / External Oblique",
+      "part": "트렁크(체간) — 로컬코어(이너코어) 근육군",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "내복사근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "외복사근 / 배바깥빗근",
+        "new": "외복사근",
+        "old": "배바깥빗근",
+        "en": "External Oblique",
+        "en_short": "External Oblique",
+        "abbr": "",
+        "sci": "External Oblique"
+      },
+      "technique_types": [
+        "미기재"
+      ],
+      "palpation": "원문 전사에는 외복사근에 대한 별도의 촉진 시연이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다. 확인되는 것은 해부 그림 상의 위치·결 방향 설명뿐이다.",
+      "one_liner": "외복사근은 복근 중 가장 바깥쪽(표층)에 있는 근육으로 5~12번 갈비뼈에서 시작해 장골능 앞부분과 복건막으로 붙으며, 편측 수축 시 반대측(대측) 회전과 가쪽굽힘을 만들고, 결 방향이 호기(날숨)와 색이 깊다."
+    },
+    "technique-47-외측광근": {
+      "id": "technique-47-외측광근",
+      "type": "테크닉카드",
+      "title": "테크닉 47 | 외측광근 / 가쪽넓은근 / Vastus Lateralis",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 무릎/대퇴사두근 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "내측광근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "외측광근 / 가쪽넓은근",
+        "new": "외측광근",
+        "old": "가쪽넓은근",
+        "en": "Vastus Lateralis",
+        "en_short": "Vastus Lateralis",
+        "abbr": "",
+        "sci": "Vastus Lateralis"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 외측광근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "외측광근은 대퇴골 뒤쪽 거친선(조선)에서 시작해 슬개골·경골조면(대퇴사두근 공통 정지점)으로 붙는, 무릎만 지나가는 단관절(one-joint) 근육으로 무릎 신전의 주동근이며, 근섬유 방향이 바깥쪽을 향해 있어 슬개골을 외측으로 당기는 힘의 축을 담당한다."
+    },
+    "technique-27-요방형근": {
+      "id": "technique-27-요방형근",
+      "type": "테크닉카드",
+      "title": "테크닉 27 | 요방형근 / 허리네모근 / Quadratus Lumborum (QL)",
+      "part": "트렁크(체간) — 요추 가쪽(외측) 안정근",
+      "date": "",
+      "poses": [
+        {
+          "section": "촉진 (Palpation)",
+          "subject_raw": "옆으로 누움(측와위)",
+          "operator_raw": "등 뒤쪽",
+          "pose_tag": "옆누움"
+        }
+      ],
+      "primary_pose_tag": "옆누움",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "척추기립근",
+          "다열근",
+          "장요근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "요방형근 / 허리네모근 (QL)",
+        "new": "요방형근",
+        "old": "허리네모근 (QL)",
+        "en": "Quadratus Lumborum",
+        "en_short": "Quadratus Lumborum",
+        "abbr": "QL",
+        "sci": "QL"
+      },
+      "technique_types": [
+        "자가촉진/운동처방"
+      ],
+      "palpation": "**자세:** 대상자 옆으로 누움(측와위) / 검사자 등 뒤쪽\n**방법:** 갈비뼈 아래쪽과 골반(장골능) 사이의 \"빈 공간\"(허리 옆구리 라인)을 찾는다. 너무 위쪽으로 누르면 갈비뼈가 걸리고, 너무 아래쪽으로 누르면 골반이 걸리므로 그 사이 중간 지점에서 수직으로 3번 정도 지그시 눌러 들어가며 점점 몸 뒤쪽(등 방향)으로 이동한다. 다른 부위는 대체로 \"빈 공간\"처럼 부드럽게 들어가다가, 유독 걸리며 통증이 느껴지는 지점이 요방형근이다.\n**통증 평가:** 눌렀을 때의 통증을 10점 만점으로 물어 좌우를 비교한다. 원문 시연에서는 한쪽이 6점 정도로 확인됐고, 반대쪽을 눌렀을 때는 상대적으로 덜 아팠다(반대편 둔근 기능저하를 의심할 수 있는 단서로 언급됨 — 단, 이 연결은 배치 밖 근육이라 이 카드에서는 링크로 걸지 않고 서술로만 남긴다).",
+      "one_liner": "요방형근은 12번 갈비뼈·요추 가로돌기(TP)에서 장골능(엉덩뼈 능선) 뒤쪽까지 이어지는 네모(方形) 모양의 근육으로, 척추에 직접 붙어 있어 정교한 가쪽굽힘 조절과 한 발 지지 시 골반이 옆으로 떨어지지 않게 잡아주는(안티-레터럴 플렉션) 역할을 하며, 그 특성상 다른 근육이 일을 못 하면 끝까지 남아서 혼자 버티다가 만성적으로 과긴장되기 쉽다."
+    },
+    "technique-19-이복근": {
+      "id": "technique-19-이복근",
+      "type": "테크닉카드",
+      "title": "테크닉 19 | 이복근 / Digastric",
+      "part": "목 파트 — 저작(씹기) 보조 근육",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "이복근",
+        "new": "이복근",
+        "old": "",
+        "en": "Digastric",
+        "en_short": "Digastric",
+        "abbr": "",
+        "sci": "Digastric"
+      },
+      "technique_types": [
+        "촉진만 확인"
+      ],
+      "palpation": "턱 밑을 손가락으로 딱 눌러 좌우로 밀듯이 문지르면 걸리는 조직이 이복근이다. 턱 밑에서 앞으로 튀어나와 있는 형태로 촉진된다.",
+      "one_liner": "이복근은 유양돌기에서 시작해 턱(하악) 앞쪽에 붙는 근육으로, 턱을 움직이며 씹는 작용을 돕는다."
+    },
+    "technique-36-이상근": {
+      "id": "technique-36-이상근",
+      "type": "테크닉카드",
+      "title": "테크닉 36 | 이상근 / 궁둥구멍근 / Piriformis",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "엎드린 자세(prone),",
+          "operator_raw": "는 대상자 옆",
+          "pose_tag": "엎드림"
+        }
+      ],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "촉진 (Palpation)",
+          "text": "이상근만 있는 것이 아니므로 이 라인에서 약간 아래쪽·안쪽으로도 함께 눌러보면 다른 심부둔근들도 함께 촉진할 수 있다"
+        },
+        {
+          "section": "촉진 (Palpation)",
+          "text": "대둔근 안쪽에 있는 근육이므로 살살 누르면 안 되고 지그시 깊게 눌러야 한다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "심부외회전근군",
+          "대둔근",
+          "중둔근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "이상근 / 궁둥구멍근",
+        "new": "이상근",
+        "old": "궁둥구멍근",
+        "en": "Piriformis",
+        "en_short": "Piriformis",
+        "abbr": "",
+        "sci": "Piriformis"
+      },
+      "technique_types": [
+        "ART"
+      ],
+      "palpation": "대상자를 엎드리게 하고(머리를 한쪽으로 두고 엎드린 자세) 양쪽 PSIS(후상장골극)를 촉진한 뒤, 꼬리뼈(미골)를 촉진해 삼각형을 만든다. 검사할 다리 쪽 PSIS와 미골(콕실스) 사이의 1/2 지점을 찾는다. 그 다음 대전자(큰돌기)의 최상단 부분을 찾아, 이 1/2 지점과 대전자 최상단을 연결하는 선을 긋고, 그 가운데층을 압박한다 — 이곳이 이상근이 지나가는 라인이며, 통증이 있는 사람은 여기서 \"뜨끔\"하는 느낌이 난다. 이상근만 있는 것이 아니므로 이 라인에서 약간 아래쪽·안쪽으로도 함께 눌러보면 다른 심부둔근들도 함께 촉진할 수 있다.\n**촉진 방법(수직 문지르기):** 근육이 가로 방향으로 지나가므로(엎드린 상태 기준), 촉진·이완 시에는 오히려 수직 방향(위아래)으로 문질러주는 것이 좋다. 대둔근 안쪽에 있는 근육이므로 살살 누르면 안 되고 지그시 깊게 눌러야 한다.\n**임상 징후:** 이상근·좌골신경 이슈가 있었던 사람은 근육이 만졌을 때 \"탁탁\" 튕기듯 반응하고 자기주장이 강한 느낌이 난다(이전에 신경이 눌린 경험이 있어 보호 반응으로 힘이 빡 들어가는 것으로 설명됨). 이런 경우 촉진 압박 시 엉덩이에 갑자기 힘이 빡 들어가며 움직이지 못하는 반응이 나타날 수 있다.",
+      "one_liner": "이상근은 배 모양(서양배)을 닮았다고 해서 붙여진 이름으로, 천골 앞쪽(생크럼 안테리어)에서 시작해 대전자 최상단에 붙는 벌림+외회전 주동근이며(단, 고관절 굴곡 60도 이상에서는 내회전근으로 기능이 바뀜), 좌골신경이 바로 앞을 지나가 좌골신경통(이상근 증후군)의 원인이 될 수 있고, 신부둔근(심부 외회전근군) 6개 중 가장 유명한 근육이다."
+    },
+    "technique-44-장내전근": {
+      "id": "technique-44-장내전근",
+      "type": "테크닉카드",
+      "title": "테크닉 44 | 장내전근 / 긴모음근 / Adductor Longus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "치골근·단내전근",
+          "대내전근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장내전근 / 긴모음근",
+        "new": "장내전근",
+        "old": "긴모음근",
+        "en": "Adductor Longus",
+        "en_short": "Adductor Longus",
+        "abbr": "",
+        "sci": "Adductor Longus"
+      },
+      "technique_types": [
+        "해부/기능·운동처방"
+      ],
+      "palpation": "원문 전사에는 장내전근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 부착부 설명(치골 몸통·거친선 중간)뿐이며, 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "장내전근은 위쪽 치골 몸통(슈피리어 퓨빅 바디)에서 시작해 거친선(리니아 아스페라) 중간 파트에 붙는 안테리어 어덕터로, 내전(AD)을 주동하며 굴곡·내회전에도 협력근으로 참여한다 — 달리기처럼 다리가 앞뒤로 움직일 때는 굴곡·신전 기능이 자세에 따라 계속 바뀌는 근육이다."
+    },
+    "technique-57-장무지굴근": {
+      "id": "technique-57-장무지굴근",
+      "type": "테크닉카드",
+      "title": "테크닉 57 | 장무지굴근 / 긴엄지굽힘근 / Flexor Hallucis Longus (FHL)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "후경골근",
+          "장지굴근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장무지굴근 / 긴엄지굽힘근",
+        "new": "장무지굴근",
+        "old": "긴엄지굽힘근",
+        "en": "Flexor Hallucis Longus (FHL)",
+        "en_short": "Flexor Hallucis Longus",
+        "abbr": "FHL",
+        "sci": "FHL"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 장무지굴근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "장무지굴근은 비골 뒤쪽에서 시작해 엄지발가락까지 이어지는 근육으로 엄지발가락 굴곡의 주동근이며, 발목 뒤쪽(복사뼈 뒤)을 지나가 발바닥굽힘과 내번에도 협력근으로 관여하고, 후경골근 기능이 떨어졌을 때 아치를 대신 들어올리려는 보상 근육으로 흔히 동원된다."
+    },
+    "technique-59-장무지신근": {
+      "id": "technique-59-장무지신근",
+      "type": "테크닉카드",
+      "title": "테크닉 59 | 장무지신근 / 긴엄지폄근 / Extensor Hallucis Longus (EHL)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "전경골근",
+          "장지신근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장무지신근 / 긴엄지폄근",
+        "new": "장무지신근",
+        "old": "긴엄지폄근",
+        "en": "Extensor Hallucis Longus (EHL)",
+        "en_short": "Extensor Hallucis Longus",
+        "abbr": "EHL",
+        "sci": "EHL"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 장무지신근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "장무지신근은 정강이 앞쪽에서 시작해 엄지발가락 끝까지 발등 쪽으로 붙는 근육으로 엄지발가락 신전의 주동근이며, 복사뼈 앞을 지나가 돌시플렉션(발등굽힘)의 협력근으로도 작용하고, 전경골근이 제 기능을 못할 때 대신 발등굽힘을 만들어내는 보상 근육으로 동원되기 쉽다."
+    },
+    "technique-55-장비골근": {
+      "id": "technique-55-장비골근",
+      "type": "테크닉카드",
+      "title": "테크닉 55 | 장비골근 / 긴종아리근 / Peroneus (Fibularis) Longus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "단비골근",
+          "전경골근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장비골근 / 긴종아리근",
+        "new": "장비골근",
+        "old": "긴종아리근",
+        "en": "Peroneus (Fibularis) Longus",
+        "en_short": "Peroneus",
+        "abbr": "",
+        "sci": "Peroneus"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 장비골근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "장비골근은 비골(종아리뼈)의 거의 전체 길이에서 시작해 바깥쪽 복사뼈 뒤를 돌아 발바닥을 완전히 가로질러 1번 발허리뼈 바닥과 내측 설상골(전경골근과 동일한 부착점)에 붙는, 발바닥굽힘과 외번(eversion)의 주동근이다."
+    },
+    "technique-30-장요근": {
+      "id": "technique-30-장요근",
+      "type": "테크닉카드",
+      "title": "테크닉 30 | 장요근 / 대요근 / Psoas Major (Iliopsoas)",
+      "part": "트렁크(체간) — 요추 안정화 그룹 (근막 연결)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "횡격막",
+          "요방형근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장요근 / 대요근 (강의에서는 대요근만 언급됨)",
+        "new": "장요근",
+        "old": "대요근 (강의에서는 대요근만 언급됨)",
+        "en": "Psoas Major (Iliopsoas)",
+        "en_short": "Psoas Major",
+        "abbr": "",
+        "sci": "Psoas Major"
+      },
+      "technique_types": [
+        "미기재"
+      ],
+      "palpation": "원문에 확인되지 않는다 — 미기재.",
+      "one_liner": "대요근(장요근을 이루는 근육 중 하나)은 요추 안정화에 관여하는 근육으로, 횡격막·요방형근과 근막으로 서로 연결되어 있어 횡격막의 기능이 떨어지면 그 문제가 대요근과 요방형근에도 함께 번질 수 있다고 언급된다 — 단, 이 근육 자체의 기시·정지·기능에 대한 상세 설명은 3.24.md에는 등장하지 않는다."
+    },
+    "technique-58-장지굴근": {
+      "id": "technique-58-장지굴근",
+      "type": "테크닉카드",
+      "title": "테크닉 58 | 장지굴근 / 긴발가락굽힘근 / Flexor Digitorum Longus (FDL)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "후경골근",
+          "장무지굴근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장지굴근 / 긴발가락굽힘근",
+        "new": "장지굴근",
+        "old": "긴발가락굽힘근",
+        "en": "Flexor Digitorum Longus (FDL)",
+        "en_short": "Flexor Digitorum Longus",
+        "abbr": "FDL",
+        "sci": "FDL"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 장지굴근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "장지굴근은 경골 뒤쪽에서 시작해 2~5번 발가락까지 이어지는 근육으로 2~5번 발가락 굴곡의 주동근이며, 발목 뒤쪽(복사뼈 뒤)을 지나가 발바닥굽힘과 내번에도 협력근으로 관여하고, 장무지굴근과 함께 후경골근 기능 저하 시 아치를 대신 들어올리려는 보상 근육으로 흔히 동원된다."
+    },
+    "technique-60-장지신근": {
+      "id": "technique-60-장지신근",
+      "type": "테크닉카드",
+      "title": "테크닉 60 | 장지신근 / 긴발가락폄근 / Extensor Digitorum Longus (EDL)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "전경골근",
+          "장무지신근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "장지신근 / 긴발가락폄근",
+        "new": "장지신근",
+        "old": "긴발가락폄근",
+        "en": "Extensor Digitorum Longus (EDL)",
+        "en_short": "Extensor Digitorum Longus",
+        "abbr": "EDL",
+        "sci": "EDL"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 장지신근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "장지신근은 정강이 앞쪽에서 시작해 2~5번 발가락 끝까지 발등 쪽으로 붙는 근육으로 2~5번 발가락 신전의 주동근이며, 복사뼈 앞을 지나가 돌시플렉션(발등굽힘)의 협력근으로도 작용하고, 장무지신근과 함께 전경골근이 제 기능을 못할 때 대신 발등굽힘을 만들어내는 보상 근육으로 동원되기 쉽다."
+    },
+    "technique-09-전거근": {
+      "id": "technique-09-전거근",
+      "type": "테크닉카드",
+      "title": "테크닉 09 | 전거근 / 앞톱니근 / Serratus Anterior",
+      "part": "PART 3 — 다운 스크래치 개선 (상방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "옆으로 누운 자세 (하고자 하는 쪽이 위로)",
+          "operator_raw": "대상자 앞쪽",
+          "pose_tag": "옆누움"
+        }
+      ],
+      "primary_pose_tag": "옆누움",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [],
+        "retests": [
+          "다운 스크래치 테스트"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "전거근 / 앞톱니근",
+        "new": "전거근",
+        "old": "앞톱니근",
+        "en": "Serratus Anterior",
+        "en_short": "Serratus Anterior",
+        "abbr": "",
+        "sci": "Serratus Anterior"
+      },
+      "technique_types": [
+        "ART"
+      ],
+      "palpation": "원문에 별도 촉진(Palpation) 섹션 없음(미기재). 접촉 시작 위치는 ART 항목에 기술됨.\n**조직의 특징:** 뻣뻣하게 뭉친 사람은 손끝에 오돌토돌하고 자글자글한 알갱이 같은 질감이 만져진다(상부승모근에서도 비슷하게 덩어리진 느낌이 만져질 수 있다). 이런 곳을 누르면 유독 아파하는 경우가 많다.",
+      "one_liner": "전거근 ART는 가동성 목적보다 각성·활성화 목적이 더 크다. \"정신 차려!\" 하고 신경계를 살짝 민감하게 만들어 이후 운동에 잘 참여하도록 만드는 개념으로 사용한다."
+    },
+    "technique-53-전경골근": {
+      "id": "technique-53-전경골근",
+      "type": "테크닉카드",
+      "title": "테크닉 53 | 전경골근 / 앞정강근 / Tibialis Anterior (TA)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "비복근",
+          "가자미근",
+          "장무지신근",
+          "장지신근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "전경골근 / 앞정강근",
+        "new": "전경골근",
+        "old": "앞정강근",
+        "en": "Tibialis Anterior (TA)",
+        "en_short": "Tibialis Anterior",
+        "abbr": "TA",
+        "sci": "TA"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 전경골근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "전경골근은 경골 몸통 바깥쪽 라인에서 시작해 1번 발허리뼈(중족골) 바닥 부분과 내측 설상골(안쪽 쐐기뼈)에 붙는 돌시플렉션(발등굽힘)의 주동근으로, 종아리 뒤쪽 근육(비복근·가자미근)과 서로 길항(상호억제) 관계에 있어 종아리가 뻣뻣하면 만성적으로 피로해지기 쉽다."
+    },
+    "technique-49-중간광근": {
+      "id": "technique-49-중간광근",
+      "type": "테크닉카드",
+      "title": "테크닉 49 | 중간광근 / 중간넓은근 / Vastus Intermedius",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 무릎/대퇴사두근 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "중간광근 / 중간넓은근",
+        "new": "중간광근",
+        "old": "중간넓은근",
+        "en": "Vastus Intermedius",
+        "en_short": "Vastus Intermedius",
+        "abbr": "",
+        "sci": "Vastus Intermedius"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 중간광근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "중간광근은 대퇴골 몸통의 앞쪽·안쪽·바깥쪽에 걸쳐 살짝 부착되어 슬개골·경골조면(대퇴사두근 공통 정지점)으로 붙는 무릎 신전 근육으로, 강사는 이 근육을 \"조절하는 역할\"을 하는 근육으로 소개하면서도 개별 특징을 암기하는 것은 큰 의미가 없다고 직접 밝힌다."
+    },
+    "technique-33-중둔근": {
+      "id": "technique-33-중둔근",
+      "type": "테크닉카드",
+      "title": "테크닉 33 | 중둔근 / 중간볼기근 / Gluteus Medius",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "대퇴근막장근",
+          "대둔근",
+          "소둔근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사",
+          "트렌들렌버그검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "중둔근 / 중간볼기근",
+        "new": "중둔근",
+        "old": "중간볼기근",
+        "en": "Gluteus Medius",
+        "en_short": "Gluteus Medius",
+        "abbr": "",
+        "sci": "Gluteus Medius"
+      },
+      "technique_types": [
+        "자가촉진/운동처방"
+      ],
+      "palpation": "**자가 촉진(한 발 서기 상태에서 진행):** ASIS(전상장골극)를 먼저 잡고, 그대로 바깥쪽으로 손을 이동시키면 살짝 눌렀을 때 말랑말랑해지는 지점이 나온다 — 이 지점이 TFL이다. 그 상태에서 해당 다리 쪽으로 짝다리(한 발 지지)를 짚으면 힘이 들어오는 것이 느껴진다. 거기서 조금 더 뒤로 가면 뼈처럼 딱딱하게 느껴지는 지점이 나오는데 이것이 장경인대(IT밴드)다. 다시 무시하고 더 뒤로 가면 다시 말랑말랑해지는데, 이 지점이 중둔근 앞쪽 섬유다 — 여기도 한 발 지지 시 힘이 들어오는지 확인한다. 더 뒤로 가면 후방 섬유 부위가 나오는데, 이곳도 일은 하지만 상대적으로 앞쪽 섬유가 더 많이 일한다.\n**목적:** 한 발로 설 때 이 라인 전체(TFL~장경인대~중둔근 전방·후방)가 함께 작동하며 골반이 무너지지 않게 잡아준다는 것을 자가 촉진으로 체감시키기 위한 것이다.",
+      "one_liner": "중둔근은 장골능(엉덩뼈 능선)~전둔근선과 후둔근선 사이에서 시작해 대전자(큰돌기) 바깥쪽에 붙는 벌림의 주동근이자 한 발 지지 시 골반을 고정하는 근육 — 앞쪽 섬유(굴곡+내회전 담당)는 TFL처럼 일을 많이 해 단축·과활성되기 쉽고, 뒤쪽 섬유(신전+외회전 담당)는 대둔근처럼 약화·저활성되기 쉬운, 한 근육 안에서도 앞뒤가 다르게 반응하는 근육이다."
+    },
+    "technique-21-중부승모근": {
+      "id": "technique-21-중부승모근",
+      "type": "테크닉카드",
+      "title": "테크닉 21 | 중부승모근 / 중간등세모근 / Middle Trapezius",
+      "part": "ST 조인트 안정근 — 견갑골 후인(리트랙션) 근육",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "능형근",
+          "상부승모근·하부승모근"
+        ],
+        "techniques": [],
+        "retests": [
+          "견갑골 정렬평가"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "중부승모근 / 중간등세모근",
+        "new": "중부승모근",
+        "old": "중간등세모근",
+        "en": "Middle Trapezius",
+        "en_short": "Middle Trapezius",
+        "abbr": "",
+        "sci": "Middle Trapezius"
+      },
+      "technique_types": [
+        "해당 없음 — 강의 내 별도 치료기법 시연 없음"
+      ],
+      "palpation": "전사문에는 중부승모근에 특화된 별도의 촉진 방법(손가락 랜드마크 등)은 확인되지 않는다 — 승모근 전체를 \"넓다\"고 언급하며 상부·중부·하부로 나누는 개관 설명 위주였고, 개별 촉진 시연은 상부승모근·하부승모근 위주로 진행됐다. 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "중부승모근은 경추 7번부터 흉추 5번까지의 극돌기에서 시작해 견봉(어깨뼈 봉우리) 쪽으로 붙는 승모근의 중간 부분으로, 견갑골을 뒤로 모으는(리트랙션) 주동근이며 흉추 신전에도 관여하지만, 구부정한 자세로 인해 신장성 약화·저활성이 매우 흔한 근육이다."
+    },
+    "technique-28-척추기립근": {
+      "id": "technique-28-척추기립근",
+      "type": "테크닉카드",
+      "title": "테크닉 28 | 척추기립근 / Erector Spinae (ES)",
+      "part": "트렁크(체간) — 척추 신전근군",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "서기",
+      "pose_source": "inferred",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "다열근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "척추기립근 (ES)",
+        "new": "척추기립근 (ES)",
+        "old": "",
+        "en": "Erector Spinae",
+        "en_short": "Erector Spinae",
+        "abbr": "ES",
+        "sci": "ES"
+      },
+      "technique_types": [
+        "미기재"
+      ],
+      "palpation": "원문에는 척추기립근 단독 촉진 시연이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "척추기립근은 세 갈래(장늑근·최장근·극근)로 구성된 척추 뒤쪽의 신전근군으로, 머리·목·등·허리 구간마다 실제로 근육으로 존재하는 부위와 힘줄로만 이어지는 부위가 다르며, 부위별로 저활성(흉추)과 과긴장(요추)이라는 상반된 경향을 보인다."
+    },
+    "technique-43-치골근": {
+      "id": "technique-43-치골근",
+      "type": "테크닉카드",
+      "title": "테크닉 43 | 치골근 / 두덩근 / Pectineus",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "장내전근·단내전근",
+          "장요근"
+        ],
+        "techniques": [],
+        "retests": [
+          "고관절 벌림 패턴 검사"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "치골근 / 두덩근",
+        "new": "치골근",
+        "old": "두덩근",
+        "en": "Pectineus",
+        "en_short": "Pectineus",
+        "abbr": "",
+        "sci": "Pectineus"
+      },
+      "technique_types": [
+        "해부/기능"
+      ],
+      "palpation": "원문 전사에는 치골근 단독 촉진 시연이 확인되지 않는다 — 확인된 것은 부착부 설명(치골가지·거친선)뿐이며, 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "치골근은 위쪽 치골가지(슈피리어 퓨빅 라무스)에서 시작해 대퇴골 뒤쪽 거친선(리니아 아스페라) 상부에 붙는, 안테리어 어덕터 3형제(치골근·장내전근·단내전근) 중 가장 위쪽에 위치한 근육으로, 내전(AD)을 주동하며 굴곡·외회전에도 협력근으로 참여한다."
+    },
+    "technique-17-판상근": {
+      "id": "technique-17-판상근",
+      "type": "테크닉카드",
+      "title": "테크닉 17 | 판상근 / 널판근 / Splenius",
+      "part": "목 파트 — 등에 부착되는 목 신전·회전 근육",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "흉쇄유돌근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "판상근 / 널판근",
+        "new": "판상근",
+        "old": "널판근",
+        "en": "Splenius (Splenius Capitis & Cervicis)",
+        "en_short": "Splenius",
+        "abbr": "",
+        "sci": "Splenius"
+      },
+      "technique_types": [
+        "운동/신전패턴"
+      ],
+      "palpation": "전사문에는 판상근에 특화된 별도의 촉진 방법(랜드마크·손가락 위치 등)은 확인되지 않는다 — 지어내지 않고 미기재로 남긴다.",
+      "one_liner": "판상근은 두판상근(머리로 가는 갈래)과 경판상근(목으로 가는 갈래) 두 부분으로 나뉘며, 등(흉추 극돌기)에서 시작해 유양돌기·후두골 또는 상부 경추 횡돌기까지 붙어 목의 신전과 회전을 담당하는 주동근이다."
+    },
+    "technique-10-하부승모근": {
+      "id": "technique-10-하부승모근",
+      "type": "테크닉카드",
+      "title": "테크닉 10 | 하부승모근 / 아래등세모근 / Lower Trapezius",
+      "part": "PART 3 — 다운 스크래치 개선 (상방회전 계열)",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "앉은 자세 또는 엎드린 자세",
+          "operator_raw": "대상자 후방",
+          "pose_tag": "엎드림"
+        }
+      ],
+      "primary_pose_tag": "엎드림",
+      "pose_source": "explicit",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [],
+        "techniques": [
+          "능형근"
+        ],
+        "retests": [
+          "다운 스크래치 테스트"
+        ],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "하부승모근 / 아래등세모근",
+        "new": "하부승모근",
+        "old": "아래등세모근",
+        "en": "Lower Trapezius",
+        "en_short": "Lower Trapezius",
+        "abbr": "",
+        "sci": "Lower Trapezius"
+      },
+      "technique_types": [
+        "ART"
+      ],
+      "palpation": "원문에 별도 촉진(Palpation) 섹션 없음(미기재). 능형근 카드와 동일 개념으로 어깨뼈 가시 안쪽~12번 흉추 방향 사선 라인이 접촉 위치로 기술됨.",
+      "one_liner": "하부승모근 ART는 능형근 ART와 방법이 완전히 동일하다 — 위치만 다르다(능형근보다 더 아래쪽). 새로 배울 동작은 없고, 능형근에서 익힌 손기술을 위치만 옮겨서 그대로 적용한다."
+    },
+    "technique-31-횡격막": {
+      "id": "technique-31-횡격막",
+      "type": "테크닉카드",
+      "title": "테크닉 31 | 횡격막 / 가로막 / Diaphragm",
+      "part": "트렁크(체간) — 이너코어박스(로컬코어)의 뚜껑, 1차 호흡근",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "복횡근",
+          "골반기저근",
+          "다열근",
+          "요방형근",
+          "장요근",
+          "복직근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "횡격막 / 가로막",
+        "new": "횡격막",
+        "old": "가로막",
+        "en": "Diaphragm",
+        "en_short": "Diaphragm",
+        "abbr": "",
+        "sci": "Diaphragm"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문에는 횡격막 자체를 손으로 촉진하는 시연은 확인되지 않는다 — 미기재. 다만 앞선 코어 도입부에서 대상자의 옆구리(뒷구리)를 넓게 감싸 쥐고, 그 상태로 호흡을 시켜 뒤쪽까지 압력이 차는지 확인하는 방법이 함께 다뤄졌다(자세한 절차는 테크닉_복횡근·테크닉_요방형근의 촉진/평가 항목과 공유되는 도입부 내용).",
+      "one_liner": "횡격막은 흉강과 복강을 나누는 돔(지붕) 모양의 근육으로, 수축하며 아래로 내려가 흉강 안의 공간(음압)을 만들어 공기를 들이마시게 하는 1차 호흡근이자, 하강하며 아래쪽 복강 내 압력(복강내압=IAP=복압)을 사방으로 밀어 만드는 이너코어박스의 \"지휘자\"다."
+    },
+    "technique-54-후경골근": {
+      "id": "technique-54-후경골근",
+      "type": "테크닉카드",
+      "title": "테크닉 54 | 후경골근 / 뒤정강근 / Tibialis Posterior (TP)",
+      "part": "미기재 (원문 전사에 PART 번호 언급 없음 — 발목/종아리 계열로 추정되나 강사가 명시적으로 분류하지 않음)",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "장무지굴근",
+          "장지굴근",
+          "장비골근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "후경골근 / 뒤정강근",
+        "new": "후경골근",
+        "old": "뒤정강근",
+        "en": "Tibialis Posterior (TP)",
+        "en_short": "Tibialis Posterior",
+        "abbr": "TP",
+        "sci": "TP"
+      },
+      "technique_types": [
+        "운동처방"
+      ],
+      "palpation": "원문 전사에는 후경골근에 대한 별도의 촉진 시연 구간이 확인되지 않는다 — 지어내지 않고 미기재로 남긴다. (단, 인접 개념으로 아치 높이를 재는 랜드마크인 주상골 결절(발배뼈 결절) 촉진법이 원문에 소개되어 있음 — \"안쪽 복사뼈에서 앞쪽 방향으로 대각선 아래로 내려가면 툭 튀어나온 부분\"이 주상골 결절이며 아치의 최정점으로 설명됨. 이는 후경골근 자체의 촉진법은 아니라서 별도 인용으로만 남긴다.)",
+      "one_liner": "후경골근은 경골과 비골 사이 뒤쪽(골간막)에서 시작해 발 중족부 여러 뼈에 붙는 근육으로, 안쪽 복사뼈 뒤를 지나가며 발바닥굽힘·내번을 만들고, 무엇보다 발의 아치가 무너지지 않게 붙잡아주는 대표적인 동적 아치 지지근이다."
+    },
+    "technique-18-후두하근": {
+      "id": "technique-18-후두하근",
+      "type": "테크닉카드",
+      "title": "테크닉 18 | 후두하근 / 뒤통수밑근 / Suboccipitals",
+      "part": "목 파트 — 상부경추 내재근, 두통 유발 근육",
+      "date": "",
+      "poses": [],
+      "primary_pose_tag": "",
+      "pose_source": "",
+      "arrow_hints": [],
+      "chain": {
+        "suspect_muscles": [
+          "DNF",
+          "흉쇄유돌근·사각근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "후두하근 / 뒤통수밑근",
+        "new": "후두하근",
+        "old": "뒤통수밑근",
+        "en": "Suboccipitals (Rectus Capitis Posterior Major/Minor, Obliquus Capitis Superior/Inferior)",
+        "en_short": "Suboccipitals",
+        "abbr": "",
+        "sci": "Suboccipitals"
+      },
+      "technique_types": [
+        "이완"
+      ],
+      "palpation": "전사문에는 후두하근에 특화된 별도의 손가락 랜드마크 촉진법(구체적 지점·순서)은 확인되지 않는다 — 다만 자가 확인법으로, 두 번째 극돌기(C2 부근) 사이로 손가락을 넣은 채 눈을 위아래로 움직이면 뒤쪽 목 근육들이 미세하게 팔딱거리며 움직이는 것을 느낄 수 있다고 안내됐다(눈-후두하근 커플링 확인용).",
+      "one_liner": "후두하근은 대후두직근·소후두직근·상두사근·하두사근 4개 근육을 합쳐 부르는 이름으로, 경추 2번(C2) 극돌기를 기준으로 좌우 각 4개씩 목뼈 상위에 자글자글하게 붙어 있으며, 상부경추(머리~C1~C2)의 신전과 회전을 담당하는 주동근이다."
+    },
+    "technique-16-흉쇄유돌근": {
+      "id": "technique-16-흉쇄유돌근",
+      "type": "테크닉카드",
+      "title": "테크닉 16 | 흉쇄유돌근 / 목빗근 / SCM (Sternocleidomastoid)",
+      "part": "목 파트 — 외재근(겉근육), 거북목/전인 유발 근육",
+      "date": "",
+      "poses": [
+        {
+          "section": "ART 1",
+          "subject_raw": "스스로 앉거나 선 자세",
+          "operator_raw": "",
+          "pose_tag": "서기"
+        }
+      ],
+      "primary_pose_tag": "서기",
+      "pose_source": "explicit",
+      "arrow_hints": [
+        {
+          "section": "ART 1",
+          "text": "기시점 쪽(앞쪽, 흉골·쇄골 방향)과 정지점 쪽(위쪽, 유양돌기 방향)을 부드럽게 눌러가며 이완한다"
+        }
+      ],
+      "chain": {
+        "suspect_muscles": [
+          "사각근",
+          "상부승모근",
+          "판상근"
+        ],
+        "techniques": [],
+        "retests": [],
+        "related_assessments": []
+      },
+      "muscle": {
+        "full": "흉쇄유돌근 / 목빗근 (SCM)",
+        "new": "흉쇄유돌근",
+        "old": "목빗근 (SCM)",
+        "en": "Sternocleidomastoid",
+        "en_short": "Sternocleidomastoid",
+        "abbr": "SCM",
+        "sci": "SCM"
+      },
+      "technique_types": [
+        "셀프이완"
+      ],
+      "palpation": "손을 넓게 벌려 목 옆면을 감싸듯 잡으면 그대로 잡히는 굵은 조직이 SCM이다. 셀프로 좌우 번갈아 만져보며 앞쪽(기시점 쪽)과 위쪽(정지점 쪽)을 부드럽게 문질러 이완한다. 사각근과 구분하려면, 동측 손으로 목을 감싸 SCM을 잡은 상태에서 엄지손가락을 목 뒤쪽으로 향해 밀어 넣는다 — 그 안쪽에서 다닥다닥 걸리는 여러 가닥의 조직이 SCM 뒤에 있는 사각근이다.",
+      "one_liner": "흉쇄유돌근(SCM)은 흉골병·쇄골 안쪽 일부에서 시작해 유양돌기(꼭지돌기)까지 붙는 겉근육으로, 하부경추 굴곡과 상부경추 신전이 합쳐져 머리를 앞으로 내미는(프로트랙션) 주동근이며, 편측으로 수축하면 반대쪽으로 목을 돌리는(대측 회전) 근육이다."
+    }
+  }
+}

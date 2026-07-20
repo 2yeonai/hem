@@ -80,3 +80,32 @@ button:active{opacity:.8}
 .stat{text-align:center;flex:1}
 .stat b{font-size:20px;display:block}
 .stat small{color:var(--muted);font-size:11px}
+
+/* ---- F3 참고 이미지(소책자 손 위치·압력 방향) ---- */
+.f3-images{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.f3-img{width:100%;max-width:320px;border-radius:10px;border:1px solid var(--border);
+  display:block;cursor:zoom-in}
+.f3-img.zoomed{max-width:100%}
+
+/* ---- 3D 뷰어 ---- */
+.viz-wrap{display:flex;flex-direction:column;gap:10px}
+.viz-canvas-box{position:relative;width:100%;height:46vh;min-height:280px;
+  background:#0e1116;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.viz-canvas-box canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.viz-canvas-box canvas:active{cursor:grabbing}
+.viz-poselabel{position:absolute;left:10px;top:10px;font-size:12px;
+  background:rgba(20,22,28,.7);color:#ff8a5a;padding:4px 10px;border-radius:12px}
+.viz-panel{display:flex;flex-direction:column}
+.viz-label{font-size:16px;font-weight:700;color:#ff8a5a;margin:2px 0 4px}
+.viz-poses{display:flex;flex-wrap:wrap;gap:6px}
+.pose-btn{padding:7px 12px;border-radius:16px;border:1px solid var(--border);
+  background:var(--panel2);color:var(--text);font-size:13px;cursor:pointer}
+.pose-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.viz-sec{margin-bottom:10px}
+.viz-sec-t{font-size:12px;color:var(--accent);font-weight:700;margin-bottom:3px}
+.viz-arrow{font-size:13px;color:var(--text);padding:3px 0;border-bottom:1px dashed var(--border)}
+@media(min-width:760px){
+  .viz-wrap{flex-direction:row;align-items:flex-start}
+  .viz-canvas-box{flex:1 1 50%;height:70vh;position:sticky;top:70px}
+  .viz-panel{flex:1 1 50%;max-height:none}
+}

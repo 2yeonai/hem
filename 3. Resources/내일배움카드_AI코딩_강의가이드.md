@@ -4,7 +4,7 @@ status: active
 category: "교육"
 source: "고용24 / 각 훈련기관"
 url: "https://www.work24.go.kr"
-tags: [resource/education, ai공장, 배움]
+tags: [resource/education]
 ---
 
 # 내일배움카드 AI·코딩 강의 가이드 (2026-07-12 조사)

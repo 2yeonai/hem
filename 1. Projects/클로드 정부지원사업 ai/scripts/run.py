@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-gov-support-matching-skill / scripts/run.py  (manifest v0.4.0)
+gov-support-matching-skill / scripts/run.py  (manifest v0.7.0)
 
 manifest.yaml의 io_contract를 구현하는 엔트리포인트.
 입력: business_profile, target_period
@@ -84,6 +84,64 @@ v0.5.2 변경사항 (문서명 fuzzy 매칭):
     문서가 붕괴 충돌할 위험이 없는 4개(사업자등록증류/법인등기부등본류/중소기업확인서류/
     부가가치과세표준증명류)만 안전하게 등록함(국세/지방세 납세증명서처럼 괄호 안 내용이
     문서를 구분하는 유일한 단서인 경우는 등록하지 않음 — 의미 추측 금지 원칙).
+
+v0.6.0 변경사항 (다중 사업 프로필 대응, business_profiles.yaml 기반; 상세: 아래 "v0.6.0" 섹션
+  주석, decision-log_skill-factory-architecture.md §15~16, Fable 5 설계 + Sonnet 구현,
+  2026-07-16):
+  - --profiles 모드 신설: business_profiles.yaml의 프로필별로 매칭 결과를 각각 저장하는
+    다중 입력 경로 추가. 기존 단일 business_profile JSON 입력 경로(run()/main())는 전혀
+    수정하지 않고 그대로 보존(바이트 단위 회귀 동일 확인).
+  - 예비창업/기창업 트랙 자동 분기(founding_requirement_hint) 추가. 창업 트랙 판별 마커는
+    business_profiles.yaml의 startup_track_markers로 단일 정본화(collector와 이중 관리
+    금지), certain/ambiguous/none 3단계로 분류 — 확실한 경우만 자동 제외하고 애매하면
+    제외하지 않고 unresolved로 남겨 사람 검수 게이트로 넘김.
+  - industry_code_verified 플래그 추가: 업종코드 미확인 시 부적격이 아니라
+    needs_confirmation으로 처리("모름≠미달" 원칙 유지).
+
+v0.6.1 변경사항 (선정 후 뒷단: PPT·발표대본·예상QNA 자동화 mock; 상세: 아래 "뒷단(선정 후)"
+  섹션 주석, decision-log §17, 완전자동화_실행계획.md T8, 2026-07-16):
+  - run_presentation_backend() + stage_선정접수~stage_발표패키지저장 8개 함수 mock 구현.
+    트리거는 event:selection_notice 단일, 승인 게이트 2개(PPT승인/발표패키지승인).
+  - shared_context 신규 필드 7개(selection_notice/submitted_application_ref/
+    presentation_requirements/ppt_draft/presentation_script/expected_qna/
+    presentation_package_record). 뒷단 콘텐츠 원천은 초안(draft_application)이 아니라
+    사람이 지정한 제출확정본(submitted_application_ref).
+  - 골든 레퍼런스(온천꽃식물원 실제 발표대본/QnA/PPT) 대조 + 기존 회귀 3종 불변 확인,
+    시나리오 테스트 5종 PASS. company_charter.md §5 개정(v0.1→0.2) 완료.
+
+v0.7.0 변경사항 (완전자동화_실행계획.md T9: 홍재우 9인 심사위원 + 소제목:내용 포맷 +
+  수집기↔매칭 연결 + PPT/QNA 실물화 + 예산·기대효과 자동생성; decision-log §18 후속/
+  §19 후속, Sonnet 구현, 2026-07-16~17):
+  - [홍재우 9번째 심사위원] _run_hong_jaewoo_review() 신규: 홍재우_페르소나카드.md 판단기준
+    20개 중 텍스트 스캔으로 근거 있게 판별 가능한 5개(#3 문제->해결->AI 순서/#5 차별화
+    실체/#15 구체성/#16 완료형 서술/#19 경제성 최우선)만 구현, 나머지는 TODO(추측 구현
+    안 함). 8인 결과와 무관하게 홍재우가 부적격/보류를 내면 overall_pass_recommendation을
+    강제 False로 덮어씀(페르소나카드 "판정 충돌 규칙" 확정).
+  - [소제목:내용 포맷] draft_application()의 섹션 6개 전부 "○ 소제목 : 내용" 불릿 형식으로
+    전환(작성_포맷_규칙.md 구조만 이식, 원문 그대로 베끼지 않음).
+  - [수집기↔매칭 연결] collect_and_extract_announcements()가 scripts/inbox/candidates_*.json
+    중 reviewed:true 카드를 우선 사용하고, 없으면 기존 정적 파일(sample_announcements.json
+    등)로 폴백. reviewed:false/미기재 카드는 _load_reviewed_candidates()가 절대 읽지
+    않음(§14 사람 검수 게이트 우회 없음 — 테스트로 확인).
+  - [PPT 실물화] python-pptx로 실제 .pptx 생성(mock에서 실물로 전환). PSST 앵커 정규식으로
+    submitted_application_ref를 절단해 배치(신규 문장 창작 없음), 앵커 매칭이 부족하면
+    fallback_equal_split로 정직하게 전환하고 extraction_method에 그 사실을 기록.
+  - [QnA 5템플릿] 실측(QnA.pdf)한 5개 카테고리(상품·차별성/기술·검증/시장·수요·판로/
+    예산·지원금/실행·대표역량+모르는질문 catch-all)로 기존 8인 JUDGE_DEFINITIONS를 매핑,
+    새 판정 로직은 만들지 않음.
+  - [예산·기대효과 자동생성] _propose_budget_allocation()/_propose_expected_outcomes() 신규:
+    budget_detail/expected_outcomes가 비어있으면 매칭된 공고의 budget_criteria/
+    scoring_rubric을 근거로 표준 카테고리 배분안을 AI가 제안하되, 확정값이 아니므로 각
+    항목 앞에 "[AI 제안 — 실제 집행 전 사업주 확정 필요]"를 명시해 "[확인 필요]"(정말 몰라서
+    못 채움)와 텍스트로 구분.
+  - [대표자 연령 라벨] "대표자 정보" -> "대표자 연령"으로 라벨 수정. 이 필드는 애초에 대표자
+    이름을 다루지 않고 연령만 계산한다 — 이름 미포함은 버그가 아니라 블라인드 심사 원칙에
+    따른 의도된 설계(데이터 유실 아님).
+  - [팀원 플레이스홀더] _propose_team_placeholders() 신규: 매칭 공고의 scoring_rubric에
+    참여인력/수행역량 등 팀 관련 배점이 실제로 있을 때만 "OOO" 역할 플레이스홀더를
+    team_experience에 추가(rubric 조건부 트리거 — 무조건 팀을 부풀리지 않음).
+  - 위 변경 전부 기존 회귀(sample/edge/ideal/multi-profile) + 발표뒷단 테스트 5종 불변
+    확인(PASS).
 
 주의(아직 해결 안 됨 — 알려진 한계):
   - PDF/HWP 공고문 자동 파싱 없음 — 공고는 사람이 직접 읽고 scripts/*.json으로 구조화해야 함.

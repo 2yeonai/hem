@@ -3,7 +3,7 @@ title: "혁신성장형 벤처신청서_LMS솔루션 - 추출 원문"
 type: extracted-fulltext
 source: "7월 도원결의세미나 자료실/벤처인증/혁신성장형 벤처신청서_LMS솔루션.hwp"
 converted: 2026-07-13
-tags: [문서변환, 원문, 인박스]
+tags: []
 ---
 
 # 혁신성장형 벤처신청서_LMS솔루션 - 추출 원문

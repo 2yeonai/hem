@@ -1,0 +1,831 @@
+{
+  "note": "카드 영문 근육명 ↔ 마네킹 부위(mesh) + Z-Anatomy 표준명 매핑. z_anatomy는 조회 키(실제 export 오브젝트명 접미사는 3단계에서 확정).",
+  "mannequin_segments": [
+    "head",
+    "neck",
+    "torsoUpper",
+    "torsoLower",
+    "pelvis",
+    "upperArm",
+    "foreArm",
+    "hand",
+    "thigh",
+    "shin",
+    "foot"
+  ],
+  "counts": {
+    "mapped": 61,
+    "unmapped": 0,
+    "by_status": {
+      "group": 9,
+      "joint": 2,
+      "direct": 50
+    }
+  },
+  "cards": {
+    "technique-20-DNF": {
+      "id": "technique-20-DNF",
+      "muscle_ko": "심부경부굴곡근 (DNF)",
+      "muscle_en": "Deep Neck Flexors (Rectus Capitis Anterior, Rectus Capitis Lateralis, Longus Capitis, Longus Colli)",
+      "mesh": [
+        "neck"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "목 앞 심부(경추 앞)",
+      "z_anatomy": "Longus colli / Longus capitis / Rectus capitis anterior & lateralis",
+      "z_status": "group"
+    },
+    "technique-05-GH전방관절낭": {
+      "id": "technique-05-GH전방관절낭",
+      "muscle_ko": "GH 전방 관절낭 / 앞쪽 관절주머니",
+      "muscle_en": "GH Anterior Capsule",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "어깨 앞 관절주머니",
+      "z_anatomy": "Glenohumeral joint capsule (anterior)",
+      "z_status": "joint"
+    },
+    "technique-11-GH후방관절낭": {
+      "id": "technique-11-GH후방관절낭",
+      "muscle_ko": "GH 후방 관절낭 / 뒤쪽 관절주머니",
+      "muscle_en": "GH Posterior Capsule",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "어깨 뒤 관절주머니",
+      "z_anatomy": "Glenohumeral joint capsule (posterior)",
+      "z_status": "joint"
+    },
+    "technique-52-가자미근": {
+      "id": "technique-52-가자미근",
+      "muscle_ko": "가자미근 / 넙치근",
+      "muscle_en": "Soleus",
+      "mesh": [
+        "shin"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "종아리 심부(넙치근)",
+      "z_anatomy": "Soleus",
+      "z_status": "direct"
+    },
+    "technique-03-견갑거근": {
+      "id": "technique-03-견갑거근",
+      "muscle_ko": "견갑거근 / 어깨올림근",
+      "muscle_en": "Levator Scapulae",
+      "mesh": [
+        "neck",
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "목~어깨뼈 위각",
+      "z_anatomy": "Levator scapulae",
+      "z_status": "direct"
+    },
+    "technique-06-견갑하근": {
+      "id": "technique-06-견갑하근",
+      "muscle_ko": "견갑하근 / 어깨밑근",
+      "muscle_en": "Subscapularis",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "어깨뼈 앞면(심부)",
+      "z_anatomy": "Subscapularis",
+      "z_status": "direct"
+    },
+    "technique-29-골반기저근": {
+      "id": "technique-29-골반기저근",
+      "muscle_ko": "골반기저근 / 골반저근",
+      "muscle_en": "Pelvic Floor Muscles",
+      "mesh": [
+        "pelvis"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "골반 바닥",
+      "z_anatomy": "Pelvic floor (levator ani / coccygeus)",
+      "z_status": "group"
+    },
+    "technique-04-광배근": {
+      "id": "technique-04-광배근",
+      "muscle_ko": "광배근 / 넓은등근",
+      "muscle_en": "Latissimus Dorsi",
+      "mesh": [
+        "torsoUpper",
+        "torsoLower"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "넓은 등~허리",
+      "z_anatomy": "Latissimus dorsi",
+      "z_status": "direct"
+    },
+    "technique-12-극상근": {
+      "id": "technique-12-극상근",
+      "muscle_ko": "극상근 / 가시위근",
+      "muscle_en": "Supraspinatus",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "어깨뼈 가시 위",
+      "z_anatomy": "Supraspinatus",
+      "z_status": "direct"
+    },
+    "technique-14-극하근": {
+      "id": "technique-14-극하근",
+      "muscle_ko": "극하근 / 가시아래근",
+      "muscle_en": "Infraspinatus",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "어깨뼈 가시 아래",
+      "z_anatomy": "Infraspinatus",
+      "z_status": "direct"
+    },
+    "technique-23-내복사근": {
+      "id": "technique-23-내복사근",
+      "muscle_ko": "내복사근 / 배속빗근",
+      "muscle_en": "Internal Oblique",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "옆구리 속(배속빗근)",
+      "z_anatomy": "Obliquus internus abdominis",
+      "z_status": "direct"
+    },
+    "technique-48-내측광근": {
+      "id": "technique-48-내측광근",
+      "muscle_ko": "내측광근 / 안쪽넓은근 (VM, 사선섬유는 VMO)",
+      "muscle_en": "Vastus Medialis (Oblique)",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "허벅지 앞 안쪽(VM/VMO)",
+      "z_anatomy": "Vastus medialis",
+      "z_status": "direct"
+    },
+    "technique-02-능형근": {
+      "id": "technique-02-능형근",
+      "muscle_ko": "능형근 / 마름근",
+      "muscle_en": "Rhomboid",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "척추~어깨뼈 안쪽",
+      "z_anatomy": "Rhomboid major / minor",
+      "z_status": "group"
+    },
+    "technique-26-다열근": {
+      "id": "technique-26-다열근",
+      "muscle_ko": "다열근 / 뭇갈래근",
+      "muscle_en": "Multifidus",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "척추 심부 안정근",
+      "z_anatomy": "Multifidus",
+      "z_status": "direct"
+    },
+    "technique-45-단내전근": {
+      "id": "technique-45-단내전근",
+      "muscle_ko": "단내전근 / 짧은모음근",
+      "muscle_en": "Adductor Brevis",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "inner",
+      "side": "both",
+      "region_ko": "허벅지 안쪽(짧은모음근)",
+      "z_anatomy": "Adductor brevis",
+      "z_status": "direct"
+    },
+    "technique-56-단비골근": {
+      "id": "technique-56-단비골근",
+      "muscle_ko": "단비골근 / 짧은종아리근",
+      "muscle_en": "Peroneus (Fibularis) Brevis",
+      "mesh": [
+        "shin"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "종아리 가쪽(짧은종아리근)",
+      "z_anatomy": "Fibularis (peroneus) brevis",
+      "z_status": "direct"
+    },
+    "technique-46-대내전근": {
+      "id": "technique-46-대내전근",
+      "muscle_ko": "대내전근 / 큰모음근",
+      "muscle_en": "Adductor Magnus",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "inner",
+      "side": "both",
+      "region_ko": "허벅지 안쪽(큰모음근)",
+      "z_anatomy": "Adductor magnus",
+      "z_status": "direct"
+    },
+    "technique-32-대둔근": {
+      "id": "technique-32-대둔근",
+      "muscle_ko": "대둔근 / 큰볼기근",
+      "muscle_en": "Gluteus Maximus",
+      "mesh": [
+        "pelvis"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "엉덩이 큰 근육",
+      "z_anatomy": "Gluteus maximus",
+      "z_status": "direct"
+    },
+    "technique-07-대원근": {
+      "id": "technique-07-대원근",
+      "muscle_ko": "대원근 / 큰원근",
+      "muscle_en": "Teres Major",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "어깨뼈 아래각(큰원근)",
+      "z_anatomy": "Teres major",
+      "z_status": "direct"
+    },
+    "technique-35-대퇴근막장근": {
+      "id": "technique-35-대퇴근막장근",
+      "muscle_ko": "대퇴근막장근 / TFL",
+      "muscle_en": "Tensor Fasciae Latae",
+      "mesh": [
+        "pelvis",
+        "thigh"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "골반 앞옆(TFL)",
+      "z_anatomy": "Tensor fasciae latae",
+      "z_status": "direct"
+    },
+    "technique-38-대퇴이두근": {
+      "id": "technique-38-대퇴이두근",
+      "muscle_ko": "대퇴이두근(장두·단두) / 넙다리두갈래근",
+      "muscle_en": "Biceps Femoris (Long Head & Short Head)",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "허벅지 뒤 가쪽(넙다리두갈래)",
+      "z_anatomy": "Biceps femoris (long/short head)",
+      "z_status": "direct"
+    },
+    "technique-61-대흉근": {
+      "id": "technique-61-대흉근",
+      "muscle_ko": "대흉근 / 큰가슴근",
+      "muscle_en": "Pectoralis Major",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "앞가슴(큰가슴근)",
+      "z_anatomy": "Pectoralis major",
+      "z_status": "direct"
+    },
+    "technique-42-박근": {
+      "id": "technique-42-박근",
+      "muscle_ko": "박근 / 두덩정강근",
+      "muscle_en": "Gracilis",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "inner",
+      "side": "both",
+      "region_ko": "허벅지 안쪽 얇은근(두덩정강근)",
+      "z_anatomy": "Gracilis",
+      "z_status": "direct"
+    },
+    "technique-39-반건양근": {
+      "id": "technique-39-반건양근",
+      "muscle_ko": "반건양근 / 반힘줄모양근",
+      "muscle_en": "Semitendinosus",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "허벅지 뒤 안쪽(반힘줄)",
+      "z_anatomy": "Semitendinosus",
+      "z_status": "direct"
+    },
+    "technique-40-반막양근": {
+      "id": "technique-40-반막양근",
+      "muscle_ko": "반막양근 / 반막모양근",
+      "muscle_en": "Semimembranosus",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "허벅지 뒤 안쪽 심부(반막)",
+      "z_anatomy": "Semimembranosus",
+      "z_status": "direct"
+    },
+    "technique-22-복직근": {
+      "id": "technique-22-복직근",
+      "muscle_ko": "복직근 / 배곧은근",
+      "muscle_en": "Rectus Abdominis",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "배 앞(식스팩)",
+      "z_anatomy": "Rectus abdominis",
+      "z_status": "direct"
+    },
+    "technique-25-복횡근": {
+      "id": "technique-25-복횡근",
+      "muscle_ko": "복횡근 / 배가로근",
+      "muscle_en": "Transverse Abdominis",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "배 가로(심부 코어)",
+      "z_anatomy": "Transversus abdominis",
+      "z_status": "direct"
+    },
+    "technique-41-봉공근": {
+      "id": "technique-41-봉공근",
+      "muscle_ko": "봉공근 / 넙다리빗근(재봉근)",
+      "muscle_en": "Sartorius",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "허벅지 앞 사선(재봉근)",
+      "z_anatomy": "Sartorius",
+      "z_status": "direct"
+    },
+    "technique-51-비복근": {
+      "id": "technique-51-비복근",
+      "muscle_ko": "비복근 / 장딴지근",
+      "muscle_en": "Gastrocnemius (GCM)",
+      "mesh": [
+        "shin"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "종아리 겉(장딴지근)",
+      "z_anatomy": "Gastrocnemius",
+      "z_status": "direct"
+    },
+    "technique-13-사각근": {
+      "id": "technique-13-사각근",
+      "muscle_ko": "사각근 / 목갈비근",
+      "muscle_en": "Scalenes",
+      "mesh": [
+        "neck"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "목 옆(경추 측면)",
+      "z_anatomy": "Scalenus (anterior/medius/posterior)",
+      "z_status": "group"
+    },
+    "technique-08-상부승모근": {
+      "id": "technique-08-상부승모근",
+      "muscle_ko": "상부승모근 / 위등세모근",
+      "muscle_en": "Upper Trapezius",
+      "mesh": [
+        "neck",
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "목~어깨 위",
+      "z_anatomy": "Trapezius (descending/upper)",
+      "z_status": "direct"
+    },
+    "technique-34-소둔근": {
+      "id": "technique-34-소둔근",
+      "muscle_ko": "소둔근 / 작은볼기근",
+      "muscle_en": "Gluteus Minimus",
+      "mesh": [
+        "pelvis"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "엉덩이 옆 심부(작은볼기)",
+      "z_anatomy": "Gluteus minimus",
+      "z_status": "direct"
+    },
+    "technique-15-소원근": {
+      "id": "technique-15-소원근",
+      "muscle_ko": "소원근 / 작은원근",
+      "muscle_en": "Teres Minor",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "어깨뼈 가쪽(작은원근)",
+      "z_anatomy": "Teres minor",
+      "z_status": "direct"
+    },
+    "technique-01-소흉근": {
+      "id": "technique-01-소흉근",
+      "muscle_ko": "소흉근 / 작은가슴근",
+      "muscle_en": "Pectoralis Minor",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "앞가슴 심부(작은가슴근)",
+      "z_anatomy": "Pectoralis minor",
+      "z_status": "direct"
+    },
+    "technique-50-슬와근": {
+      "id": "technique-50-슬와근",
+      "muscle_ko": "슬와근 / 오금근",
+      "muscle_en": "Popliteus",
+      "mesh": [
+        "shin"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "무릎 뒤(오금근)",
+      "z_anatomy": "Popliteus",
+      "z_status": "direct"
+    },
+    "technique-37-심부외회전근군": {
+      "id": "technique-37-심부외회전근군",
+      "muscle_ko": "심부외회전근군(이상근 제외 4종) / 쌍자근(상·하) · 폐쇄근(내·외) · 대퇴방형근",
+      "muscle_en": "Deep Lateral Rotators (Gemellus Superior/Inferior, Obturator Internus/Externus, Quadratus Femoris)",
+      "mesh": [
+        "pelvis"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "엉덩이 심부 외회전근(이상근 제외 4종)",
+      "z_anatomy": "Deep lateral rotators (gemellus sup./inf., obturator int./ext., quadratus femoris)",
+      "z_status": "group"
+    },
+    "technique-24-외복사근": {
+      "id": "technique-24-외복사근",
+      "muscle_ko": "외복사근 / 배바깥빗근",
+      "muscle_en": "External Oblique",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "옆구리 겉(배바깥빗근)",
+      "z_anatomy": "Obliquus externus abdominis",
+      "z_status": "direct"
+    },
+    "technique-47-외측광근": {
+      "id": "technique-47-외측광근",
+      "muscle_ko": "외측광근 / 가쪽넓은근",
+      "muscle_en": "Vastus Lateralis",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "허벅지 앞 가쪽(VL)",
+      "z_anatomy": "Vastus lateralis",
+      "z_status": "direct"
+    },
+    "technique-27-요방형근": {
+      "id": "technique-27-요방형근",
+      "muscle_ko": "요방형근 / 허리네모근 (QL)",
+      "muscle_en": "Quadratus Lumborum",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "허리 네모근(옆허리)",
+      "z_anatomy": "Quadratus lumborum",
+      "z_status": "direct"
+    },
+    "technique-19-이복근": {
+      "id": "technique-19-이복근",
+      "muscle_ko": "이복근",
+      "muscle_en": "Digastric",
+      "mesh": [
+        "neck"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "턱 아래(설골 위)",
+      "z_anatomy": "Digastric",
+      "z_status": "direct"
+    },
+    "technique-36-이상근": {
+      "id": "technique-36-이상근",
+      "muscle_ko": "이상근 / 궁둥구멍근",
+      "muscle_en": "Piriformis",
+      "mesh": [
+        "pelvis"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "엉덩이 심부(궁둥구멍근)",
+      "z_anatomy": "Piriformis",
+      "z_status": "direct"
+    },
+    "technique-44-장내전근": {
+      "id": "technique-44-장내전근",
+      "muscle_ko": "장내전근 / 긴모음근",
+      "muscle_en": "Adductor Longus",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "inner",
+      "side": "both",
+      "region_ko": "허벅지 안쪽(긴모음근)",
+      "z_anatomy": "Adductor longus",
+      "z_status": "direct"
+    },
+    "technique-57-장무지굴근": {
+      "id": "technique-57-장무지굴근",
+      "muscle_ko": "장무지굴근 / 긴엄지굽힘근",
+      "muscle_en": "Flexor Hallucis Longus (FHL)",
+      "mesh": [
+        "shin",
+        "foot"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "정강 뒤~엄지(긴엄지굽힘)",
+      "z_anatomy": "Flexor hallucis longus",
+      "z_status": "direct"
+    },
+    "technique-59-장무지신근": {
+      "id": "technique-59-장무지신근",
+      "muscle_ko": "장무지신근 / 긴엄지폄근",
+      "muscle_en": "Extensor Hallucis Longus (EHL)",
+      "mesh": [
+        "shin",
+        "foot"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "정강 앞~엄지(긴엄지폄)",
+      "z_anatomy": "Extensor hallucis longus",
+      "z_status": "direct"
+    },
+    "technique-55-장비골근": {
+      "id": "technique-55-장비골근",
+      "muscle_ko": "장비골근 / 긴종아리근",
+      "muscle_en": "Peroneus (Fibularis) Longus",
+      "mesh": [
+        "shin"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "종아리 가쪽(긴종아리근)",
+      "z_anatomy": "Fibularis (peroneus) longus",
+      "z_status": "direct"
+    },
+    "technique-30-장요근": {
+      "id": "technique-30-장요근",
+      "muscle_ko": "장요근 / 대요근 (강의에서는 대요근만 언급됨)",
+      "muscle_en": "Psoas Major (Iliopsoas)",
+      "mesh": [
+        "torsoLower",
+        "pelvis"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "허리~골반 앞 심부",
+      "z_anatomy": "Psoas major / Iliacus (iliopsoas)",
+      "z_status": "group"
+    },
+    "technique-58-장지굴근": {
+      "id": "technique-58-장지굴근",
+      "muscle_ko": "장지굴근 / 긴발가락굽힘근",
+      "muscle_en": "Flexor Digitorum Longus (FDL)",
+      "mesh": [
+        "shin",
+        "foot"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "정강 뒤~발가락(긴발가락굽힘)",
+      "z_anatomy": "Flexor digitorum longus",
+      "z_status": "direct"
+    },
+    "technique-60-장지신근": {
+      "id": "technique-60-장지신근",
+      "muscle_ko": "장지신근 / 긴발가락폄근",
+      "muscle_en": "Extensor Digitorum Longus (EDL)",
+      "mesh": [
+        "shin",
+        "foot"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "정강 앞~발가락(긴발가락폄)",
+      "z_anatomy": "Extensor digitorum longus",
+      "z_status": "direct"
+    },
+    "technique-09-전거근": {
+      "id": "technique-09-전거근",
+      "muscle_ko": "전거근 / 앞톱니근",
+      "muscle_en": "Serratus Anterior",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "옆구리 갈비~어깨뼈",
+      "z_anatomy": "Serratus anterior",
+      "z_status": "direct"
+    },
+    "technique-53-전경골근": {
+      "id": "technique-53-전경골근",
+      "muscle_ko": "전경골근 / 앞정강근",
+      "muscle_en": "Tibialis Anterior (TA)",
+      "mesh": [
+        "shin"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "정강 앞(앞정강근)",
+      "z_anatomy": "Tibialis anterior",
+      "z_status": "direct"
+    },
+    "technique-49-중간광근": {
+      "id": "technique-49-중간광근",
+      "muscle_ko": "중간광근 / 중간넓은근",
+      "muscle_en": "Vastus Intermedius",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "허벅지 앞 심부(VI)",
+      "z_anatomy": "Vastus intermedius",
+      "z_status": "direct"
+    },
+    "technique-33-중둔근": {
+      "id": "technique-33-중둔근",
+      "muscle_ko": "중둔근 / 중간볼기근",
+      "muscle_en": "Gluteus Medius",
+      "mesh": [
+        "pelvis"
+      ],
+      "face": "side",
+      "side": "both",
+      "region_ko": "엉덩이 옆(중간볼기)",
+      "z_anatomy": "Gluteus medius",
+      "z_status": "direct"
+    },
+    "technique-21-중부승모근": {
+      "id": "technique-21-중부승모근",
+      "muscle_ko": "중부승모근 / 중간등세모근",
+      "muscle_en": "Middle Trapezius",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "어깨뼈 사이(중간)",
+      "z_anatomy": "Trapezius (transverse/middle)",
+      "z_status": "direct"
+    },
+    "technique-28-척추기립근": {
+      "id": "technique-28-척추기립근",
+      "muscle_ko": "척추기립근 (ES)",
+      "muscle_en": "Erector Spinae",
+      "mesh": [
+        "torsoLower",
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "척추 양옆 세로근",
+      "z_anatomy": "Erector spinae (iliocostalis/longissimus/spinalis)",
+      "z_status": "group"
+    },
+    "technique-43-치골근": {
+      "id": "technique-43-치골근",
+      "muscle_ko": "치골근 / 두덩근",
+      "muscle_en": "Pectineus",
+      "mesh": [
+        "thigh"
+      ],
+      "face": "inner",
+      "side": "both",
+      "region_ko": "샅~허벅지 안쪽(두덩근)",
+      "z_anatomy": "Pectineus",
+      "z_status": "direct"
+    },
+    "technique-17-판상근": {
+      "id": "technique-17-판상근",
+      "muscle_ko": "판상근 / 널판근",
+      "muscle_en": "Splenius (Splenius Capitis & Cervicis)",
+      "mesh": [
+        "neck"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "목 뒤(척추~머리)",
+      "z_anatomy": "Splenius capitis / Splenius cervicis",
+      "z_status": "group"
+    },
+    "technique-10-하부승모근": {
+      "id": "technique-10-하부승모근",
+      "muscle_ko": "하부승모근 / 아래등세모근",
+      "muscle_en": "Lower Trapezius",
+      "mesh": [
+        "torsoUpper"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "등 중간(아래 등세모)",
+      "z_anatomy": "Trapezius (ascending/lower)",
+      "z_status": "direct"
+    },
+    "technique-31-횡격막": {
+      "id": "technique-31-횡격막",
+      "muscle_ko": "횡격막 / 가로막",
+      "muscle_en": "Diaphragm",
+      "mesh": [
+        "torsoLower"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "가슴~배 경계(호흡근)",
+      "z_anatomy": "Diaphragm (thoracic)",
+      "z_status": "direct"
+    },
+    "technique-54-후경골근": {
+      "id": "technique-54-후경골근",
+      "muscle_ko": "후경골근 / 뒤정강근",
+      "muscle_en": "Tibialis Posterior (TP)",
+      "mesh": [
+        "shin"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "정강 뒤 심부(뒤정강근)",
+      "z_anatomy": "Tibialis posterior",
+      "z_status": "direct"
+    },
+    "technique-18-후두하근": {
+      "id": "technique-18-후두하근",
+      "muscle_ko": "후두하근 / 뒤통수밑근",
+      "muscle_en": "Suboccipitals (Rectus Capitis Posterior Major/Minor, Obliquus Capitis Superior/Inferior)",
+      "mesh": [
+        "head"
+      ],
+      "face": "back",
+      "side": "both",
+      "region_ko": "뒤통수 밑(상부경추)",
+      "z_anatomy": "Suboccipital group (rectus capitis post. major/minor, obliquus capitis sup./inf.)",
+      "z_status": "group"
+    },
+    "technique-16-흉쇄유돌근": {
+      "id": "technique-16-흉쇄유돌근",
+      "muscle_ko": "흉쇄유돌근 / 목빗근 (SCM)",
+      "muscle_en": "Sternocleidomastoid",
+      "mesh": [
+        "neck"
+      ],
+      "face": "front",
+      "side": "both",
+      "region_ko": "목 앞(빗장~귀뒤)",
+      "z_anatomy": "Sternocleidomastoid",
+      "z_status": "direct"
+    }
+  },
+  "unmapped": []
+}

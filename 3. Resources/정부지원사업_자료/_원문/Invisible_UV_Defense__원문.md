@@ -3,7 +3,7 @@ title: "Invisible_UV_Defense - 추출 원문"
 type: extracted-fulltext
 source: "Invisible_UV_Defense.pdf"
 converted: 2026-07-13
-tags: [문서변환, 원문, 인박스]
+tags: []
 ---
 
 # Invisible_UV_Defense - 추출 원문

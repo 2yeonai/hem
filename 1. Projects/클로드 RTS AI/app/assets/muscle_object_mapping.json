@@ -1,0 +1,306 @@
+{
+ "Adductor brevis": [
+  "muscle_0002",
+  "muscle_0003"
+ ],
+ "Adductor longus": [
+  "muscle_0004",
+  "muscle_0005"
+ ],
+ "Adductor magnus": [
+  "muscle_0006",
+  "muscle_0007"
+ ],
+ "Biceps femoris (long/short head)": [
+  "muscle_0064",
+  "muscle_0065",
+  "muscle_0135",
+  "muscle_0136"
+ ],
+ "Deep lateral rotators (gemellus sup./inf., obturator int./ext., quadratus femoris)": [
+  "muscle_0052",
+  "muscle_0053",
+  "muscle_0088",
+  "muscle_0089",
+  "muscle_0090",
+  "muscle_0091",
+  "muscle_0104",
+  "muscle_0105",
+  "muscle_0156",
+  "muscle_0157"
+ ],
+ "Diaphragm (thoracic)": [
+  "muscle_0020"
+ ],
+ "Digastric": [
+  "muscle_0008",
+  "muscle_0009",
+  "muscle_0139",
+  "muscle_0140"
+ ],
+ "Erector spinae (iliocostalis/longissimus/spinalis)": [
+  "muscle_0047",
+  "muscle_0048",
+  "muscle_0049",
+  "muscle_0050",
+  "muscle_0051",
+  "muscle_0066",
+  "muscle_0067",
+  "muscle_0068",
+  "muscle_0069",
+  "muscle_0070",
+  "muscle_0071",
+  "muscle_0128",
+  "muscle_0129",
+  "muscle_0141",
+  "muscle_0130",
+  "muscle_0142",
+  "muscle_0143",
+  "muscle_0144",
+  "muscle_0145",
+  "muscle_0146",
+  "muscle_0147"
+ ],
+ "Extensor digitorum longus": [
+  "muscle_0021",
+  "muscle_0022"
+ ],
+ "Extensor hallucis longus": [
+  "muscle_0023",
+  "muscle_0024"
+ ],
+ "Fibularis (peroneus) brevis": [
+  "muscle_0027",
+  "muscle_0028"
+ ],
+ "Fibularis (peroneus) longus": [
+  "muscle_0029",
+  "muscle_0030"
+ ],
+ "Flexor digitorum longus": [
+  "muscle_0031",
+  "muscle_0032"
+ ],
+ "Flexor hallucis longus": [
+  "muscle_0033",
+  "muscle_0034"
+ ],
+ "Gastrocnemius": [
+  "muscle_0058",
+  "muscle_0059",
+  "muscle_0076",
+  "muscle_0077"
+ ],
+ "Glenohumeral joint capsule (anterior)": [
+  "muscle_0010",
+  "muscle_0011"
+ ],
+ "Glenohumeral joint capsule (posterior)": [
+  "muscle_0010",
+  "muscle_0011"
+ ],
+ "Gluteus maximus": [
+  "muscle_0035",
+  "muscle_0036"
+ ],
+ "Gluteus medius": [
+  "muscle_0037",
+  "muscle_0038"
+ ],
+ "Gluteus minimus": [
+  "muscle_0039",
+  "muscle_0040"
+ ],
+ "Gracilis": [
+  "muscle_0041",
+  "muscle_0042"
+ ],
+ "Infraspinatus": [
+  "muscle_0054",
+  "muscle_0055"
+ ],
+ "Latissimus dorsi": [
+  "muscle_0060",
+  "muscle_0061"
+ ],
+ "Levator scapulae": [
+  "muscle_0062",
+  "muscle_0063"
+ ],
+ "Longus colli / Longus capitis / Rectus capitis anterior & lateralis": [
+  "muscle_0072",
+  "muscle_0073",
+  "muscle_0074",
+  "muscle_0075"
+ ],
+ "Multifidus": [
+  "muscle_0078",
+  "muscle_0079",
+  "muscle_0080",
+  "muscle_0081",
+  "muscle_0082",
+  "muscle_0083"
+ ],
+ "Obliquus externus abdominis": [
+  "muscle_0025",
+  "muscle_0026"
+ ],
+ "Obliquus internus abdominis": [
+  "muscle_0056",
+  "muscle_0057"
+ ],
+ "Pectineus": [
+  "muscle_0092",
+  "muscle_0093"
+ ],
+ "Pectoralis major": [
+  "muscle_0000",
+  "muscle_0001",
+  "muscle_0014",
+  "muscle_0015",
+  "muscle_0152",
+  "muscle_0153"
+ ],
+ "Pectoralis minor": [
+  "muscle_0094",
+  "muscle_0095"
+ ],
+ "Pelvic floor (levator ani / coccygeus)": [
+  "muscle_0016",
+  "muscle_0017",
+  "muscle_0045",
+  "muscle_0046",
+  "muscle_0102",
+  "muscle_0103"
+ ],
+ "Piriformis": [
+  "muscle_0096",
+  "muscle_0097"
+ ],
+ "Popliteus": [
+  "muscle_0098",
+  "muscle_0099"
+ ],
+ "Psoas major / Iliacus (iliopsoas)": [
+  "muscle_0043",
+  "muscle_0044",
+  "muscle_0100",
+  "muscle_0101"
+ ],
+ "Quadratus lumborum": [
+  "muscle_0106",
+  "muscle_0107"
+ ],
+ "Rectus abdominis": [
+  "muscle_0108",
+  "muscle_0109"
+ ],
+ "Rhomboid major / minor": [
+  "muscle_0114",
+  "muscle_0115",
+  "muscle_0116",
+  "muscle_0117"
+ ],
+ "Sartorius": [
+  "muscle_0118",
+  "muscle_0119"
+ ],
+ "Scalenus (anterior/medius/posterior)": [
+  "muscle_0120",
+  "muscle_0121",
+  "muscle_0122",
+  "muscle_0123",
+  "muscle_0124",
+  "muscle_0125"
+ ],
+ "Semimembranosus": [
+  "muscle_0126",
+  "muscle_0127"
+ ],
+ "Semitendinosus": [
+  "muscle_0131",
+  "muscle_0132"
+ ],
+ "Serratus anterior": [
+  "muscle_0133",
+  "muscle_0134"
+ ],
+ "Soleus": [
+  "muscle_0137",
+  "muscle_0138"
+ ],
+ "Splenius capitis / Splenius cervicis": [
+  "muscle_0148",
+  "muscle_0149"
+ ],
+ "Sternocleidomastoid": [
+  "muscle_0150",
+  "muscle_0151"
+ ],
+ "Suboccipital group (rectus capitis post. major/minor, obliquus capitis sup./inf.)": [
+  "muscle_0084",
+  "muscle_0085",
+  "muscle_0086",
+  "muscle_0087",
+  "muscle_0110",
+  "muscle_0111",
+  "muscle_0112",
+  "muscle_0113"
+ ],
+ "Subscapularis": [
+  "muscle_0154",
+  "muscle_0155"
+ ],
+ "Supraspinatus": [
+  "muscle_0158",
+  "muscle_0159"
+ ],
+ "Teres major": [
+  "muscle_0162",
+  "muscle_0163"
+ ],
+ "Teres minor": [
+  "muscle_0164",
+  "muscle_0165"
+ ],
+ "Tibialis anterior": [
+  "muscle_0166",
+  "muscle_0167"
+ ],
+ "Tibialis posterior": [
+  "muscle_0168",
+  "muscle_0169"
+ ],
+ "Transversus abdominis": [
+  "muscle_0172",
+  "muscle_0173"
+ ],
+ "Trapezius (ascending/lower)": [
+  "muscle_0012",
+  "muscle_0013"
+ ],
+ "Trapezius (descending/upper)": [
+  "muscle_0018",
+  "muscle_0019"
+ ],
+ "Trapezius (transverse/middle)": [
+  "muscle_0170",
+  "muscle_0171"
+ ],
+ "Vastus intermedius": [
+  "muscle_0174",
+  "muscle_0175"
+ ],
+ "Vastus lateralis": [
+  "muscle_0176",
+  "muscle_0177"
+ ],
+ "Vastus medialis": [
+  "muscle_0178",
+  "muscle_0179"
+ ],
+ "Tensor fasciae latae": [
+  "muscle_0160",
+  "muscle_0161"
+ ]
+}

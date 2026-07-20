@@ -24,6 +24,12 @@ vault_check.py — 볼트 규칙 강제 종합 검사기
      frontmatter type:/status:/due: 중 하나라도 없음 → FAIL
    - H4: 파일명이 비밀 파일 패턴(.env, *.key, *credentials*, *.pem)과 일치
      → FAIL
+   - H5 (2026-07-19 신설): 이번 커밋에서 새로 추가된 줄에 있는 계정 태그
+     `[태그]`가 현재 `git config user.name`과 다름 → FAIL. 여러 계정이
+     번갈아 커밋하면서 예전 세션의 `[gombeck1]` 같은 태그를 그대로 복사해
+     붙이는 실수를 막기 위함(위키링크 `[[...]]`, 마크다운 링크
+     `[text](url)`, 체크박스 `[x]`/`[ ]`, 숫자만인 각주 `[12]`는 제외).
+     git user.name을 못 읽으면 과잉 차단 방지를 위해 조용히 건너뜀.
    - WARN(신선도 등)은 pre-commit 모드에서는 출력하지 않는다(속도·소음 방지).
    - FAIL이 하나라도 있으면 exit 1 + 한국어로 "무엇이 왜 막혔고 어떻게
      고치는지" 출력. 전부 통과하면 exit 0.
@@ -73,6 +79,12 @@ SECRET_PATTERNS = [
     re.compile(r"credentials", re.IGNORECASE), # *credentials*
     re.compile(r"\.pem$", re.IGNORECASE),      # *.pem
 ]
+
+# ── H5: 계정 태그 일관성 검사 상수 ───────────────────────────────────────
+# `[가-힣]`은 의도적으로 제외 — 태그는 항상 영문/숫자/밑줄 조합 관례(계정 ID·
+# 이메일 앞부분·git user.name 표기)이고, 한글을 포함하면 일반 대괄호 강조
+# 문구(예: "[확인 필요]")까지 오탐하게 되기 때문.
+ACCOUNT_TAG_RE = re.compile(r"\[([a-zA-Z0-9_]{3,20})\]")
 
 # ── WARN: 전체 모드 전용 상수 ────────────────────────────────────────────
 STALE_CHECKBOX_DAYS = 14
@@ -180,6 +192,99 @@ def is_exempt_from_sentinel(path):
     return any(path.startswith(prefix) for prefix in SENTINEL_EXEMPT_PREFIXES)
 
 
+def get_git_user_name():
+    """git config user.name 을 읽어 반환(없거나 실패하면 None)."""
+    code, out = run_git(["config", "user.name"])
+    if code != 0:
+        return None
+    name = out.strip()
+    return name if name else None
+
+
+def added_lines_by_file():
+    """git diff --cached -U0 (context 없음)에서 이번 커밋으로 새로
+    추가된 줄만 [(path, line_text), ...] 로 반환. '+++' 파일 헤더는 제외."""
+    # core.quotepath=false: 한글 등 비-ASCII 파일명이 "b/\355..." 식으로
+    # 8진수 이스케이프·따옴표로 깨져 나오는 것을 방지(이 호출에 한정).
+    code, out = run_git(["-c", "core.quotepath=false", "diff", "--cached", "-U0"])
+    if code != 0 or not out:
+        return []
+    result = []
+    current_path = None
+    for line in out.splitlines():
+        if line.startswith("+++ "):
+            path_part = line[4:].strip()
+            current_path = path_part[2:] if path_part.startswith("b/") else path_part
+            continue
+        if line.startswith("+++"):
+            continue
+        if line.startswith("+"):
+            result.append((current_path, line[1:]))
+    return result
+
+
+def _backtick_spans(line):
+    """line 안의 인라인 코드(백틱) 구간 [(start, end), ...]을 반환.
+    예: "예전에 `[gombeck1]`을 복사한 실수" → [(4, 16)] 식으로, 그 구간
+    안의 매치는 실제 계정 태그가 아니라 예시/인용으로 취급한다."""
+    return [m.span() for m in re.finditer(r"`[^`]*`", line)]
+
+
+def _inside_any_span(pos, spans):
+    return any(s <= pos < e for s, e in spans)
+
+
+def check_account_tag_consistency():
+    """H5: 이번 커밋에서 새로 추가된 줄의 계정 태그 '[태그]'가 현재
+    git user.name과 다르면 FAIL 목록(list of (rule, message))을 반환.
+    검사 대상은 .md 파일로 한정한다 — 계정 태그는 볼트 문서 관례이고,
+    .py 등 소스 코드에서는 `[PASS]`/`[FAIL]`/`[end]` 같은 출력 라벨·코드
+    문법이 대괄호 패턴과 우연히 겹쳐 오탐하기 때문(예: vault_check.py
+    자신을 커밋할 때 자기 print 문이 계정 태그로 오인된 사례, 2026-07-19)."""
+    user_name = get_git_user_name()
+    if not user_name:
+        # git config user.name이 없으면 과잉 차단 방지를 위해 조용히 건너뜀.
+        return []
+    user_name_lower = user_name.lower()
+
+    failures = []
+    for path, line in added_lines_by_file():
+        if not (path or "").lower().endswith(".md"):
+            continue
+        backtick_spans = _backtick_spans(line)
+        for m in ACCOUNT_TAG_RE.finditer(line):
+            tag = m.group(1)
+            start, end = m.span()
+            # 위키링크 [[...]] 제외: 매치 바로 앞이 '[', 바로 뒤가 ']'
+            if start > 0 and line[start - 1] == "[" and end < len(line) and line[end] == "]":
+                continue
+            # 마크다운 링크 [text](url) 제외: 매치 바로 뒤가 '('
+            if end < len(line) and line[end] == "(":
+                continue
+            # 체크박스 [x]/[ ]는 길이<3이라 정규식이 이미 걸러줌(추가 확인).
+            if tag in ("x", "X", " "):
+                continue
+            # 숫자만인 각주/참조번호(예: [123])는 제외 — 태그는 문자를 최소 1개 포함.
+            if not re.search(r"[a-zA-Z_]", tag):
+                continue
+            # 백틱 인용(`[gombeck1]`처럼 예시로 든 것) 제외 — 실제 태그 사용이
+            # 아니라 "이런 실수를 했었다"는 인용/설명일 가능성이 높음.
+            if _inside_any_span(start, backtick_spans):
+                continue
+            if tag.lower() != user_name_lower:
+                failures.append((
+                    "H5",
+                    f"'{path or '?'}' — 새로 추가된 계정 태그 '[{tag}]'이 지금 이 "
+                    f"컴퓨터의 git 사용자 이름('{user_name}')과 다릅니다.\n"
+                    f"     해당 줄: {line.strip()[:80]!r}\n"
+                    f"   → 예전 세션 기록에 있던 태그를 그대로 복사한 게 아닌지 "
+                    f"확인하세요. 지금 계정으로 남기는 태그는 '[{user_name}]'이어야 "
+                    f"합니다(정말 다른 계정 대신 기록하는 것이라면 의도적으로 둬도 "
+                    f"됩니다 — 그 경우 커밋 메시지에 사유를 남기세요)."
+                ))
+    return failures
+
+
 # ── pre-commit 모드 ───────────────────────────────────────────────────────
 
 def precommit_check():
@@ -268,6 +373,9 @@ def precommit_check():
                 f"   → 이 파일을 git에 올리지 마세요(.gitignore에 추가 권장). "
                 f"실수로 이미 커밋된 적이 있다면 즉시 키를 재발급하세요."
             ))
+
+    # H5: 새로 추가된 계정 태그가 현재 git user.name과 불일치
+    failures.extend(check_account_tag_consistency())
 
     if not failures:
         print("[PASS] vault_check --pre-commit — 하드 위반 없음")

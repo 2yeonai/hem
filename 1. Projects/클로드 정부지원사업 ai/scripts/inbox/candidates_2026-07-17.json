@@ -100,7 +100,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "부적합 — 중증장애인 대표자 전용"
     },
     {
       "program_name": "[전남광주] 2026년 5차 인공지능 기술 고도화ㆍ사업화 지원사업 모집 공고(AI융합 지능형 농업 생태계 구축 사업)",
@@ -174,8 +175,8 @@
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
       "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -194,7 +195,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인 후 정정] 자격요건에 '창업 7년 이내 소상공인'이 명시되어 있음(온천꽃식물원 11년·대륙창업 12년, 둘 다 초과) — 혜미가 '적합'으로 표시했으나 제목만 보고는 알 수 없던 조건이라 원문 확인 후 부적격으로 정정. 신청기간 2026.07.13~08.10, 문의: 중소상공인희망재단 070-4458-2325."
     },
     {
       "program_name": "2026년 조달청 벤처나라 추천기업 모집 공고(충남창조경제혁신센터)",
@@ -288,7 +290,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "부적합 — 기존 백년소상공인 선정업체 중 지정기간 만료 예정인 곳만 대상 (신규 신청 불가)"
     },
     {
       "program_name": "[경북] 울릉군 2026년 소상공인 카드수수료 지원사업 참여점포 모집 공고",
@@ -1394,9 +1397,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -1415,7 +1418,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인] 자격제한 없음('소상공인이라면 누구나'). 무료 1:1 상담(전화·서면, 법률/세무/노무). 신청기간 2026.06.16~11.30(진행중). 신청: 네이버폼 온라인접수, 문의 소상공인연합회 02-841-1366. PSST 사업계획서 불필요 — 바로 신청 가능."
     },
     {
       "program_name": "[경기] 화성시 2026년 하반기 여성 농업인 특수건강검진 지원사업 신청 공고",
@@ -1684,9 +1688,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -1705,7 +1709,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인] 자격: 소상공인기본법상 소상공인(요약페이지엔 '자세한 지원대상은 공고문 참조'로 되어있어 첨부 hwp 확인 권장). 신청기간 2026.06.01~09.30(진행중). MD상담회+전문가강연+제품홍보. 신청: 판판대로 온라인접수, 문의 02-765-9072."
     },
     {
       "program_name": "[대전] 소상공인ㆍ자영업자 재기지원 (폐업정리) 참여자 모집 공고",
@@ -1974,9 +1979,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -1995,7 +2000,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인] 자격: 온라인 진출 의사 있으나 디지털활용·경영여건상 집체교육 참여 어려운 소상공인(정상영업중). 신청기간 2026.05.20~11.30(진행중). 무료 1:1 방문 디지털교육. 신청: 소상공인24, 문의 소진공 042-363-7812."
     },
     {
       "program_name": "[경북] 2026년 소상공인 사회보험료 지원 사업 참여자 모집 공고",
@@ -2869,7 +2875,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "부적합 — 트랙터·경운기·콤바인용 경유, 시설원예 난방용 유류를 실제로 쓰는 농업경영체 대상. 온천꽃식물원은 화훼 도소매업이라 해당 유류 사용 없음"
     },
     {
       "program_name": "2026년 TV홈쇼핑 및 데이터홈쇼핑 입점지원사업 소상공인 모집 공고",
@@ -3583,9 +3590,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -3604,7 +3611,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인] 자격: 소상공인기본법상 소상공인(사업자등록증 보유) 외 제한 없음, [경남] 명시로 지역 일치 확인됨. 신청기간 '예산 소진시까지'(현재 소진 여부 미확인 — 신청 전 문의 권장). 상표출원 비용 지원. 신청: 경남지식재산센터 055-210-3084."
     },
     {
       "program_name": "2026년 희망리턴패키지 재기사업화(경영개선) 위기 소상공인 진단ㆍ멘토링 지원 모집 공고",
@@ -4286,7 +4294,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "부적합 — 창업 7년 이내 요건, 온천꽃식물원(11년)·대륙창업(12년) 모두 미달"
     },
     {
       "program_name": "[울산] 2026년 소상공인 고용보험료 지원사업 공고",
@@ -4657,9 +4666,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -4678,7 +4687,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "적합하나 현재 투자 받은 이력 없어 지원자격 미달 — 투자 유치 후 재검토 (보류성 승인)"
     },
     {
       "program_name": "[경남] 2026년 소상공인 정책자금 운용계획 변경 공고",
@@ -4952,9 +4962,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -4973,7 +4983,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인] 자격: 소상공인기본법상 소상공인, 제한 없음. 신청기간은 세부사업별 상이(상품개선/상세페이지/콘텐츠제작/쇼핑몰판매/라이브커머스/SNS마케팅/물류 등 통합신청, MD상담회/TV홈쇼핑입점은 개별신청). 신청: 판판대로, 문의 온판상담소 1899-0309."
     },
     {
       "program_name": "[충북] 2026년 소상공인 출산 지원사업 참여자 모집 공고",
@@ -5973,9 +5984,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -5994,7 +6005,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "[2026-07-19 원문 확인] 자격: '25년 연매출 0원 초과~1억400만원 미만 & 영업중 — 온천꽃식물원·대륙창업 매출 6천만원으로 요건 충족. 25만원 한도 바우처(공과금/4대보험료/차량연료비/전통시장화재공제료). 신청기간 '예산 소진시까지'(2026.01.28 공고, 현재 소진 여부 미확인 — 신청 전 소상공인24 확인 권장). 신청: 소상공인24 또는 소상공인경영안정바우처.kr, 콜센터 1533-0600."
     },
     {
       "program_name": "[제주] 2026년 일자리창출 소상공인 사회보험료 지원사업  참여기업 모집 공고",
@@ -7547,9 +7559,9 @@
       "collected_at": "2026-07-17T22:48:57",
       "promoted_at": "2026-07-17T22:48:57",
       "extraction_confidence": null,
-      "reviewed": false,
-      "reviewed_by": null,
-      "reviewed_at": null,
+      "reviewed": true,
+      "reviewed_by": "혜미",
+      "reviewed_at": "2026-07-19",
       "eligibility": null,
       "exclusion_conditions": null,
       "required_documents": null,
@@ -7568,7 +7580,8 @@
         "scoring_rubric",
         "scoring_rubric_note",
         "extraction_confidence"
-      ]
+      ],
+      "reviewer_note": "적합 — 단, 개별 공고들의 인덱스(요약) 성격, 1년치 소상공인 공고를 한눈에 보는 참고용. 이 공고 자체로 신청서 초안을 만들 대상은 아님"
     },
     {
       "program_name": "[경북] 2026년 소상공인육성자금(경북버팀금융) 이차보전 지원 계획 공고",

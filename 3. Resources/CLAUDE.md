@@ -38,6 +38,10 @@ category: "주제명"       # 예: "프로그래밍", "교육", "리더십"
 
 * `due`, `created`, `updated`, `related*` → OS 메타(`file.ctime`/`file.mtime`)로 자동 관리
 
+### 인테이크 변환 산출물 예외 (2026-07-18 [gombeck1] 신설)
+
+`정부지원사업_자료/` 등 문서 변환 파이프라인 산출물(md 변환 stub + `_원문/` 전체 추출본)은 Resource 스키마(`type: resource`) 대신 `type: converted-document` / `type: extracted-fulltext` 스키마를 사용한다 — 원본(hwp/pdf 등)과 1:1 대응하는 기계 생성물이라 수기 Resource 노트 규칙을 적용하지 않는다. 센티널 규칙은 동일하게 적용.
+
 ### ⚠️ OS 메타데이터 주의사항
 
 **PARA 폴더는 OS 메타 활용** (`file.ctime`, `file.mtime`)
