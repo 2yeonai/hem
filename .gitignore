@@ -85,6 +85,10 @@ yarn-error.log*
 __pycache__/
 *.pyc
 
+# 정부지원 통합 앱 공개 코드의 로컬 실행 체크아웃 — 정본은 2yeonai/jbjw,
+# HEM에는 비공개 데이터와 실행 설정만 추적한다 (2026-07-21 [codex]).
+1. Projects/클로드 정부지원사업 ai/.runtime/
+
 # Cowork 세션 캐시/부산물 (vault 콘텐츠 아님, 세션마다 새로 생김 - 2026-07-17 추가)
 cowork-*-cache.json
 local_????????-????-????-????-????????????.json
