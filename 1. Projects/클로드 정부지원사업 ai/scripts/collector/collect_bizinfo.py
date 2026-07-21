@@ -46,12 +46,10 @@ FIELD_MAP을 재검증하기 전까지는 100% 확정이 아니다.** API 자체
   3. 마감 지난 공고 필터링 (deadline < 오늘)
   4. pblancId 중복 필터링 (scripts/inbox/의 기존 announcements_raw_*.json에서
      이미 수집된 pblancId는 재수집하지 않음)
-  5. 체크섬 게이트: 살아남은 레코드 집합의 해시를 .last_checksum과 비교.
-     동일하면 출력 파일은 쓰되(감사 목적) exit code 10으로 "후속 단계
-     (promote_candidates.py) 스킵" 신호를 보낸다. — 실제 스킵 배선(예: run.py나
-     스케줄러가 이 exit code를 보고 promote_candidates.py 호출을 건너뛰는 것)은
-     TODO: 이 수집기 단독으로는 자기 자신을 스킵할 뿐, 상위 오케스트레이터가
-     아직 없음 (§14 "다음 액션"에 명시된 별도 항목).
+  5. 신규 0건/체크섬 게이트: 기수집 pblancId를 제거한 뒤 0건이면 감사용 raw
+     파일만 쓰고 exit code 10으로 후속 candidate 승격을 즉시 건너뛴다. 신규가
+     있더라도 체크섬이 동일하면 같은 신호를 보낸다. 웹앱 candidate_store가
+     exit code 10을 받아 이전 후보 파일을 유지한다.
 
 === ③ 재시도 정책 (§14 Q3 그대로) ===
   - 일시 장애(네트워크 예외/타임아웃/HTTP 5xx): 당일 3회 재시도
@@ -624,6 +622,16 @@ def run(date_str: Optional[str] = None, inbox_dir: str = INBOX_DIR, log=print) -
     out_path_placeholder = os.path.join(inbox_dir, f"announcements_raw_{date_str}.json")
     seen_ids = load_seen_pblanc_ids(inbox_dir, exclude_path=out_path_placeholder)
     cards = filter_duplicates(cards, seen_ids, log=log)
+
+    # 매일 실행할 때 가장 흔한 정상 상태는 "신규 0건"이다. 이때 빈 candidate
+    # 파일을 만들면 웹앱의 이전 검수 목록이 사라져 보이므로, 감사용 raw만 남기고
+    # 후속 승격은 건너뛴다. 날짜보다 pblancId를 기준으로 삼아 늦게 등록되거나
+    # 날짜가 오래된 신규 공고도 놓치지 않는다.
+    if not cards:
+        out_path = write_raw_output(cards, date_str, inbox_dir, warnings)
+        log(f"[INFO] raw 출력 작성: {out_path} (신규 0건)")
+        log("[INFO] 지난 수집 이후 신규 공고 없음 — 이전 후보 목록 유지, candidate 승격 스킵.")
+        return 10
 
     checksum = compute_checksum(cards)
     last_checksum = read_last_checksum(checksum_file)
