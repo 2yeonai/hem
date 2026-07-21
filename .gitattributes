@@ -1,0 +1,4 @@
+# Windows command scripts must be checked out with CRLF or cmd.exe can split commands incorrectly.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

@@ -11,7 +11,7 @@ if not exist "%APP_PY%" (
   exit /b 1
 )
 pushd "%APP_DIR%"
-start "" http://127.0.0.1:8787/operations
+if not defined HYEMI_FACTORY_NO_BROWSER start "" http://127.0.0.1:8787/operations
 "%APP_PY%" 08_factory_tools\app.py
 popd
 pause
