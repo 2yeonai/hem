@@ -316,4 +316,16 @@ python3 scripts/run.py test/synthetic_deduction_qualification.json   # 자격증
 - **팩트체크 유지**: 감사 vs 공고 원문 대조 결과(자기부담 25%는 감사가 틀림 / 예창패 8천만원은 보류 / MVP 4종 잠금)는 이전 세션 판단 그대로 잠금값에 반영.
 - **다음에 할 일**: ① 혜미가 `입력표_템플릿.yaml` 빈칸 채우기(특히 대표자 경력 증빙) ② 업무지시서 3단계 사용법대로 Sonnet 4세션 병렬 작성 실행 ③ content_gate 신규 테스트를 기존 회귀테스트에 편입(Sonnet ~30분). 07-20판 docx 2건은 새 파이프라인 결과물이 나오면 대체 예정.
 
+## jbjw 공개앱 + HEM 비공개 운영 통합 (2026-07-21, [eunoia9496] GPT/Codex)
+
+- **목적**: GitHub `2yeonai/jbjw`를 공개 앱 코드의 정본으로 유지하고, 사업자 프로필·실공고·API 키·신청서·승인기록은 HEM에만 보관하는 로컬 운영 시스템으로 통합.
+- **공개 앱 구현**: `/operations` 한 화면에 `수집 → 사람 검수 → 사업체 매칭 → jbjw+HEM 엄격 통합 판정 → 신청서 사람 승인 → 실제 제출·선정 확인 → PPT·대본·Q&A 생성·반려·버전별 승인` 흐름을 연결. 기본 접속은 `127.0.0.1`, 휴대폰 접속은 별도 LAN 실행파일에서만 허용.
+- **판정·안전장치**: 마감일 `YYYYMMDD`·점·슬래시·하이픈 형식 해석, 미확정 마감일과 `reviewed:false` 후보 차단, 정확한 개업일·지역·매출·직원수·대표자 생년월일·제출서류 상태·예산 출처 우선 매핑, 자격정보 누락 시 낙관 승인 금지. 자동 상태는 `DRAFT → READY_FOR_APPROVAL`까지만, `LOCKED → SUBMITTED → SELECTED`는 사람 기록만 허용. 실제 접수·발송·게시 자동화 없음.
+- **발표 공정**: HEM의 기존 PPT·대본·Q&A 생성 stage만 재사용하고 테스트용 자동승인 함수는 호출하지 않음. 문서별 `승인대기/승인완료/반려`와 버전 이력을 비공개 실행 폴더에 저장하며, 반려 후 v2가 생성돼도 자동 재승인되지 않음. 세 문서가 모두 승인되지 않으면 최종 패키지 저장 차단.
+- **로컬 실행**: 프로젝트 루트에 `정부지원AI_설치.bat/.ps1`, `정부지원AI_실행.bat`, `정부지원AI_휴대폰실행.bat` 추가. 앱 코드와 가상환경·산출물은 Git 제외 `.runtime/`에 분리. 실행파일의 LF 줄바꿈 때문에 `YEMI_GOV_ROOT`·`A_ROOT`·시간 입력 오류가 발생한 뒤 Windows CRLF로 교정하고 `.gitattributes`로 재발 방지, 실제 배치 실행 후 `/operations` HTTP 200 확인.
+- **검증**: 기존 jbjw 검사 77/77, 통합 회귀검사 18/18, Python 문법검사, HEM manifest FAIL 0/WARN 0, Markdown 센티널·vault 검사 통과. 합성 공고로 `READY_FOR_APPROVAL → SELECTED → PPT v1 반려 → v2 재생성·사람 승인 → 대본/Q&A 승인 → PACKAGE_SAVED` 완주했고 PPTX·DOCX·JSON 무결성 확인. 기존 실데이터 후보 156/142/3건과 검수 8건 보존.
+- **민감정보·정리**: jbjw 공개 diff에서 실사업자 정보·실후보 데이터·API 키·신청서·로컬 절대경로 0건 확인. PR 생성과 새 로컬 경로 검증 후 HEM의 옛 추적 사본 `jbjw-main` 143개 제거(HEM Git 이력과 GitHub에서 복구 가능).
+- **Git 전달**: jbjw `codex/gov-ai-integration` 커밋 `6db3eb7`, GitHub 초안 PR `2yeonai/jbjw#2`. HEM `codex/gov-ai-integration` 커밋 `1b3923c`, Windows 실행 수정 `3f8b90a`, 원격 브랜치 푸시 완료. `main` 직접 수정·서버 배포·PR 병합은 하지 않음.
+- **다음 한 단계**: 혜미가 `정부지원AI_실행.bat`으로 로컬 화면을 실사용해 후보공고를 승인하고, 이상 없으면 jbjw PR #2를 최종 확인·병합. 이후 서버 로그인·DB·백업·HTTPS는 별도 후속 작업으로 설계.
+
 <!-- ok -->
