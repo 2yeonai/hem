@@ -1,40 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-webapp/app.py - 꽃집(온천꽃식물원) 파이프라인을 휴대폰 브라우저에서 실시간으로 쓸 수
-있게 만든 최소 웹앱(2026-07-17 신설, 혜미 요청: "모바일에서 확인/승인").
-
-원칙: 이 폴더 밖(../code)의 봇 파일은 한 글자도 수정하지 않는다. run_pipeline.py와
-flower_adapter.py가 이미 만들어둔 "code/를 sys.path에 추가하고 평범하게 import" 방식을
-그대로 재사용해서, 12봇_kind분류표.yaml의 실제 stage 함수를 그대로 호출만 한다.
-
-이 웹앱이 하는 일 (run_pipeline.py의 흐름을 그대로 웹 화면으로 노출):
-  1. 새 문의 입력(/new) -> collection_bot ~ review_manager_bot까지 실행 -> 사람 승인
-     대기 목록(pending_orders.json)에 저장. human_reviewer 이전에서 멈춘다(자동승인 없음
-     - run_pipeline.py의 _mock_human_stage와 다르게, 여기서는 진짜로 사람이 눌러야 함).
-  2. 대기 목록(/) -> review_priority(빨강/노랑/파랑/초록) 순으로 정렬해서 보여줌.
-  3. 상세 화면(/order/<id>)에서 값을 확인/수정 후 승인(-> storage_bot ~ sms_ledger_bot까지
-     실행) 또는 반려(대기 목록에서만 제거 - "반려 시 되돌아갈 단계(return_to)"는 원래
-     설계 문서에도 없는 미정 항목이라는 걸 승인화면_프로토타입_v1.html README와 동일하게
-     화면에도 그대로 밝힌다).
-
-알려진 한계(숨기지 않고 명시):
-  - order_split_bot이 여러 세그먼트(다중 주문)를 감지해도 이 웹앱은 첫 번째 세그먼트만
-    처리한다(flower_adapter.py 발견사항 3과 동일한 한계 - 부분 fan-out은 미지원).
-  - 승인화면_프로토타입_v1.html이 설계한 3단계(검수저장/주문확정/출력준비) 대신, 이
-    웹앱은 "승인" 한 번으로 저장+인쇄준비+배차+배송사진+문자발송까지 한번에 처리한다
-    (실사용 검증 전까지의 단순화 - 나중에 3단계로 쪼갤 수 있음).
-  - 여러 사람이 동시에 승인 버튼을 누르는 경우의 충돌 처리는 없다(작은 가게 1인 운영
-    기준으로 설계, 동시 편집 잠금 없음).
+"""기존 AI/검수 UI를 재사용하는 PostgreSQL 기반 주문 웹앱.
+승인은 저장까지만 수행하며 실제 배송/문자는 별도 승인된 단계에서 처리한다.
+다중 주문 분리는 2단계에서 보완 예정.
 """
 
-import json
+import re
 import sys
 import uuid
 from html import escape
 from pathlib import Path
 
-from flask import Flask, redirect, render_template_string, request, url_for
+from flask import Flask, abort, g, redirect, render_template_string, request, url_for
+import database
+from security import init_security
 
 WEBAPP_DIR = Path(__file__).resolve().parent
 FLOWER_DIR = WEBAPP_DIR.parent
@@ -45,19 +22,13 @@ if str(CODE_DIR) not in sys.path:
 
 import collection_bot
 import correction_bot
-import delivery_photo_bot
-import dispatch_bot
 import order_classification_bot as ocb
 import order_draft_bot
 import order_split_bot as osb
-import print_prep_bot
 import review_manager_bot
 import ribbon_price_bot
-import sms_ledger_bot
-import storage_bot
 import transcription_bot
 
-PENDING_PATH = WEBAPP_DIR / "pending_orders.json"
 STOP_CLASSIFICATIONS = {"단순문의", "일반통화", "스팸무관"}
 PRIORITY_ORDER = {"빨강": 0, "노랑": 1, "파랑": 2, "초록": 3}
 # [2026-07-20 스타일 갱신] 혜미가 준 UI 시안(꽃집 ui.png 등, 부드러운 크림/그린 톤
@@ -90,6 +61,7 @@ FIELD_LABELS_KO = {
 LOW_CONFIDENCE_THRESHOLD = 0.6
 
 app = Flask(__name__)
+init_security(app)
 # OpenAI Whisper API 자체가 파일 하나당 25MB 제한이 있어(2026-07 기준) 그보다
 # 넉넉하게 여기서도 25MB로 막아둔다(2026-07-20 신설) - Render 무료 인스턴스
 # 메모리(512MB)도 보호하는 효과.
@@ -107,13 +79,16 @@ def _file_too_large(_e):
 
 
 def _load_pending() -> dict:
-    if not PENDING_PATH.is_file():
-        return {}
-    return json.loads(PENDING_PATH.read_text(encoding="utf-8"))
+    return database.pending_orders()
 
 
-def _save_pending(data: dict) -> None:
-    PENDING_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+def render_page(html):
+    # Data must never become Jinja template source (including {{ ... }} in raw orders).
+    token = escape(app.jinja_env.globals['csrf_token']())
+    html = re.sub(r'(<form\b[^>]*>)', lambda m: m.group(1) +
+                  f'<input type="hidden" name="csrf_token" value="{token}">', html)
+    return render_template_string('<!doctype html><html lang="ko"><meta name="viewport" '
+                                  'content="width=device-width,initial-scale=1">{{ body|safe }}</html>', body=html)
 
 
 BASE_STYLE = """
@@ -157,7 +132,7 @@ def index():
         style = PRIORITY_STYLE.get(pr, {"bg": "#eee", "text": "#666"})
         cards += (
             f'<a class="card" href="{url_for("detail", pid=pid)}">'
-            f'<span class="badge" style="background:{style["bg"]};color:{style["text"]}">{pr}</span>'
+            f'<span class="badge" style="background:{style["bg"]};color:{style["text"]}">{escape(pr)}</span>'
             f'{escape(o["draft"].get("product") or "(상품 미확인)")} / '
             f'{escape(str(o["ribbon"].get("price") or "?"))}원'
             f'<div class="note">{escape(o["created_at"])}</div></a>'
@@ -166,11 +141,12 @@ def index():
         cards = '<p class="note">대기 중인 주문이 없습니다.</p>'
     html = f"""
     {BASE_STYLE}
+    <form method="post" action="/logout"><button>로그아웃</button></form>
     <h1>🌸 검수 대기 ({len(items)}건)</h1>
     {cards}
     <a class="btn btn-new" href="{url_for('new_order')}">+ 새 문의 입력</a>
     """
-    return render_template_string(html)
+    return render_page(html)
 
 
 @app.route("/new", methods=["GET", "POST"])
@@ -201,7 +177,7 @@ def new_order():
           <button class="btn btn-approve" type="submit">AI 판단 시작</button>
         </form>
         """
-        return render_template_string(html)
+        return render_page(html)
 
     source_type = request.form.get("source_type", "kakao")
     raw_text = request.form.get("raw_text", "").strip()
@@ -217,7 +193,7 @@ def new_order():
         <h1>입력이 비어있습니다</h1>
         <p class="note">문자 내용을 붙여넣거나 녹음파일을 첨부해주세요.</p>
         """
-        return render_template_string(html)
+        return render_page(html)
 
     ctx = collection_bot.collect(
         source_type=source_type,
@@ -236,7 +212,7 @@ def new_order():
         등록돼 있는지, 파일이 정상적인 오디오 파일인지 확인해주세요. 급하면 내용을
         직접 들어보고 텍스트로 옮겨 입력해도 됩니다.</p>
         """
-        return render_template_string(html)
+        return render_page(html)
 
     cls = ocb.classify_order(text)
     if cls["order_classification"] in STOP_CLASSIFICATIONS:
@@ -247,7 +223,7 @@ def new_order():
         <p>AI 판단: <b>{escape(cls['order_classification'])}</b> - {escape(cls['reason'])}</p>
         <p class="note">주문이 맞는데 이렇게 나왔다면, AI가 헷갈린 경우입니다(알려진 한계). 다시 입력해보세요.</p>
         """
-        return render_template_string(html)
+        return render_page(html)
 
     split = osb.split_order(text)
     if len(split["order_segments"]) > 1:
@@ -274,9 +250,8 @@ def new_order():
         split_status=split["split_status"],
     )
 
-    pid = uuid.uuid4().hex[:8]
-    pending = _load_pending()
-    pending[pid] = {
+    pid = uuid.uuid4().hex
+    payload = {
         "created_at": ctx.get("created_at") or "",
         "source_type": source_type,
         # raw_text는 사람이 실제로 확인할 "원문"으로 쓰이므로, 녹음파일을 올렸을 땐
@@ -293,7 +268,7 @@ def new_order():
         "bundle_sequence": seg["bundle_sequence"],
         "split_note": note,
     }
-    _save_pending(pending)
+    database.add_pending(pid, payload, g.user["id"])
     return redirect(url_for("detail", pid=pid))
 
 
@@ -332,12 +307,13 @@ def detail(pid):
     html = f"""
     {BASE_STYLE}
     <a class="back" href="{url_for('index')}">← 목록</a>
-    <h1><span class="badge" style="background:{pr_style['bg']};color:{pr_style['text']}">{o['review']['review_priority']}</span> 주문 상세</h1>
+    <h1><span class="badge" style="background:{pr_style['bg']};color:{pr_style['text']}">{escape(o['review']['review_priority'])}</span> 주문 상세</h1>
     {f'<p class="warn">{escape(o["split_note"])}</p>' if o.get("split_note") else ""}
     <h2>{'원문(녹음파일 음성인식 결과 - 틀린 부분 있을 수 있음)' if o.get('from_audio') else '원문'}</h2>
     <p class="note">{escape(o['raw_text'])}</p>
     <h2>정리된 정보 (필요하면 고치세요)</h2>
     <form method="post" action="{url_for('approve', pid=pid)}">
+      <input type="hidden" name="version" value="{o['version']}">
       {fields_html}
       <div class="field"><label>리본 문구</label>
         <input name="field_ribbon_message_final" value="{escape(o['ribbon'].get('ribbon_message_final') or '')}"></div>
@@ -354,12 +330,12 @@ def detail(pid):
       <button class="btn btn-approve" type="submit">✅ 승인하고 처리</button>
     </form>
     <form method="post" action="{url_for('reject', pid=pid)}">
-      <button class="btn btn-reject" type="submit">❌ 반려(대기 목록에서 삭제)</button>
+      <input type="hidden" name="version" value="{o['version']}">
+      <button class="btn btn-reject" type="submit">❌ 반려(기록 보존)</button>
     </form>
-    <p class="note">반려를 누르면 이 문의는 목록에서 사라집니다 - "반려 후 어느 단계로 되돌릴지"는
-    아직 정해지지 않은 항목이라(승인화면_프로토타입_v1.html README와 동일), 지금은 단순 삭제만 합니다.</p>
+    <p class="note">반려해도 원문과 분석 결과는 보존됩니다. 승인은 주문 저장까지만 진행합니다.</p>
     """
-    return render_template_string(html)
+    return render_page(html)
 
 
 @app.route("/order/<pid>/approve", methods=["POST"])
@@ -367,7 +343,7 @@ def approve(pid):
     pending = _load_pending()
     o = pending.get(pid)
     if not o:
-        return redirect(url_for("index"))
+        return "이미 처리된 주문입니다.", 409
 
     confirmed_fields = {}
     for key in o["draft"].keys():
@@ -381,34 +357,23 @@ def approve(pid):
     confirmed_fields["delivery_address"] = request.form.get("field_delivery_address") or None
     confirmed_fields["delivery_phone"] = request.form.get("field_delivery_phone") or None
 
-    record = storage_bot.save_order(
-        confirmed_fields=confirmed_fields,
-        manual_edits={},
-        approval_action="주문확정",
-        bundle_id=o["bundle_id"],
-        bundle_sequence=o["bundle_sequence"],
-    )
-    printed = print_prep_bot.prepare_print(record)
-    dispatched = dispatch_bot.dispatch(record, printed["driver_summary"], printed["delivery_memo"])
-    photo = delivery_photo_bot.capture_delivery_photo(dispatched["dispatch_record"], photo_uri=None)
-    sms_ledger_bot.send_and_ledger(
-        order=record,
-        delivery_photo=photo["delivery_photo"],
-        photo_status=photo["photo_status"],
-        bundle_id=o["bundle_id"],
-        bundle_sequence=o["bundle_sequence"],
-    )
-
-    del pending[pid]
-    _save_pending(pending)
+    try:
+        database.transition(pid, int(request.form.get('version', '0')), g.user['id'], 'confirmed', confirmed_fields)
+    except ValueError:
+        abort(400)
+    except database.Conflict as exc:
+        return str(exc), 409
     return redirect(url_for("index"))
 
 
 @app.route("/order/<pid>/reject", methods=["POST"])
 def reject(pid):
-    pending = _load_pending()
-    pending.pop(pid, None)
-    _save_pending(pending)
+    try:
+        database.transition(pid, int(request.form.get('version', '0')), g.user['id'], 'rejected')
+    except ValueError:
+        abort(400)
+    except database.Conflict as exc:
+        return str(exc), 409
     return redirect(url_for("index"))
 
 
