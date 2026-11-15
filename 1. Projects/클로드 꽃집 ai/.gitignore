@@ -5,3 +5,13 @@ __pycache__/
 *_prev.json
 *_prev.md
 gov-support-skill/
+
+# Private runtime data and credentials
+.env*
+*.dump
+*.backup
+pending_orders.json
+flower_orders.json
+uploads/
+private/
+.pytest_cache/
