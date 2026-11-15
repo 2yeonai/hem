@@ -35,3 +35,9 @@ CREATE TABLE IF NOT EXISTS order_events (
  kind text NOT NULL, detail jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
 );
 INSERT INTO schema_versions(version) VALUES (1) ON CONFLICT DO NOTHING;
+CREATE TABLE IF NOT EXISTS intakes (
+ id text PRIMARY KEY, fingerprint text NOT NULL UNIQUE, raw_text text NOT NULL,
+ audio bytea, state text NOT NULL DEFAULT 'received', analysis jsonb,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO schema_versions(version) VALUES (2) ON CONFLICT DO NOTHING;

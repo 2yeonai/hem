@@ -55,7 +55,7 @@ def init_security(app):
             if request.endpoint != 'logout':
                 if g.user['role'] == 'driver':
                     abort(403)  # Delivery-only UI is a later stage, deny all shop data now.
-                if (request.method not in {'GET', 'HEAD'} or request.endpoint == 'new_order') and g.user['role'] not in {'admin','staff'}:
+                if (request.method not in {'GET', 'HEAD'} or request.endpoint in {'new_order','intakes'}) and g.user['role'] not in {'admin','staff'}:
                     abort(403)
         if request.method in {'POST','PUT','PATCH','DELETE'}:
             expected = session.get('csrf', '')

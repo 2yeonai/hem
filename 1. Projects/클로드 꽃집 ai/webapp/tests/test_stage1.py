@@ -196,7 +196,7 @@ def test_new_order_reuses_bots(monkeypatch):
     monkeypatch.setattr(web.order_draft_bot,'build_draft',lambda text:{'order_draft':{'product':'시험 꽃'},'field_confidence':{},'field_sources':{},'missing_fields':[]})
     monkeypatch.setattr(web.ribbon_price_bot,'process_ribbon_and_price',lambda *args:{'ribbon_message_raw':None,'ribbon_message_final':None,'product_name':'시험 꽃','price':10000,'quantity':1})
     monkeypatch.setattr(web.review_manager_bot,'build_review',lambda **kwargs:{'review_priority':'노랑','review_checklist':[]})
-    r=c.post('/new',data={'csrf_token':csrf(c),'source_type':'manual','raw_text':'가상 주문 테스트'})
+    r=c.post('/intakes',data={'csrf_token':csrf(c),'source_type':'manual','raw_text':'가상 주문 테스트'})
     assert r.status_code==302
     assert len(database.pending_orders())==1
     assert c.get(r.location).status_code==200
@@ -240,7 +240,7 @@ def test_database_outage_is_safe(monkeypatch):
 
 def test_empty_input_and_invalid_version():
     c=login();pid=add()
-    assert c.post('/new',data={'csrf_token':csrf(c),'raw_text':''}).status_code==200
+    assert c.post('/intakes',data={'csrf_token':csrf(c),'raw_text':''}).status_code==400
     assert c.post(f'/order/{pid}/approve',data={'csrf_token':csrf(c),'version':'bad'}).status_code==400
     assert pid in database.pending_orders()
 
