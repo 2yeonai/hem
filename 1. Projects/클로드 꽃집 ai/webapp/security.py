@@ -55,12 +55,12 @@ def init_security(app):
             if request.endpoint != 'logout':
                 if g.user['role'] == 'driver':
                     abort(403)  # Delivery-only UI is a later stage, deny all shop data now.
-                if (request.method != 'GET' or request.endpoint == 'new_order') and g.user['role'] not in {'admin','staff'}:
+                if (request.method not in {'GET', 'HEAD'} or request.endpoint == 'new_order') and g.user['role'] not in {'admin','staff'}:
                     abort(403)
         if request.method in {'POST','PUT','PATCH','DELETE'}:
             expected = session.get('csrf', '')
             supplied = request.form.get('csrf_token', '')
-            if not expected or not secrets.compare_digest(expected, supplied):
+            if not expected or not secrets.compare_digest(expected.encode(), supplied.encode()):
                 abort(400, '화면을 새로고침한 뒤 다시 시도해주세요.')
 
     @app.after_request
@@ -76,8 +76,10 @@ def init_security(app):
     def login():
         message = '등록된 계정으로 로그인해주세요.'
         if request.method == 'POST':
-            username = request.form.get('username', '')[:100]
-            password = request.form.get('password', '')[:1024]
+            username = request.form.get('username', '')
+            password = request.form.get('password', '')
+            if not 1 <= len(username) <= 100 or not 1 <= len(password) <= 1024:
+                return render_template_string(LOGIN, message='로그인할 수 없습니다. 입력을 확인해주세요.'), 401
             with database.connect() as conn:
                 user = conn.execute('SELECT *, locked_until > now() AS locked FROM users WHERE username=%s FOR UPDATE', (username,)).fetchone()
                 valid = check_password_hash(user['password_hash'] if user else DUMMY_HASH, password)

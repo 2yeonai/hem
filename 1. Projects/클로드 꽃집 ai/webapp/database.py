@@ -27,7 +27,7 @@ def migrate():
 def create_user(username, password, role):
     if role not in {'admin', 'staff', 'viewer', 'driver'}:
         raise ValueError('Invalid role')
-    if len(password) < 12 or not username.strip():
+    if not 12 <= len(password) <= 1024 or not 1 <= len(username.strip()) <= 100:
         raise ValueError('사용자 이름과 12자 이상의 비밀번호가 필요합니다.')
     with connect() as conn:
         conn.execute('INSERT INTO users (username, password_hash, role) VALUES (%s,%s,%s)',
