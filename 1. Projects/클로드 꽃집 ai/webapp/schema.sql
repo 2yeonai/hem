@@ -35,3 +35,14 @@ CREATE TABLE IF NOT EXISTS order_events (
  kind text NOT NULL, detail jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now()
 );
 INSERT INTO schema_versions(version) VALUES (1) ON CONFLICT DO NOTHING;
+CREATE TABLE IF NOT EXISTS intakes (
+ id text PRIMARY KEY, fingerprint text NOT NULL UNIQUE, raw_text text NOT NULL,
+ audio bytea, state text NOT NULL DEFAULT 'received', analysis jsonb,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO schema_versions(version) VALUES (2) ON CONFLICT DO NOTHING;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS attempt_token text;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS lease_until timestamptz;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_draft jsonb;
+INSERT INTO schema_versions(version) VALUES (3) ON CONFLICT DO NOTHING;

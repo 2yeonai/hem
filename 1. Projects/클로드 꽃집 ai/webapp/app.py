@@ -151,125 +151,7 @@ def index():
 
 @app.route("/new", methods=["GET", "POST"])
 def new_order():
-    if request.method == "GET":
-        html = f"""
-        {BASE_STYLE}
-        <a class="back" href="{url_for('index')}">← 목록</a>
-        <h1>새 문의 입력</h1>
-        <form method="post" enctype="multipart/form-data">
-          <div class="field"><label>수신 경로</label>
-            <select name="source_type" style="width:100%;padding:10px 12px;border-radius:12px;border:1px solid #e1ddd0;background:#fdfcf9;font-size:15px;">
-              <option value="kakao">카카오톡</option>
-              <option value="sms">문자</option>
-              <option value="call">전화(녹음파일 또는 받아적은 내용)</option>
-              <option value="manual">직접 입력</option>
-            </select>
-          </div>
-          <div class="field"><label>받은 내용(문자/카톡 원문 그대로 붙여넣기)</label>
-            <textarea name="raw_text" rows="6"></textarea>
-          </div>
-          <div class="field"><label>또는 통화 녹음파일 첨부(선택 - 위 칸 대신 이것만 넣어도 됨)</label>
-            <input type="file" name="raw_audio_file" accept="audio/*">
-            <p class="note">2026-07-20 신설: AI가 자동으로 텍스트로 바꿔줍니다(OpenAI 음성인식 사용,
-            분당 약 8원 - Render에 OPENAI_API_KEY가 등록돼 있어야 동작하고, 없으면 실패 메시지가
-            뜹니다). 위 텍스트 칸과 이 파일 중 최소 하나는 채워야 합니다.</p>
-          </div>
-          <button class="btn btn-approve" type="submit">AI 판단 시작</button>
-        </form>
-        """
-        return render_page(html)
-
-    source_type = request.form.get("source_type", "kakao")
-    raw_text = request.form.get("raw_text", "").strip()
-    audio_file = request.files.get("raw_audio_file")
-    audio_bytes = None
-    if audio_file and audio_file.filename:
-        audio_bytes = audio_file.read()
-
-    if not raw_text and not audio_bytes:
-        html = f"""
-        {BASE_STYLE}
-        <a class="back" href="{url_for('new_order')}">← 다시 입력</a>
-        <h1>입력이 비어있습니다</h1>
-        <p class="note">문자 내용을 붙여넣거나 녹음파일을 첨부해주세요.</p>
-        """
-        return render_page(html)
-
-    ctx = collection_bot.collect(
-        source_type=source_type,
-        raw_text=raw_text or None,
-        raw_audio=audio_bytes,
-    )
-    tr = transcription_bot.transcribe(raw_audio=ctx["raw_audio"], raw_image=None, raw_text=ctx["raw_text"])
-    text = tr["stt_text"] or tr["ocr_text"] or ctx["raw_text"] or ""
-
-    if audio_bytes and not tr["engine_meta"]["real_api_connected"]:
-        html = f"""
-        {BASE_STYLE}
-        <a class="back" href="{url_for('new_order')}">← 다시 입력</a>
-        <h1>음성인식 실패</h1>
-        <p class="note">녹음파일을 텍스트로 바꾸지 못했습니다. OPENAI_API_KEY가 Render에
-        등록돼 있는지, 파일이 정상적인 오디오 파일인지 확인해주세요. 급하면 내용을
-        직접 들어보고 텍스트로 옮겨 입력해도 됩니다.</p>
-        """
-        return render_page(html)
-
-    cls = ocb.classify_order(text)
-    if cls["order_classification"] in STOP_CLASSIFICATIONS:
-        html = f"""
-        {BASE_STYLE}
-        <a class="back" href="{url_for('index')}">← 목록</a>
-        <h1>주문이 아닌 것으로 판단됨</h1>
-        <p>AI 판단: <b>{escape(cls['order_classification'])}</b> - {escape(cls['reason'])}</p>
-        <p class="note">주문이 맞는데 이렇게 나왔다면, AI가 헷갈린 경우입니다(알려진 한계). 다시 입력해보세요.</p>
-        """
-        return render_page(html)
-
-    split = osb.split_order(text)
-    if len(split["order_segments"]) > 1:
-        note = f"⚠ 이 문의 안에 주문이 {len(split['order_segments'])}건 섞여있을 수 있습니다 - 첫 번째만 처리했고, 나머지는 따로 입력해주세요."
-    else:
-        note = ""
-    seg = split["order_segments"][0]
-
-    correction = correction_bot.correct_text(seg["segment_text"])
-    draft = order_draft_bot.build_draft(correction["normalized_text"])
-    ribbon = ribbon_price_bot.process_ribbon_and_price(draft["order_draft"], correction["normalized_text"])
-    review = review_manager_bot.build_review(
-        order_draft=draft["order_draft"],
-        field_confidence=draft["field_confidence"],
-        field_sources=draft["field_sources"],
-        missing_fields=draft["missing_fields"],
-        candidates=correction["candidates"],
-        ribbon_message_raw=ribbon["ribbon_message_raw"],
-        ribbon_message_final=ribbon["ribbon_message_final"],
-        product_name=ribbon["product_name"],
-        price=ribbon["price"],
-        quantity=ribbon["quantity"],
-        correction_log=correction["correction_log"],
-        split_status=split["split_status"],
-    )
-
-    pid = uuid.uuid4().hex
-    payload = {
-        "created_at": ctx.get("created_at") or "",
-        "source_type": source_type,
-        # raw_text는 사람이 실제로 확인할 "원문"으로 쓰이므로, 녹음파일을 올렸을 땐
-        # 원래 입력칸(빈칸)이 아니라 음성인식 결과 텍스트를 담는다(2026-07-20).
-        "raw_text": text,
-        "from_audio": bool(audio_bytes),
-        "normalized_text": correction["normalized_text"],
-        "draft": draft["order_draft"],
-        "field_confidence": draft.get("field_confidence") or {},
-        "field_sources": draft.get("field_sources") or {},
-        "ribbon": ribbon,
-        "review": review,
-        "bundle_id": split["bundle_id"],
-        "bundle_sequence": seg["bundle_sequence"],
-        "split_note": note,
-    }
-    database.add_pending(pid, payload, g.user["id"])
-    return redirect(url_for("detail", pid=pid))
+    return redirect(url_for("intakes"), code=307 if request.method == "POST" else 302)
 
 
 @app.route("/order/<pid>")
@@ -279,6 +161,23 @@ def detail(pid):
     if not o:
         return redirect(url_for("index"))
 
+    if o.get('intake_id'):
+        import intake
+        fields = dict(o['draft'])
+        fields['price'] = o['ribbon'].get('price')
+        fields['ribbon_message_final'] = o['ribbon'].get('ribbon_message_final')
+        fields.update(o.get('review_draft') or {})
+        inputs = ''
+        for key,label in intake.FIELDS.items():
+            source_key={'price':'amount_krw','ribbon_message_final':'ribbon_phrase_raw'}.get(key,key)
+            conf=o.get('field_confidence',{}).get(source_key,0)
+            evidence=o.get('field_evidence',{}).get(source_key) or '원문 근거 확인 필요'
+            inputs += (f'<div class="field"><label>{escape(label)}</label><input name="field_{key}" value="{escape(str(fields.get(key) or ""))}">'
+                       f'<p class="note">신뢰도 {float(conf):.0%} · 원문: {escape(str(evidence))}</p></div>')
+        return render_page(BASE_STYLE + '<h1>개별 주문 검수</h1>' +
+            f'<pre>{escape(o["normalized_text"])}</pre><p>이름 역할과 금액을 직접 확인하세요. 저장된 초안이 있으면 복원됩니다.</p><form method="post" action="/order/{pid}/approve"><input type="hidden" name="version" value="{o["version"]}">'+inputs+
+            f'<button formnovalidate formaction="/order/{pid}/draft">초안 임시 저장</button>'+
+            '<label><input type="checkbox" name="reviewed" value="yes" required>원문과 받는 분·보내는 분·금액·배송정보를 대조했습니다.</label><button>주문 확정</button></form>')
     draft = o["draft"]
     confidence = o.get("field_confidence") or {}
     fields_html = ""
@@ -345,6 +244,19 @@ def approve(pid):
     if not o:
         return "이미 처리된 주문입니다.", 409
 
+    if o.get('intake_id'):
+        import intake
+        confirmed_fields = {k: request.form.get('field_'+k, '').strip() for k in intake.FIELDS}
+        errors = intake.validate(confirmed_fields)
+        if request.form.get('reviewed') != 'yes': errors.append('원문 대조 확인')
+        if errors: return render_page(BASE_STYLE + '<p>확인 필요: '+escape(', '.join(errors))+'</p><p>뒤로 돌아가 입력을 보완해주세요.</p>'), 422
+        confirmed_fields['amount_krw'] = confirmed_fields['price'] = int(confirmed_fields['price'])
+        confirmed_fields['product_name'] = confirmed_fields['product']
+        try:
+            database.transition(pid, int(request.form.get('version','0')), g.user['id'], 'confirmed', confirmed_fields)
+        except ValueError: abort(400)
+        except database.Conflict as exc: return str(exc),409
+        return redirect(url_for('index'))
     confirmed_fields = {}
     for key in o["draft"].keys():
         confirmed_fields[key] = request.form.get(f"field_{key}") or None
@@ -376,6 +288,20 @@ def reject(pid):
         return str(exc), 409
     return redirect(url_for("index"))
 
+
+@app.post('/order/<pid>/draft')
+def save_draft(pid):
+    import intake
+    fields={k:request.form.get('field_'+k,'').strip() for k in intake.FIELDS}
+    try:
+        database.save_review(pid,int(request.form.get('version','0')),g.user['id'],fields)
+    except ValueError: abort(400)
+    except database.Conflict as exc: return str(exc),409
+    return redirect(url_for('detail',pid=pid))
+
+
+import intake
+intake.register(app, sys.modules[__name__])
 
 if __name__ == "__main__":
     import os

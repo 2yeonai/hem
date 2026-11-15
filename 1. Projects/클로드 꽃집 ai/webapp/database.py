@@ -36,8 +36,8 @@ def create_user(username, password, role):
 
 def pending_orders():
     with connect() as conn:
-        rows = conn.execute("SELECT id, payload, version FROM orders WHERE status='pending'").fetchall()
-        return {r['id']: dict(r['payload'], version=r['version']) for r in rows}
+        rows = conn.execute("SELECT id, payload, version, review_draft FROM orders WHERE status='pending'").fetchall()
+        return {r['id']: dict(r['payload'], version=r['version'], review_draft=r['review_draft']) for r in rows}
 
 
 def add_pending(pid, payload, actor):
@@ -75,3 +75,10 @@ def transition(pid, version, actor, status, fields=None):
             conn.execute('INSERT INTO deliveries (order_id, details) VALUES (%s,%s)',
                          (pid, Jsonb({k: v for k, v in fields.items() if k.startswith('delivery_')})))
         event(conn, pid, actor, status, {'before': row['status'], 'confirmed_fields': fields})
+
+
+def save_review(pid, version, actor, fields):
+    with connect() as conn:
+        row=conn.execute("UPDATE orders SET review_draft=%s,version=version+1,updated_at=now() WHERE id=%s AND version=%s AND status='pending' RETURNING id",(Jsonb(fields),pid,version)).fetchone()
+        if not row: raise Conflict('다른 검수자가 변경했습니다. 새로고침 후 다시 확인해주세요.')
+        event(conn,pid,actor,'review_saved',{'fields':fields})

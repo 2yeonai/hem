@@ -66,7 +66,11 @@ import llm_client
 _SYSTEM_PROMPT = """당신은 꽃집(온천꽃식물원) 주문 문자/통화의 정규화된 텍스트에서
 정형 필드를 뽑는 담당자입니다. 아래 필드를 채우세요:
 recipient_org, recipient_name, recipient_title, sender_org, sender_name, sender_title,
-event, amount_krw(정수, 원 단위), product, ribbon_phrase_raw.
+event, amount_krw(정수, 원 단위), product, ribbon_phrase_raw,
+delivery_date(YYYY-MM-DD), delivery_time(HH:MM), delivery_address, delivery_phone.
+명시적 받는/보내는 레이블이 위치 관례보다 우선합니다. 배송정보는 해당 주문에 속하는 값만 추출합니다.
+상대 날짜는 기준일이 없어 확정할 수 없으면 null. field_evidence에 필드별 정확한 원문 발췌를 기록합니다.
+발췌가 없으면 신뢰도 0과 null로 남깁니다.
 
 가장 중요한 원칙 (반드시 지킬 것):
 - recipient_name/sender_name도 이제 채워보세요 — 다른 필드와 같은 위치 관례를
@@ -117,6 +121,7 @@ FIELDS = [
     "recipient_org", "recipient_name", "recipient_title",
     "sender_org", "sender_name", "sender_title",
     "event", "amount_krw", "product", "ribbon_phrase_raw",
+    "delivery_date", "delivery_time", "delivery_address", "delivery_phone",
 ]
 
 
