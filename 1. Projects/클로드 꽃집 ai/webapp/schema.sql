@@ -41,3 +41,8 @@ CREATE TABLE IF NOT EXISTS intakes (
  created_at timestamptz NOT NULL DEFAULT now()
 );
 INSERT INTO schema_versions(version) VALUES (2) ON CONFLICT DO NOTHING;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS attempt_token text;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS lease_until timestamptz;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS review_draft jsonb;
+INSERT INTO schema_versions(version) VALUES (3) ON CONFLICT DO NOTHING;

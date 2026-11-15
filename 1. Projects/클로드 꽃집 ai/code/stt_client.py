@@ -69,7 +69,7 @@ def _get_client():
         raise STTUnavailableError("OPENAI_API_KEY가 없음 (code/.env 또는 Render Environment 확인 필요)")
     import openai  # 지연 import - 키 없는 환경(예: 테스트)에서도 이 파일 자체는 import 가능하게
 
-    _client = openai.OpenAI()
+    _client = openai.OpenAI(timeout=20.0, max_retries=0)
     return _client
 
 

@@ -50,41 +50,55 @@ def register(app, web):
         return web.render_page(web.BASE_STYLE+'<h1>문의 접수 기록</h1><form method="post" enctype="multipart/form-data"><textarea name="raw_text" aria-label="원문"></textarea><input type="file" name="audio" accept="audio/*"><button>접수·분석</button></form>'+links)
 
     def analyze(iid):
-        # Lock before any AI invocation: concurrent retries cannot create duplicate orders.
+        from analysis_worker import bounded
+        from evidence import enrich
+        token = uuid.uuid4().hex
         with database.connect() as conn:
             row=conn.execute('SELECT * FROM intakes WHERE id=%s FOR UPDATE',(iid,)).fetchone()
-            if row['state'] in {'ready','manual'}: return
-            try:
-                text=row['raw_text']
-                if row['audio']:
-                    tr=web.transcription_bot.transcribe(raw_audio=bytes(row['audio']))
-                    if not tr['engine_meta']['real_api_connected']: raise ValueError('transcription')
-                    text=tr['stt_text']
-                cls=web.ocb.classify_order(text)
-                split=web.osb.split_order(text)
-                analysis={'classification':cls,'split':split,'text':text}
-                # Existing bots signal fallback in metadata; never hide this from the operator.
-                if 'LLM' in json.dumps(analysis,ensure_ascii=False): raise ValueError('fallback')
-                if cls['order_classification'] in web.STOP_CLASSIFICATIONS:
-                    state='non_order'
-                elif split['split_status']!='완료' or any(float(s.get('split_confidence', 1)) < 0.7 for s in split['order_segments']): state='needs_split'
-                else:
-                    proposals=[]
-                    for seg in split['order_segments']:
-                        correction=web.correction_bot.correct_text(seg['segment_text'])
-                        draft=web.order_draft_bot.build_draft(correction['normalized_text'])
-                        ribbon=web.ribbon_price_bot.process_ribbon_and_price(draft['order_draft'],correction['normalized_text'])
-                        proposals.append({'segment':seg,'correction':correction,'draft':draft,'ribbon':ribbon})
-                    analysis['proposals']=proposals
-                    if 'LLM' in json.dumps(proposals,ensure_ascii=False): raise ValueError('fallback')
-                    with conn.transaction():
-                        save_orders(conn,iid,proposals,text)
-                    state='ready'
-                conn.execute('UPDATE intakes SET state=%s,analysis=%s WHERE id=%s',(state,Jsonb(analysis),iid))
-            except Exception as exc:
-                import psycopg
-                if isinstance(exc, psycopg.Error): raise
-                conn.execute("UPDATE intakes SET state='error',analysis=%s WHERE id=%s",(Jsonb({'error':'AI 분석 실패 또는 응답 검증 실패. 수동 접수하거나 재시도해주세요.'}),iid))
+            if not row: abort(404)
+            if row['state'] in {'ready','manual','non_order'}: return
+            if row['state']=='processing' and row['lease_until']:
+                active=conn.execute('SELECT %s > now() AS active',(row['lease_until'],)).fetchone()['active']
+                if active: return
+            if row['attempts'] >= 3: return
+            conn.execute("UPDATE intakes SET state='processing',attempt_token=%s, attempts=attempts+1,lease_until=now()+interval '150 seconds' WHERE id=%s",(token,iid))
+        # No connection/transaction stays open while the isolated AI worker runs.
+        def compute():
+            text=row['raw_text']
+            if row['audio']:
+                tr=web.transcription_bot.transcribe(raw_audio=bytes(row['audio']))
+                if not tr['engine_meta']['real_api_connected']: raise ValueError('transcription')
+                text=tr['stt_text']
+            cls=web.ocb.classify_order(text)
+            analysis={'classification':cls,'text':text}
+            if cls['order_classification'] in web.STOP_CLASSIFICATIONS:
+                return 'non_order', analysis
+            split=web.osb.split_order(text)
+            analysis['split']=split
+            if 'LLM' in json.dumps(analysis,ensure_ascii=False): raise ValueError('fallback')
+            if split['split_status']!='완료' or any(float(s.get('split_confidence',1))<.7 for s in split['order_segments']):
+                return 'needs_split', analysis
+            proposals=[]
+            for seg in split['order_segments']:
+                correction=web.correction_bot.correct_text(seg['segment_text'])
+                draft=web.order_draft_bot.build_draft(correction['normalized_text'])
+                draft=enrich(draft,seg['segment_text'])
+                ribbon=web.ribbon_price_bot.process_ribbon_and_price(draft['order_draft'],correction['normalized_text'])
+                proposals.append({'segment':seg,'correction':correction,'draft':draft,'ribbon':ribbon})
+            if not proposals or len(proposals)>30: raise ValueError('count')
+            analysis['proposals']=proposals
+            if 'LLM' in json.dumps(proposals,ensure_ascii=False): raise ValueError('fallback')
+            return 'ready',analysis
+        try:
+            state,analysis=bounded(compute)
+        except Exception:
+            state,analysis='error',{'error':'AI 분석 실패 또는 시간 초과. 최대 3회 재시도하거나 수동 접수해주세요.'}
+        with database.connect() as conn:
+            current=conn.execute('SELECT * FROM intakes WHERE id=%s FOR UPDATE',(iid,)).fetchone()
+            if current['attempt_token'] != token or current['state'] != 'processing': return
+            if state=='ready':
+                with conn.transaction(): save_orders(conn,iid,analysis['proposals'],analysis['text'])
+            conn.execute('UPDATE intakes SET state=%s,analysis=%s,attempt_token=NULL,lease_until=NULL WHERE id=%s',(state,Jsonb(analysis),iid))
 
     def save_orders(conn,iid,proposals,text):
         if not proposals or len(proposals)>30: raise ValueError('count')
@@ -94,10 +108,14 @@ def register(app, web):
                      'source_type':'intake','draft':fields,'ribbon':p['ribbon'],
                      'review':{'review_priority':'노랑','review_checklist':['받는 분·보내는 분·금액·배송정보를 원문과 대조하세요.']},
                      'bundle_id':iid,'bundle_sequence':{'index':index,'total':len(proposals)},
-                     'intake_id':iid,'field_confidence':p['draft'].get('field_confidence',{})}
+                     'intake_id':iid,'field_confidence':p['draft'].get('field_confidence',{}),
+                     'field_evidence':p['draft'].get('field_evidence',{}),
+                     'field_sources':p['draft'].get('field_sources',{})}
             pid=uuid.uuid4().hex
             conn.execute('INSERT INTO orders(id,payload) VALUES (%s,%s)',(pid,Jsonb(payload)))
             database.event(conn,pid,g.user['id'],'received',{'intake_id':iid})
+
+    app.extensions['analyze_intake'] = analyze
 
     @app.route('/intake/<iid>',methods=['GET','POST'])
     def intake_detail(iid):
@@ -113,7 +131,7 @@ def register(app, web):
                     if row['state'] in {'ready','manual'}: return '이미 주문 생성됨',409
                     proposals=[{'segment':{'segment_text':s},'draft':{'order_draft':{}},'ribbon':{}} for s in segments]
                     save_orders(conn,iid,proposals,row['raw_text'])
-                    conn.execute("UPDATE intakes SET state='manual' WHERE id=%s",(iid,))
+                    conn.execute("UPDATE intakes SET state='manual',attempt_token=NULL,lease_until=NULL WHERE id=%s",(iid,))
             return redirect(url_for('intake_detail',iid=iid))
         with database.connect() as conn:
             row=conn.execute('SELECT * FROM intakes WHERE id=%s',(iid,)).fetchone()

@@ -166,9 +166,17 @@ def detail(pid):
         fields = dict(o['draft'])
         fields['price'] = o['ribbon'].get('price')
         fields['ribbon_message_final'] = o['ribbon'].get('ribbon_message_final')
-        inputs = ''.join(f'<label>{escape(label)}<input name="field_{key}" value="{escape(str(fields.get(key) or ""))}"></label>' for key,label in intake.FIELDS.items())
-        return render_page(BASE_STYLE + '<h1>個別注文 검수</h1>'.replace('個別注文','개별 주문') +
-            f'<pre>{escape(o["normalized_text"])}</pre><p>이름 역할과 금액을 직접 확인하세요.</p><form method="post" action="/order/{pid}/approve"><input type="hidden" name="version" value="{o["version"]}">'+inputs+
+        fields.update(o.get('review_draft') or {})
+        inputs = ''
+        for key,label in intake.FIELDS.items():
+            source_key={'price':'amount_krw','ribbon_message_final':'ribbon_phrase_raw'}.get(key,key)
+            conf=o.get('field_confidence',{}).get(source_key,0)
+            evidence=o.get('field_evidence',{}).get(source_key) or '원문 근거 확인 필요'
+            inputs += (f'<div class="field"><label>{escape(label)}</label><input name="field_{key}" value="{escape(str(fields.get(key) or ""))}">'
+                       f'<p class="note">신뢰도 {float(conf):.0%} · 원문: {escape(str(evidence))}</p></div>')
+        return render_page(BASE_STYLE + '<h1>개별 주문 검수</h1>' +
+            f'<pre>{escape(o["normalized_text"])}</pre><p>이름 역할과 금액을 직접 확인하세요. 저장된 초안이 있으면 복원됩니다.</p><form method="post" action="/order/{pid}/approve"><input type="hidden" name="version" value="{o["version"]}">'+inputs+
+            f'<button formnovalidate formaction="/order/{pid}/draft">초안 임시 저장</button>'+
             '<label><input type="checkbox" name="reviewed" value="yes" required>원문과 받는 분·보내는 분·금액·배송정보를 대조했습니다.</label><button>주문 확정</button></form>')
     draft = o["draft"]
     confidence = o.get("field_confidence") or {}
@@ -279,6 +287,17 @@ def reject(pid):
     except database.Conflict as exc:
         return str(exc), 409
     return redirect(url_for("index"))
+
+
+@app.post('/order/<pid>/draft')
+def save_draft(pid):
+    import intake
+    fields={k:request.form.get('field_'+k,'').strip() for k in intake.FIELDS}
+    try:
+        database.save_review(pid,int(request.form.get('version','0')),g.user['id'],fields)
+    except ValueError: abort(400)
+    except database.Conflict as exc: return str(exc),409
+    return redirect(url_for('detail',pid=pid))
 
 
 import intake

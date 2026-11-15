@@ -72,7 +72,7 @@ def _get_client():
         raise LLMUnavailableError("ANTHROPIC_API_KEY가 없음 (code/.env 확인 필요)")
     import anthropic  # 지연 import - 키가 없는 환경(예: 테스트)에서도 이 파일 자체는 import 가능하게
 
-    _client = anthropic.Anthropic()
+    _client = anthropic.Anthropic(timeout=20.0, max_retries=0)
     return _client
 
 
