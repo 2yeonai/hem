@@ -79,6 +79,40 @@
 
 ## 7. 작업 로그 (최신순)
 
+### 2026-11-16 — PR #3 브라우저 통합 실패 해결
+
+- headless-shell single-process 강제 옵션 제거 후 로그인 POST 302 → / → 200 확인. 로컬 development 쿠키 Secure=false/HttpOnly=true 검증. CSRF/권한/CSP 약화 없음.
+- UUID 키 순서로 대기열이 불안정한 문제를 created 순 정렬로 수정.
+- 실제 SW/IndexedDB 브라우저 종단: 두 건 공유·잔여 유지·만료 재로그인·오프라인 복구·종료 후 복원·삭제·가상 wav/중복 PASS.
+- HTTP 응답과 경로·실패 스크린샷 진단, 격리 test DB/합성 계정 생성 확인용 tests/run_galaxy_browser.sh 추가.
+- 공유 8개 검사와 fake-indexeddb 상태 검사 재통과. PostgreSQL 회귀 결과와 재현법은 GALAXY_SHARE.md 마지막 구역.
+- 실제 S25/HTTPS 실기기 설치·공유 메뉴는 승인된 별도 시험환경에서 검증할 항목. 무료 우선 Render 계획 유지, 배포·연결·병합·유료호출 미실행.
+
+
+### 2026-11-16 — PR #3 설치·공유 대기열 보완
+
+- 192/512 PNG 아이콘과 매니페스트, 설치 기본요건/설치 이벤트 UI 보완.
+- UUID별 IndexedDB 다건 대기열, pending/sending/retry/completed/deleted 구분, 완료·삭제 시 내용 제거. 미접수 자료 자동 삭제 없음. 기존 1건 데이터 이관 경로 유지.
+- 기존 PostgreSQL 57개 재실행: 57 passed in 25.91s. 공유 프로토콜 8 checks PASS, fake-indexeddb 대기열/상태 검사 PASS.
+- 별도 headless-shell 환경에서 Playwright 브라우저 시작 성공, 로그인 후 이동 대기에서 timeout 실패. 로그인 만료/오프라인/브라우저 재시작 종단 검증은 미통과다. 테스트 스크립트는 보존.
+- 실제 S25 설치·공유 메뉴·연속 공유·재로그인·통신 복구·종료 후 복원 절차와 격리 HTTPS 무료 우선 배포 계획은 GALAXY_SHARE.md 마지막 구역 참조.
+- 배포/외부 서비스 연결/유료 호출/main 병합/실제 고객정보/3단계 개발 미실행.
+- 다음 시작: PR #3 브라우저 로그인 이동 실패를 진단하고, 승인 후 별도 시험 DB/서비스에서 합성자료로 실기기 검증.
+
+
+### 2026-11-16 — 갤럭시 공유 수신 최소 프로토타입
+
+- 브랜치: `work/flower-galaxy-share-20261116`, PR은 이 브랜치의 별도 Draft.
+- 기준: 최신 PR #2 c6ba568, 2단계 로컬 검증 53개 완료 상태를 재확인했다.
+- 구현: 설치형 Chrome 웹앱 공유 수신, 녹음/전사문 기기 임시 보관, 로그인·CSRF 확인 후 기존 접수 연결. 자동 전화 감지·삼성 녹음 자동 접근은 구현하지 않았다.
+- 변경: webapp/galaxy.py, static/galaxy/, app.py, security.py, tests/test_galaxy.py 및 JS 검증 스크립트.
+- 검증: 별도 PostgreSQL에서 pytest 전체 57 passed in 25.96s. Node 공유 프로토콜 8 checks PASS. Python 컴파일·diff 검사 PASS.
+- 브라우저 통합은 OS 소켓 제한으로 시작 실패. 갤럭시 실기기·공유 메뉴·IndexedDB 종단 검증은 미통과/미실행으로 남긴다.
+- 조사·설치법·비용·제약·다음 검증: `webapp/GALAXY_SHARE.md`.
+- 실제 고객 자료·유료 API·운영 배포·main 병합·이력 삭제는 실행하지 않았다.
+- 다음 시작: 이 Draft와 GALAXY_SHARE.md를 읽고 승인된 시험 환경에서 S25 가상 파일 공유를 실기기 검증한다. 3단계 구현과는 별도다.
+
+
 ### 2026-11-16 — PR #2 보완 로컬 구현 완료 보고 및 다음 단계 전환
 
 - 브랜치: `work/flower-stage2-20261116`; PR: https://github.com/2yeonai/hem/pull/2

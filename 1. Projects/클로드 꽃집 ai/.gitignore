@@ -15,3 +15,5 @@ flower_orders.json
 uploads/
 private/
 .pytest_cache/
+
+webapp/tests/artifacts/
