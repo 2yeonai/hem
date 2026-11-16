@@ -125,4 +125,37 @@ headless-shell을 별도 추출해 ICU/V8 자료를 보완한 후 브라우저 �
 테스트 재현: 격리 Flask/PG 서버와 합성 계정을 준비해 TEST_CHROMIUM에 실행 가능한 Chrome 경로를 제공하고
 node tests/galaxy_queue_browser.cjs 실행. playwright 필요. 단위검사는 fake-indexeddb 설치 후 node tests/galaxy_queue.cjs.
 
+## Playwright 로그인 실패 해결 및 종단 통과 — 2026-11-16
+
+이전 timeout은 waitForURL 패턴이나 계정 오류가 아니라 headless-shell에 강제 적용한
+`--single-process` 실행 모드에서 로그인 버튼 이후 POST/탐색이 진행되지 않던 문제로 재현했다.
+해당 옵션을 제거해 다중 프로세스로 실행하자 POST /login 302, Location /, GET / 200으로 정상 진행했다.
+앱의 보안 정책은 완화하지 않았다. 로컬 APP_ENV=development에서 Secure=false, HttpOnly=true 쿠키를 확인했다.
+운영은 APP_ENV를 development로 두지 않고 HTTPS/Secure 쿠키를 사용한다.
+
+추가 발견: IndexedDB getAll은 UUID 키 순서이므로 먼저 공유한 순서가 달라질 수 있었다.
+store.js를 created 오름차순으로 정렬해 첫 미접수 자료 선택을 안정화했다.
+
+실제 headless-shell Playwright + Flask + 격리 PostgreSQL 종단 PASS:
+텍스트/가상 wav 공유, 연속 두 건 보존, 한 건 완료 후 잔여 유지, 로그인 쿠키 만료 후 302 /login,
+재로그인 후 재시도, offline 전송 실패 retry 유지, online 복구, persistent profile 브라우저 종료/재실행 복원,
+자료 삭제, 동일 wav 재전송 시 같은 접수 경로 확인.
+가상 wav는 실제 오디오 인식 성공의 증거가 아니다. 실제 유료 STT/AI 호출은 없었다.
+
+로그인 진단은 POST 응답을 직접 기다리고 302/Location을 검사한다. 일반 **/ glob만으로 성공 판정하지 않는다.
+실패 시 HTTP 메서드/경로/상태/리다이렉트(접수 식별자 마스킹), 현재 경로, 합성 화면 스크린샷을 남긴다.
+원문·쿠키 값·비밀번호는 로그에 출력하지 않는다. 신규 run_galaxy_browser.sh는 loopback test DB만 허용하고
+임의 스키마에 합성 계정을 생성·조회 확인하며 tests/artifacts에 시험 로그를 남긴다. 해당 폴더는 Git 제외다.
+Playwright 및 실행 가능한 headless-shell, Python/Flask/psycopg, 로컬 시험 PG를 준비하고 webapp에서
+TEST_DATABASE_URL, TEST_CHROMIUM, 선택적 PYTHON_BIN을 환경변수로 제공한 후 bash tests/run_galaxy_browser.sh.
+서버 5099 포트 충돌 여부를 확인한다. 테스트 스키마는 점검을 위해 보존하며 해당 스키마만 별도 정리한다.
+
+별도 HTTPS 시험은 위 Render 무료 우선 계획 그대로 승인 대기다. 운영과 다른 서비스/DB/계정/SECRET_KEY,
+빈 외부 AI 키, 가상 입력만 사용하며 비용은 무료 할당 가능 여부에 달려 있다.
+실제 S25 설치·OS 공유 메뉴·모바일 브라우저 저장소 지속성은 여전히 실기기 확인 필요.
+운영 배포/main 병합/실제 고객정보 사용/외부 서비스 연결은 하지 않았다.
+
+최종 회귀 재실행: PostgreSQL **57 passed in 40.74s**, 공유 프로토콜 **8 checks PASS**,
+fake-indexeddb 대기열 상태 검사 PASS. Python 컴파일·git diff --check PASS.
+
 <!-- ok -->

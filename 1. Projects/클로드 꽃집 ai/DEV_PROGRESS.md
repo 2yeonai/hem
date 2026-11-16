@@ -79,6 +79,16 @@
 
 ## 7. 작업 로그 (최신순)
 
+### 2026-11-16 — PR #3 브라우저 통합 실패 해결
+
+- headless-shell single-process 강제 옵션 제거 후 로그인 POST 302 → / → 200 확인. 로컬 development 쿠키 Secure=false/HttpOnly=true 검증. CSRF/권한/CSP 약화 없음.
+- UUID 키 순서로 대기열이 불안정한 문제를 created 순 정렬로 수정.
+- 실제 SW/IndexedDB 브라우저 종단: 두 건 공유·잔여 유지·만료 재로그인·오프라인 복구·종료 후 복원·삭제·가상 wav/중복 PASS.
+- HTTP 응답과 경로·실패 스크린샷 진단, 격리 test DB/합성 계정 생성 확인용 tests/run_galaxy_browser.sh 추가.
+- 공유 8개 검사와 fake-indexeddb 상태 검사 재통과. PostgreSQL 회귀 결과와 재현법은 GALAXY_SHARE.md 마지막 구역.
+- 실제 S25/HTTPS 실기기 설치·공유 메뉴는 승인된 별도 시험환경에서 검증할 항목. 무료 우선 Render 계획 유지, 배포·연결·병합·유료호출 미실행.
+
+
 ### 2026-11-16 — PR #3 설치·공유 대기열 보완
 
 - 192/512 PNG 아이콘과 매니페스트, 설치 기본요건/설치 이벤트 UI 보완.

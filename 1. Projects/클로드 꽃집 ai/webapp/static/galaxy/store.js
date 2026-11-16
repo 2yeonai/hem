@@ -11,7 +11,7 @@ async function shareStore(mode,value){const db=await openShareDB();try{return aw
   if(mode==='put'){const item={...value,id:crypto.randomUUID(),state:'pending'};s.put(item,item.id);result=item;}
   else if(mode==='update'){const r=s.get(value.id);r.onsuccess=()=>{if(r.result){result={...r.result,...value};s.put(result,value.id);}};}
   else if(mode==='delete'){const r=s.get(value);r.onsuccess=()=>{if(r.result){const {id,created}=r.result;s.put({id,created,state:'deleted',files:[],text:''},id);}};}
-  else {const r=s.getAll();r.onsuccess=()=>{result=r.result;if(old.result)result=result.filter(i=>i!==old.result);result=result.map(i=>i.id?i:{...i,id:'legacy',state:'pending'});if(mode==='get')result=result.find(i=>!['completed','deleted'].includes(i.state));};}
+  else {const r=s.getAll();r.onsuccess=()=>{result=r.result;if(old.result)result=result.filter(i=>i!==old.result);result=result.map(i=>i.id?i:{...i,id:'legacy',state:'pending'});result.sort((a,b)=>a.created-b.created||a.id.localeCompare(b.id));if(mode==='get')result=result.find(i=>!['completed','deleted'].includes(i.state));};}
  };
  tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
 });}finally{db.close();}}
