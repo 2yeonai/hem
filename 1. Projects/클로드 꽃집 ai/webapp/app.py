@@ -142,6 +142,7 @@ def index():
     html = f"""
     {BASE_STYLE}
     <form method="post" action="/logout"><button>로그아웃</button></form>
+    <a href="/galaxy">통화 공유 접수</a>
     <h1>🌸 검수 대기 ({len(items)}건)</h1>
     {cards}
     <a class="btn btn-new" href="{url_for('new_order')}">+ 새 문의 입력</a>
@@ -299,6 +300,9 @@ def save_draft(pid):
     except database.Conflict as exc: return str(exc),409
     return redirect(url_for('detail',pid=pid))
 
+
+import galaxy
+galaxy.register(app, sys.modules[__name__])
 
 import intake
 intake.register(app, sys.modules[__name__])
