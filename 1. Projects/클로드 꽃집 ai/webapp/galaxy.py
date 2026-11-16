@@ -10,7 +10,7 @@ def register(app,web):
     def galaxy_manifest():
         return jsonify(id='/galaxy',name='온천꽃 주문 전달',short_name='꽃집 전달',start_url='/galaxy',scope='/',
                        display='standalone',background_color='#f7f5ef',theme_color='#1f5c3a',
-                       icons=[{'src':'/static/galaxy/icon.svg','sizes':'any','type':'image/svg+xml','purpose':'any'}],
+                       icons=[{'src':f'/static/galaxy/icon-{n}.png','sizes':f'{n}x{n}','type':'image/png','purpose':'any'} for n in (192,512)],
                        share_target={'action':'/galaxy-share','method':'POST','enctype':'multipart/form-data',
                                      'params':{'title':'title','text':'text','files':[{'name':'files','accept':['audio/*','text/plain','.m4a','.wav','.mp3','.txt']}]}})
 
@@ -32,7 +32,7 @@ def register(app,web):
 <link rel="manifest" href="/galaxy.webmanifest"><meta name="theme-color" content="#1f5c3a">
 <h1>통화 주문 전달</h1><p>처음 한 번 Chrome 메뉴에서 앱 설치를 선택하세요. 공유 준비 후 삼성 전화/음성녹음의 공유에서 꽃집 전달을 선택하세요.</p>
 <p>기존 전화번호로 통화하고, 종료 후 녹음 또는 전사문을 공유합니다. 이 앱은 전화를 감지하거나 녹음을 자동으로 가져오지 않습니다.</p>
-<p id="status" role="status">공유 준비 중…</p>
+<button id="install" disabled>앱 설치</button><p id="install-status"></p><select id="queue" aria-label="공유 대기열"></select><p id="status" role="status">공유 준비 중…</p>
 <form id="transfer" method="post" action="/intakes" enctype="multipart/form-data">
 <label>전사문<textarea name="raw_text" id="transcript" rows="8"></textarea></label>
 <p id="file-name"></p><label><input type="checkbox" id="use-text">전사문만 보내기(별도 음성인식 생략)</label>

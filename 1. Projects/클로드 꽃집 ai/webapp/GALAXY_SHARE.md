@@ -78,4 +78,51 @@ Android TelephonyCallback의 통화 상태 감지는 READ_PHONE_STATE 권한이 
 - Android: https://developer.android.com/reference/android/telephony/TelephonyCallback.CallStateListener (통화 상태 권한)
 - Android: https://developer.android.com/reference/android/media/MediaRecorder.AudioSource (VOICE_CALL은 시스템 전용 권한 필요)
 
+## 공유 대기열·실기기 준비 보완 (2026-11-16)
+
+위 1건/24시간 삭제 설명을 대체한다. IndexedDB v2는 UUID별 여러 자료를 보관한다.
+상태 pending/sending/retry/completed/deleted를 표시하며 미접수 자료는 자동 만료시키지 않는다.
+완료·삭제 시 내용/파일을 제거하고 상태만 남긴다. 브라우저 종료 중 sending은 다시 선택해 전송할 수 있으며 기존 서버 중복검사로 재전송을 처리한다.
+이전 current 자료는 새 쓰기 시 legacy 행으로 이관한다. 기기 데이터 지우기/저장소 퇴거는 복구할 수 없다.
+완전 오프라인에서 앱을 새로 여는 기능은 미구현이다. 열린 화면에서 실패 시 자료를 유지하고 연결 복구 후 재조회한다.
+
+192/512 PNG 아이콘, HTTPS·service worker·IndexedDB·매니페스트 입력 점검과 beforeinstallprompt 설치 버튼을 추가했다.
+Chrome 자체 설치 판정/실제 공유 대상 노출은 기기 검증으로 확정해야 한다.
+
+### 운영과 격리된 HTTPS 시험 배포 계획 — 승인 전 실행 금지
+
+무료 우선 후보: Render Free Web Service + 별도의 Free PostgreSQL.
+공식 https://render.com/docs/free 에 따르면 무료 DB는 30일 만료이며 웹서비스는 재시작/절전될 수 있다.
+현재 계정 무료 할당 사용 여부는 미확인, 부족하면 가입/유료 전환 없이 중단하고 결정받는다.
+새 테스트 서비스·DB·DB사용자·무작위 SECRET_KEY·시험 계정만 사용하고 운영 DB URL/키/사용자·백업은 복사하지 않는다.
+자동 배포는 끄고 승인한 PR #3 커밋을 고정한다. 시험 앱은 외부 AI 키를 비워 유료 호출을 방지한다.
+인스턴스 최초 승인 후 테스트 DB에만 init-db/create-user 실행, 합성 입력만 허용한다.
+서버 HTTPS URL을 기록하고 접수/관리 화면 로그인 필요 여부 확인 후 S25에서 시험한다.
+합성 오디오는 실제 STT 성공 대신 오류/수동 접수 경로를 검증한다. 클라우드 AI 정확도 시험은 별도 승인 범위다.
+시험 종료 후 테스트 자원 정리도 소유자 확인 후 수행한다. 이번 작업에서는 서비스 연결/배포하지 않았다.
+
+### 갤럭시 S25 이상 실기기 시험표
+
+준비: 국내 모델명/One UI/Chrome/전화앱 버전, 시험 URL·커밋 기록. 실제 연락처·고객 통화 금지.
+1. Chrome 일반 창(시크릿 제외)으로 HTTPS 시험 URL 로그인 → /galaxy → 설치 기본요건 메시지 확인.
+2. 앱 설치 선택, 홈 화면 아이콘 실행. 아이콘/앱 이름과 독립 창 확인. DevTools Manifest 오류도 기록.
+3. 합성 전사문 '가상 주문 A'와 '가상 주문 B'를 차례로 공유 → 꽃집 전달. 대기열 두 건 유지 확인.
+4. 첫 자료만 접수, 두 번째 자료 유지 및 첫 자료 completed 확인. 서버 접수 수와 대조.
+5. 합성 녹음 m4a/wav 한 건과 txt 한 건을 공유. 파일명/본문 확인. 전사문만 보내기도 별도 확인.
+6. 시험 계정 로그아웃 후 미접수 자료 전송 → 실패/재시도 상태 확인. 재로그인 후 복원·재접수.
+7. 미접수 자료 선택 후 비행기모드로 전송 → 실패 유지. 온라인 복귀·새로고침 후 복원.
+8. 두 건 대기 중 앱 종료/Chrome 강제 종료 → 다시 열어 내용·파일·상태 복원. 저장소 삭제는 하지 않음.
+9. 자료 한 건 삭제 → deleted와 내용 제거 확인, 나머지 자료 유지. 동일 자료 재전송 시 서버 중복 증가 없음 확인.
+10. 실제 S25 공유 메뉴에서 앱 미노출이면 설치 방식·서비스워커 제어·MIME·앱 버전을 기록. 통과로 처리하지 않음.
+각 단계 결과/화면은 합성 데이터만 촬영해 PASS/FAIL/기기·시간과 함께 남긴다.
+
+
+### 이번 검증 결과
+
+PostgreSQL 57 passed in 25.91s, 공유 프로토콜 8 checks PASS, fake-indexeddb 대기열 상태 검사 PASS.
+headless-shell을 별도 추출해 ICU/V8 자료를 보완한 후 브라우저 시작은 성공했으나 Playwright 로그인 이동에서 30초 timeout.
+따라서 로그인 만료·인터넷 끊김·브라우저 재시작 자료복원은 구현/시험 스크립트 제공 상태이며 실제 브라우저 통과가 아니다.
+테스트 재현: 격리 Flask/PG 서버와 합성 계정을 준비해 TEST_CHROMIUM에 실행 가능한 Chrome 경로를 제공하고
+node tests/galaxy_queue_browser.cjs 실행. playwright 필요. 단위검사는 fake-indexeddb 설치 후 node tests/galaxy_queue.cjs.
+
 <!-- ok -->
